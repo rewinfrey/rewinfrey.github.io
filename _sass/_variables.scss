@@ -4,12 +4,22 @@ $regular: 400;
 $bold:    600;
 
 // Base Font
-$base-font: $regular 100%/1.65 "Helvetica Neue", Helvetica, sans-serif;
+$base-font: $regular 100%/1.65 "Lato", Helvetica, sans-serif;
 
 // Header Font
-$header-font: $bold 100%/1.25 "Helvetica Neue", Helvetica, sans-serif;
+$header-font: $bold 100%/1.25 "Lato", Helvetica, sans-serif;
+
+// Header
+$header-height: 3em;
+$header-margin: 1em;
 
 // Colors
+$slate-blue:  rgb(127,157,157);
+$slate-green: rgb(144,157,151);
+$aqua:        rgb(4,245,173);
+$read-orange: rgb(240,148,105);
+$unread-gray: rgb(235,235,235);
+$lilac:       rgb(177,165,247);
 $header-color:         #655d56;
 $body-color:           #fff;
 $border-light:         #eee;
@@ -40,7 +50,7 @@ $secondary-button-hover:         #d6d6d6;
 $secondary-button-border:        darken(#e8e8e8, 15%);
 
 // Grid
-$content-width: 32em;
+$content-width: 58em;
 
 // Mobile 672px
 $mobile: "(max-width: 42em)";

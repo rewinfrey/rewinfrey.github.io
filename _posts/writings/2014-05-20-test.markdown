@@ -1,0 +1,14 @@
+---
+layout: writing
+group: Writings
+title:  "Using Light-Service"
+date:   2014-05-19 23:04:07
+categories:
+- writings
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce et dignissim nisi. Proin gravida purus vel justo ultrices interdum eget id erat. Duis molestie ultrices massa, id facilisis arcu pretium ac. Curabitur sodales adipiscing neque vel dictum. Vivamus ultrices arcu diam, in sollicitudin nulla interdum sed. Fusce pulvinar fermentum felis, ornare tempus ante consequat non. Phasellus laoreet rhoncus commodo. Cras rhoncus molestie vehicula. Aliquam vitae accumsan nisl, quis imperdiet elit. In porta est a mattis euismod.
+
+Aliquam euismod id lectus ac laoreet. Nam hendrerit laoreet sodales. Donec tellus metus, rhoncus mollis sodales sed, eleifend eget libero. Proin accumsan viverra felis, sed luctus sem rutrum congue. Etiam eget vehicula enim. Nunc non sodales quam, vulputate consequat lorem. Phasellus sit amet risus placerat, varius ante quis, ornare odio. Vivamus et lacus velit. Aliquam luctus blandit velit, pulvinar aliquet purus auctor vel. Maecenas tincidunt, lacus eget posuere molestie, enim ante malesuada dolor, ac semper erat nisl luctus nisi. Nunc fermentum augue vitae elit dignissim, ac tincidunt erat fringilla. Morbi egestas a ligula quis ullamcorper. Pellentesque aliquet in diam at pellentesque.
+
+<script src="https://gist.github.com/rewinfrey/5794d2a41f20771aa9e7.js"></script>

@@ -1,0 +1,29 @@
+---
+layout: default
+---
+
+<div class="book-info">
+  <h1><a href="{{ page.book-url }}" target="_blank">{{ page.title }}</a></h1>
+  <h2>{{ page.subtitle }}</h2>
+  <h3 class="author">{{ page.author }}</h3>
+</div>
+<ul class="progress-bar">
+  {% assign pages_per_segment = page.pages | divided_by: site.reading_progress_segments %}
+  {% for current_page_segment in (1..site.reading_progress_segments) %}
+    {% assign start_page_for_current_page_segment = pages_per_segment | times: forloop.index %}
+     <li>
+      {% if page.current-page > start_page_for_current_page_segment %}
+        <span class="read"></span>
+      {% else %}
+        <span class="unread"></span>
+      {% endif %}
+     </li>
+ {% endfor %}
+</ul>
+{% assign percentage = page.current-page | times: 100 | divided_by: page.pages %}
+<div class="complete">{{ percentage }}% read</div>
+<div>
+  <article>
+    {{ content }}
+  </article>
+</div>

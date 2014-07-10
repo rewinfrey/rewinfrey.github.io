@@ -1,2 +1,10 @@
 <header>
+  <div class="header-container">
+    <h1>Rick Winfrey<span>.</span></h1>
+    <ul>
+      {% for heading in site.headings %}
+      <li {% if heading == page.group %}class="current"{% endif %}><a href="{{ heading | downcase | prepend: site.baseurl }}">{{ heading }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
 </header>

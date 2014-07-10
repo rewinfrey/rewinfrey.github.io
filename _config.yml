@@ -1,12 +1,19 @@
 # Site settings
-name: Adam Kaplan
-title: Grid Retrospective
-description: "A simple guide to responsive design."
-baseurl: ""
+name: Rick Winfrey
+email: rick.winfrey@gmail.com
+title: "Rick Winfrey"
+description: "Rick Winfrey"
+baseurl: "/"
 
+headings: ["About", "Projects", "Readings", "Writings"]
+
+reading_progress_segments: 20
 # Build settings
 markdown: kramdown
-permalinks: pretty
+permalinks: /:categories/:title
+
+# http://en.wikipedia.org/wiki/Words_per_minute#Reading_and_comprehension
+words_per_minute: 180
 
 # Sass settings
 sass:
