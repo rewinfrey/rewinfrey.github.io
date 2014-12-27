@@ -1,0 +1,10 @@
+<header>
+  <div class="container">
+    <a class="site-title" href="/">Selfless::Singleton</a>
+    <ul>
+      {% for heading in site.headings %}
+      <li {% if heading == page.group %}class="current"{% endif %}><a href="{{ heading | downcase | prepend: site.baseurl }}">{{ heading }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</header>

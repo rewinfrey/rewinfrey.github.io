@@ -1,0 +1,17 @@
+# Site settings
+name: Rick Winfrey
+email: rick.winfrey@gmail.com
+title: "Rick Winfrey"
+description: "Rick Winfrey"
+baseurl: "/"
+
+markdown: kramdown
+permalinks: /:categories/:title
+
+# http://en.wikipedia.org/wiki/Words_per_minute#Reading_and_comprehension
+words_per_minute: 180
+headings: ["About", "Writings"]
+
+# Sass settings
+sass:
+  style: :compressed

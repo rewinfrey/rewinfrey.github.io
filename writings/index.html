@@ -1,0 +1,29 @@
+---
+layout: default
+group: Writings
+title: Writings
+---
+
+<ul class="posts">
+  {% for post in site.categories['writings'] limit 10 %}
+    <li>
+      <h1 class="title">
+        <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a>
+      </h1>
+      {% assign read_time = post.content | number_of_words | divided_by: site.words_per_minute %}
+      <span class="date">{{ post.date | date: "%Y %b %d" }}</span>
+      <span class="read-time">
+        reading time ~
+        {% if read_time == 0 %}
+          1 minute
+        {% else %}
+         {{ read_time }} minutes
+        {% endif %}
+        ({{ post.content | number_of_words }} words)
+      </span>
+      <div class="content-preview">
+        <p>{{ post.content | strip_html | truncatewords: 75, '...' }}</p>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
