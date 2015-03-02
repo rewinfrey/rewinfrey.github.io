@@ -3,11 +3,12 @@ name: Rick Winfrey
 email: rick.winfrey@gmail.com
 title: "Rick Winfrey"
 description: "Rick Winfrey"
+baseurl: "/"
 
 #host: '127.0.0.1'
 
 markdown: kramdown
-#permalinks: /:categories/:title
+permalinks: /:categories/:title
 
 # http://en.wikipedia.org/wiki/Words_per_minute#Reading_and_comprehension
 words_per_minute: 180
@@ -15,7 +16,6 @@ headings: ["About", "Writings"]
 
 # Sass settings
 sass:
-  sass_dir: _sass
   style: :compressed
 
 # code highlighting
