@@ -5,6 +5,8 @@ title: "Rick Winfrey"
 description: "Rick Winfrey"
 baseurl: "/"
 
+host: '127.0.0.1'
+
 markdown: kramdown
 permalinks: /:categories/:title
 
@@ -17,4 +19,4 @@ sass:
   style: :compressed
 
 # code highlighting
-highlighter: rouge
+highlighter: pygments
