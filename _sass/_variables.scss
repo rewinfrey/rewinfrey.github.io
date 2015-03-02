@@ -1,9 +1,10 @@
 // Font Weights
 $light:   300;
 $regular: 400;
-$bold:    600;
+$bold:    700;
 
 // Header
+$header-width: 1400px;
 $header-height: 3em;
 $header-margin: 1em;
 
@@ -14,9 +15,10 @@ $font-size: 1.0em;
 $line-height: 1.5em;
 
 // Colors
-$base-color:        #5C6773;
 $header-text-color: #fff;
-$link:              #ff483a;
+$base-color:        #8594A5;
+$secondary-color:   #25C09D;
+$link:              #25C09D;
 
 // Grid
 $content-width: 62em;

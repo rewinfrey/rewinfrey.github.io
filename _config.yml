@@ -15,3 +15,6 @@ headings: ["About", "Writings"]
 # Sass settings
 sass:
   style: :compressed
+
+# code highlighting
+highlighter: rouge
