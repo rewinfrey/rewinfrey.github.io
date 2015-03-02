@@ -20,3 +20,5 @@ sass:
 
 # code highlighting
 highlighter: pygments
+
+exclude: ['vendor']
