@@ -20,6 +20,22 @@ dt {
   line-height: 1.5em;
 }
 
+.play {
+  .idea {
+    width: 100%;
+    margin-bottom: 4em;
+  }
+  img {
+    width: 820px;
+  }
+  h1 {
+    color: $base-color;
+    text-align: center;
+    width: 100%;
+    border-bottom: 1px solid #eceef1;
+  }
+}
+
 .resume {
   h1 {
     color: $base-color;
