@@ -1,10 +1,10 @@
 ---
 layout: writing
-group: Writings
+group: Writings-In-Progress
 title:  "Introducing Light-Service"
 date:   2014-11-19 23:04:07
 categories:
-- writings
+- writings-in-progress
 ---
 
 Who is this post for?

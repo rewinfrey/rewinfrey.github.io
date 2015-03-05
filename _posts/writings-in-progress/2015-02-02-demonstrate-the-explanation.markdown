@@ -1,10 +1,10 @@
 ---
 layout: writing
-group: Writings
+group: Writings-In-Progress
 title:  "Demonstrating the Explanation"
 date:   2015-02-02 23:04:07
 categories:
-- writings
+- writings-in-progress
 ---
 <p>
 Many times in the past I've found myself wearing the "explainer" hat, to

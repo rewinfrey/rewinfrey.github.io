@@ -1,19 +1,16 @@
 ---
 layout: writing
-group: Writings
+group: Writings-In-Progress
 title:  "Introducing Light-Service"
 date:   2014-11-19 23:04:07
 categories:
-- writings
+- writings-in-progress
 ---
-<div class="abstract">
-  <h4>You may find this interesting if you are...</h4>
-  <ul>
-    <li><span>A Rails developer interested in abstracting business logic from your application code / web framework</span></li>
-    <li><span>A developer interested in learning a way to implement clean architecture at a practical level</span></li>
-    <li><span>Someone that is not interested in following the prescribed "Rails way" for solving problems in Rails</span></li>
-  </ul>
-</div>
+
+Who is this post for?
+  - Rails developers interested in abstracting their business logic from their application code / web framework
+  - People interested in learning how to implement clean architecture at a practical level
+  - People that are not interested in doing the prescribed Rails methods for solving problems in Rails
 
 This post assumes you need not be convinced of the merits of abstracting your web application's business logic
 from the framework serving your web application. If you need convincing, I would suggest starting with
@@ -22,9 +19,8 @@ practical example of how to apply the ideas of Clean Architecture in a Rails con
 [7 steps to get started with Clean Architecture in Ruby](https://medium.com/@fbzga/clean-architecture-in-ruby-7eb3cd0fc145).
 
 I'd like to share 6 months of experience working in [Light-Service](http://github.com/adomokos/light-service) in a Rails context.
-Light-Service contains a detailed [README](https://github.com/adomokos/light-service/blob/master/README.md) so I won't duplicate
-that info here, but instead I'd like to walk through a series of examples, starting with no business logic abstraction,
-to creating a rudimentary abstraction, and finally using Light-Service.
+Light-Service contains a detailed README so I won't duplicate that info here, but instead I'd like to walk through a series of
+examples, starting with no business logic abstraction, to creating a rudimentary abstraction, and finally using Light-Service.
 
 Let's begin with a very simple controller context.
 <script src="https://gist.github.com/rewinfrey/36d2e6f6e791cef28207.js"></script>

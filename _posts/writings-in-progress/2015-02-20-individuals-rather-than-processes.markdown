@@ -1,10 +1,10 @@
 ---
 layout: writing
-group: Writings
+group: Writings-In-Progress
 title:  "Individual Interactions Rather Than Processes"
 date:   2015-02-20 23:04:07
 categories:
-- writings
+- writings-in-progress
 ---
 
 <p>

@@ -1,0 +1,226 @@
+---
+layout: writing
+group: Writings
+title:  "Inject And Zip With The Y-Combinator"
+date:   2015-02-20 23:04:07
+categories:
+- writings
+---
+
+<p>
+Lately I've wondered what it would be like to try to write some of Ruby's enumerable methods
+using only lambdas. I previously had given a talk about the
+<a href="http://en.wikipedia.org/wiki/Fixed-point_combinator#What_is_a_.22combinator.22.3F" target="_blank">
+Y combinator</a> and was already familiar with the notion of a fixed point combinator. I was
+curious to see what it would take to implement Ruby's
+<a href="http://ruby-doc.org/core-2.2.0/Enumerable.html#method-i-inject" target="_blank">inject</a>
+method supporting the basic arithmetic operations and Ruby's
+<a href="http://ruby-doc.org/core-2.2.0/Enumerable.html#method-i-zip" target="_blank">zip</a> method.
+</p>
+
+<p>
+To follow this post, I'm assuming you have a comfortable familiarity with the Y-combinator.
+If you're new to the Y-combinator, I would suggest first viewing an inspiring and thorough
+<a href="https://www.youtube.com/watch?v=FITJMJjASUs" target="_blank">talk</a>
+given by the late Jim Weirich. The overview he provides of how the Y-combinator works, along with
+the explanations about the underlying concepts from
+<a href="http://en.wikipedia.org/wiki/Lambda_calculus" target="_blank">lambda calculus</a>
+used by <a href="http://en.wikipedia.org/wiki/Haskell_Curry" target="_blank">Haskell Curry</a>
+to formally define the Y-combinator will give you a solid foundation for understanding the concept.
+However, in a nutshell, the Y-combinator allows us the ability to employ recursion
+using only anonymous functions.
+</p>
+
+<p>
+Let's take a look at a classic example of a Y-combinator application - calculating a factorial.
+You'll notice that the result is stored as a local variable, but otherwise the recursion is
+handled entirely via anonymous functions via Ruby's lambda short-hand operator, the -> operator.
+</p>
+
+{% highlight ruby linenos %}
+
+# Find the factorial of 5
+5 * 4 * 3 * 2 * 1 = 120
+
+# Y-combinator solution
+result = -> (builder, number) { builder.call(builder, number) }.call(
+  -> (recurse, number) {
+    return 1 if number == 0
+    return number * recurse.call(recurse, number - 1)
+  },
+  5
+)
+
+result # => 120
+{% endhighlight %}
+
+<p>
+Given that we have this example of a factorial Y-combinator, let's take a look at what
+inject looks like given the constraint of only using anonymous functions.
+</p>
+
+
+{% highlight ruby linenos %}
+# Ruby inject example
+[*0..10].inject(&:+) # => 55
+
+# Y-combinator solution
+result = -> (builder, limit, count = 0) { builder.call(builder, limit, count) }.call(
+  -> (recurse, limit, count) {
+    return 0 if count > limit
+    return count + recurse.call(recurse, limit, count + 1)
+  },
+  10
+)
+
+result # => 55
+{% endhighlight %}
+
+<p>
+This Y-combinator gives us the correct result, but there are limitations with this  solution.
+The first is that we are required to pass in a limit as an input parameter rather than
+a collection or a range with arbitrary start and stop points. This solution
+is also only capable of addition. Should we choose to implement inject-like functionality
+using multiplication instead, we would have to duplicate most of this solution.
+Let's make our Y-combinator solution a little more sophisticated, so that it can handle a
+range or collection as an input parameter, and also support any of the basic arithmetic operations.
+</p>
+
+
+{% highlight ruby linenos %}
+# Ruby inject example
+[100, 10].inject(&:*) # => 1000
+
+# Y-combinator solution
+result = -> (builder, range, operator) { builder.call(builder, range, operator) }.call(
+  -> (recurse, range, operator, count = 0) {
+    if range[count] == range[-1]
+      return range[count].send(operator, operator == :* || operator == :/ ? 1 : 0)
+    else
+      return range[count].send(operator, recurse.call(recurse, range, operator, count + 1))
+    end
+  },
+  [100, 10],
+  :*
+)
+
+result # => 1000
+{% endhighlight %}
+
+<p>
+The approach now takes in a range or collection and an operator as input parameters.
+In order to support a generic Y-combinator that allows for any arithmetic operation, we make
+use of the various arithmetic identities. Given Ruby's Smalltalk roots, we can send
+the operator message to each of the elements in the provided range or collection. To prove
+this works, I've included examples of subtraction and division below.
+</p>
+
+{% highlight ruby linenos %}
+# Ruby inject example with subtraction
+[100, 10].inject(&:-) # => 90
+
+# Y-combinator solution
+result = -> (builder, range, operator) { builder.call(builder, range, operator) }.call(
+  -> (recurse, range, operator, count = 0) {
+    if range[count] == range[-1]
+      return range[count].send(operator, operator == :* || operator == :/ ? 1 : 0)
+    else
+      return range[count].send(operator, recurse.call(recurse, range, operator, count + 1))
+    end
+  },
+  [100, 10],
+  :-
+)
+
+result # => 90
+
+# Ruby inject example with division
+[100, 10].inject(&:/) # => 10
+
+# Y-combinator solution
+result = -> (builder, range, operator) { builder.call(builder, range, operator) }.call(
+  -> (recurse, range, operator, count = 0) {
+    if range[count] == range[-1]
+      return range[count].send(operator, operator == :* || operator == :/ ? 1 : 0)
+    else
+      return range[count].send(operator, recurse.call(recurse, range, operator, count + 1))
+    end
+  },
+  [100, 10],
+  :/
+)
+
+result # => 10
+{% endhighlight %}
+
+<p>
+Now let's take a look at Ruby's zip method. This one is a little more interesting because
+it involves two collections.
+</p>
+
+{% highlight ruby linenos %}
+# Ruby zip example
+[*0..5].zip([*100..105]) # => [[0, 100], [1, 101], [2, 102], [3, 103], [4, 104], [5, 105]]
+
+result = -> (builder, collection1, collection2, count = 0) { builder.call(builder, collection1, collection2, count) }.call(
+  -> (recurse, collection1, collection2, count) {
+    return [] if count == collection1.count
+    return recurse.call(recurse, collection1, collection2, count + 1).push([collection1[collection1.count - 1 - count], collection2[collection2.count - 1 - count]])
+  },
+  [*0..5],
+  [*100..105]
+)
+
+result # => [[0, 100], [1, 101], [2, 102], [3, 103], [4, 104], [5, 105]]
+{% endhighlight %}
+
+<p>
+I ran into a problem initially with implementing zip as a Y-combinator. Ruby does not have a
+cons function similar to cons found in Lisp or Scheme. I reasoned I could create an accumulator
+variable and pass it along through each recursive call, but the mutation of that accumulator
+variable is troubling. I reasoned that the base case of the recursive function would instead
+return an empty array, to which the zipped tuples of both collections would be added.
+</p>
+
+<p>
+Just for fun I was curious to see how the Y-combinator zip solution profiled against Ruby's
+zip method. The results are unsurprising. Ruby's native zip method is far better optimized
+than recursive lambda calls.
+</p>
+
+{% highlight ruby linenos %}
+require 'benchmark'
+
+native_result = Benchmark.measure do
+  10000.times do
+    [*0..100].zip([*0..100])
+  end
+end
+
+native_result.real # => 0.177837
+
+y_combinator_result = Benchmark.measure do
+  10000.times do
+    -> (builder, collection1, collection2, count = 0) { builder.call(builder, collection1, collection2, count) }.call(
+      -> (recurse, collection1, collection2, count) {
+        return [] if count == collection1.count
+        return recurse.call(recurse, collection1, collection2, count + 1).push([collection1[collection1.count - 1 - count], collection2[collection2.count - 1 - count]])
+      },
+      [*0..100],
+      [*0..100]
+    )
+  end
+end
+
+y_combinator_result.real # => 0.61685
+
+(native_result.real - y_combinator_result.real) / native_result.real.to_f * 100 # => -246%
+
+{% endhighlight %}
+
+<p>
+Although the Y-combinator zip method is roughly 246% less performant than Ruby's native zip method,
+the exercise of implementing two of Ruby's enumerable methods using Y-combinators was good fun.
+This post was originally inspired by Tom Stuart's amazing <a href="http://codon.com/programming-with-nothing" target="_blank">programming with nothing</a>,
+and is also available as a <a href="http://rubymanor.org/3/videos/programming_with_nothing/" target="_blank">talk</a>.
+</p>

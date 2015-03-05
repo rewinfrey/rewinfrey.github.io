@@ -5,27 +5,21 @@ title: Writings
 ---
 
 <ul class="posts article">
-  {% for post in site.categories['writings'] limit 10 %}
-    <li>
-      <div class="title-container">
-        <h1 class="title">
-          <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a>
-        </h1>
-        <div class="content-preview">
-          <p>{{ post.content | strip_html | truncatewords: 75, '...' }}</p>
-        </div>
-        <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
-        <span class="spacer">»</span>
-        {% assign read_time = post.content | number_of_words | divided_by: site.words_per_minute %}
-        <span class="read-time">
-          {% if read_time == 0 %}
-            1 minute
-          {% else %}
-           {{ read_time }} minutes
-          {% endif %}
-          ({{ post.content | number_of_words }} words)
-        </span>
+  <li>
+    <div class="title-container">
+      <h1 class="title">Work in Progress</h1>
+      <div class="content-preview">
+        <p>
+           I have several posts in various states of completion, including more thoughts
+           about the principles I have set for myself, and a series of posts meant to illustrate
+           how to honor the SOLID principles while also abstracting away business logic
+           from Rails using a gem called <a href="http://github.com/adomokos/light-service" target="_blank">LightService</a>.
+        </p>
+        <p>
+           Posts will be published shortly, but in the meantime, I have a series of older posts
+           available <a href="http://selfless-singleton.rickwinfrey.com/" target="_blank">here</a>.
+        </p>
       </div>
-    </li>
-  {% endfor %}
+    </div>
+  </li>
 </ul>
