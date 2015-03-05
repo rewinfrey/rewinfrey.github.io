@@ -16,14 +16,14 @@ title: Writings
         </div>
         <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
         <span class="spacer">»</span>
-        {% assign read_time = post.content | number_of_words | divided_by: site.words_per_minute %}
+        {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
         <span class="read-time">
           {% if read_time == 0 %}
             1 minute
           {% else %}
            {{ read_time }} minutes
           {% endif %}
-          ({{ post.content | number_of_words }} words)
+          ({{ post.content | strip_html | number_of_words }} words)
         </span>
       </div>
     </li>
