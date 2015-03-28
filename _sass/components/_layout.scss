@@ -4,6 +4,27 @@
   box-sizing: border-box;
 }
 
+.inline-right {
+  display: inline-block;
+  float: right;
+}
+
+.resume {
+  #download {
+    float: right;
+    width: 2em;
+    background-image: url("/assets/images/download_icon.svg");
+    background-size: 2em;
+    background-repeat: no-repeat;
+    text-indent: -9999em;
+    line-height: 2em;
+  }
+}
+
+svg:hover {
+  fill: #111;
+}
+
 body {
   background: #fff;
 }
@@ -81,6 +102,10 @@ dt {
   @media #{$mobile} {
     margin: 2.2em auto;
   }
+}
+
+.sandbox {
+  text-align: center;
 }
 
 .center {
