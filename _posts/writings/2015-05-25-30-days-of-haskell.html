@@ -1,0 +1,64 @@
+---
+layout: writing
+group: Writings
+title:  "30 Days of Haskell"
+date:   2015-02-20 23:04:07
+categories:
+- writings
+---
+
+<p>
+I recently attended <a href="http://www.degoesconsulting.com/lambdaconf-2015/">Lambda Conf 2015</a>. Coming
+from a dynamically typed background of working mostly in Ruby and Clojure, I had only a superficial understanding
+of type theory and how it applies to functional programming in languages like Haskell and Purescript. I had some
+vague idea that static typing in a functional programming context would result in better, easier to reason about,
+and easier to maintain code, but I hadn't experienced it enough first-hand to confidently say yes to these claims.
+I'd like to clarify that I still have a superficial understanding of type theory, however, the certainty and confidence
+one gains by working in a statically typed language is very different than dynamically typed languages, even if those
+dynamically typed languages are functional like Clojure. The confidence and certainty of type safety at compile time
+provides guarantees for free that I would otherwise have to write many tests to achieve. If for no other reason, I see
+statically typed functional programming as the way forward because it results in less code, is more resilient to change,
+and provides a near universal language for describing very abstract ideas with precision and brevity.
+</p>
+
+<p>
+The big turning point in my thinking was a result of hearing <a href="http://bitemyapp.com/">Chris Allen</a> describe an experience
+of debugging some problematic code in Clojure. A 250 line namespace was buggy, and it wasn't clear why. All the
+tests were passing, but debugging took a few developers and a few hours, and numerous `println` statements
+to understand that malformed data was propagating through the code due to vector implementing Clojure's IFn interface.
+I have personally experienced the pain of debugging Clojure projects whose tests pass, but errors abound at runtime.
+And I can attest that in all of the runtime errors I have debugged in Clojure, the heart of the problem was a type issue.
+All of those issues could have been easily avoided had the functions had a compile time type check. I can also attest
+that a majority of the tests I write for Clojure code deal with directly or indirectly verifying input and output types,
+with few tests validating the correctness of business logic.
+</p>
+
+<p>
+Throughout the conference, I learned of many new ideas and terms, usually related to type theory. After the
+conference, I feel inspired to devote a chunk of each day to learning more about Haskell and Purescript,
+and want to find a balance between working in and exploring those languages, while also reading and studying
+<a href="http://haskellbook.com/">Haskell Programming From First Principles</a> and the various papers it suggests
+for further reading. Additionally, I'd like to try my hand at studying <a href="http://en.wikipedia.org/wiki/Category_theory">Category Theory</a>
+and refresh my understanding of <a href="http://en.wikipedia.org/wiki/Proof_theory">Proof Theory</a>, although that
+is a stretch goal. The reason for refreshing Proof Theory is to prepare for potentially exploring <a href="www.idris.org">Idris</a>,
+a dependently typed functional programming language that allows for some degree of specifying logic in the types themselves,
+which then allows the programmer to "prove" the correctness of a program by making "propositions" about expressions involving those types,
+and then showing that the propositions hold true using a variety of proof tactics such as induction. I have but the most simple and
+superficial understanding of Idris, but in seeing a demonstration of its power via a workshop at Lambda Conf, Idris
+sticks out to me as a potential future for statically typed functional programming.
+</p>
+
+<p>
+My goal is simple: learn as much as I can about Haskell and its many related concepts and ideas before I begin
+a graduate program in Predictive Analtics at Depaul beginning in 40 days. My intuition tells me that
+Haskell's type system would lend itself well to various types of data analysis and machine learning techniques,
+however the core instruction will likely be in languages like R and Python. Considering that most data analysis is
+a series of transformations of the raw data, so that it can be easily processed and reduced or mapped over with various
+functions, the domain of data analysis lends itself very well to functional programming. Ideally I would love to come out
+of formally studying data analysis and statistics with a strong ability in applying these techniques in Haskell or Purescript,
+and if I'm able to make good headway, perhaps can also prove the correctness of data analysis programs using Idris...
+</p>
+
+<p>
+Happy λ!
+</p>
