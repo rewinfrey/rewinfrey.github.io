@@ -1,0 +1,497 @@
+---
+layout: writing
+group: Writings
+title:  "Class Methods Resist Refactoring?"
+date:   2015-04-28 21:45:45
+categories:
+- writings
+---
+
+<p>
+Recently, a coworker shared the blog post <a href="http://blog.codeclimate.com/blog/2012/11/14/why-ruby-class-methods-resist-refactoring/">
+"Why Ruby Class Methods Resist Refactoring"</a> with me. I thought it was very interesting, mainly because at <a href="www.hireology.com">Hireology</a>
+we use an open source project named <a href="https://github.com/adomokos/light-service">Light Service</a> that helps us abstract the business logic
+of our main Rails application from the Rails framework. Under the hood, Light Service provides a DSL that makes use of a modified version of the
+<a href="http://en.wikipedia.org/wiki/Command_pattern">Command Pattern</a>. Where one normally expects an object instance, Light Service instead
+uses only class methods defined at runtime.
+</p>
+
+<p>
+Considering the success the team at Hireology has had using Light Service, I was intrigued to find out more why this author felt that class
+methods resist refactoring. I have done days worth of refactoring in this code, and have found that the use of class methods have made the refactoring
+easy and simple. I had never given it much thought in the past, finding the use of class methods vs instance methods to be a fairly straightforward
+decision that most object oriented software developers would agree with. Yet, I was very, very wrong.
+</p>
+
+<h3>Haters Gonna Hate</h3>
+<p>
+After a not very exhuastive Google search though, I was only able to find writing chastising the use of class methods. I was curious why, and after a
+sampling of posts, I distilled a list of arguments about why using class methods should be avoided:
+</p>
+
+<ol>
+  <li>Class methods cannot be used to declare an interface (applicable to Java)<sup><a href="#1">1</a></sup></li>
+  <li>Class methods prevent polymorphism<sup><a href="#1">1</a></sup></li>
+  <li>Class methods promote use of global mutable state<sup><a href="#2">2</a></sup></li>
+  <li>Class methods promote procedural code<sup><a href="#3">3<a>,<a href="#4">4</a></sup></li>
+</ol>
+
+<h3>Context Matters</h3>
+<p>
+Points 1 and 2 are both valid and I completely agree that using class methods will impose limitations in an object oriented context
+that make the use of class methods less than appealing. If you find yourself in a situation where a strictly defined interface or polymorphism helps
+create the "best"<sup><a href="#5">5</a></sup> solution, then don't use class methods. However, rather than write-off class methods all together, I see this as an exercise in judgement.
+Because there are certain situations in which class methods are not useful, or would even be problematic, does not inheritely lead to the conclusion that they are evil.
+However, there also exists the attitude that class methods lead to the use of global mutable state and writing code in a procedural way.
+</p>
+
+<p>
+While the use of global mutable state and procedural code in an object oriented context is unfortunate, there seems to be an incorrect
+assumption that the use of class methods leads to these problems. I have written plenty of class methods that do not define global
+mutable state, nor is the behavior defined in a procedural way. The assumption that class methods lead to these problems is false logic.
+It is akin to saying "Because class methods can be used to define global mutable state, therefore all class methods lead to global mutable state".
+It is not the case that class methods create global mutable state due to their inherit use, but the choices of the software developer that
+thinks global mutable state is an acceptible solution.
+</p>
+
+<h3>To Procedure Or Not Procedure?</h3>
+<p>
+Something I find to be great fun in the software developer world is that it tends to be full of opinions. Well, I'd like to share one with you.
+I think procedural code is often times easier to read, to understand and test. However, I am probably thinking of a different flavor of procedural
+code than what critics of class methods are thinking of as procedural code. I am in favor of pushing data and state as far out of the context in which
+computation occurs as possible, such that a procedure (or method), can be thought of as a <a href="http://en.wikipedia.org/wiki/Pure_function">pure function</a>.
+This means isolating side-effect generating code into special methods, typically denoted with a `!`. If I want to talk with the database, or mutate state,
+or do something that would otherwise not provide <a href="http://en.wikipedia.org/wiki/Referential_transparency_(computer_science)">referential transparency</a>,
+I want to isolate that behavior from the behavior that is pure and referentially transparent. This requires a different orientation in thinking from the traditional
+object oriented paradigm which will appeal to some and not others.
+</p>
+
+<p>
+However, functional programming arguments aside, let us not fool ourselves into thinking that object oriented code is somehow inherently non-procedural.
+OOP is a special form of proceduralism which combines both data and procedures (methods) together in the same context (class).
+In traditional OOP, the fact that data is stored as instance variables, and can be accessed as properties within the context of the receiver (object) of a
+method call, is nothing but indirection. The data stored as properties of an object via its instance variables is still used
+in the same manner even the most procedural C code's functions use data. Does this mean we should abandon classes and objects and return to type defs and structs?
+I don't think so.
+</p>
+
+<p>
+But does the traditional perspective of OOP preclude our code from being described as "procedural"? To answer "yes" would be deluding ourselves
+into thinking that somehow the combination of data and behavior in one context is computationally different than traditional "procedural" C code. Where OOP is different
+from "procedural" C is in the base, common abstractions we use to construct our programs. In OOP we are given classes and objects with which to define our programs,
+to model systems, and to model behavior. This means the bulk of activity in an OOP program is in the passing of method calls from caller to receiver. Yet, the behavior
+invoked from these method class is still a procedural computation, otherwise how else would the instructions be executed in the correct sequence?
+</p>
+
+<h3>Refactoring A Refactoring</h3>
+<p>
+In answer to the question, "Do class methods resist refactoring?", based on my experience, I confidently say "no". Rather than only defend
+class methods, I'd like to provide a counter to the author's refactoring conclusions, and claim that using class methods <em>within the right context</em>
+helps the object oriented software developer write code that is easier to reason about, has a greater clarity of purpose, is simpler, more modular, and
+easier to test.
+</p>
+
+<p>
+To begin, let's take a look at the code context used in the original blog post:
+
+{% highlight ruby linenos %}
+class SyncToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(data)
+    data              = data.symbolize_keys
+    account           = Account.find(data[:account_id])
+    analytics_client  = Analytics::Client.new(CC.config[:analytics_api_key])
+
+    account_attributes = {
+      account_id:         account.id,
+      account_name:       account.name,
+      account_user_count: account.users.count
+    }
+
+    account.users.each do |user|
+      analytics_client.create_or_update({
+        id:             user.id,
+        email:          user.email,
+        account_admin:  account.administered_by?(user)
+      }.merge(account_attributes))
+    end
+  rescue SocketError => ex
+    raise ConnectionFailure.new(ex.message)
+  end
+end
+{% endhighlight %}
+</p>
+
+<p>
+As the author describes, the `perform` method is complex, and appears to violate
+the <a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle</a>. The
+author also claims that the `perform` method's operations are not all at the same level
+of abstraction, indicating that the mixture of abstraction prevents this from being a composable method, and
+limits reusability. I agree completely. This context contains configuration knowledge to correctly construct
+an instance of `Analytics::Client`, knows about an `Account` model, contains some additional data model knowledge required
+by the `Analytics::Client` to create an account representation presumably in a different database, and rescues a `SocketError` exception.
+If I had to guess, this code was produced by a single feature story, and the developer(s) that wrote this code had the goal
+to accomplish the task handed to them, and moved on after it appeared to work.
+</p>
+
+<p>
+I want to stress no judgement is intended here. If only we could `git commit` a representation of the pressures and stresses felt in the moments of
+developing a feature - then we would probably think twice about measuring code quality in terms of 'WTFs' per minute! `Gitblame` only reveals a name,
+but cannot share the time constraints and numerous stresses, pressures and other factors that influence our decisions as developers when writing a feature.
+Perhaps I am lucky, but one thing I've found to be nearly unanimously true is that developers want to write the best code possible. It's quite common though,
+to find that developers have not been exposed to the ideas, approaches and lessons that would help them write better code. Whatever the context was for the developer(s)
+who wrote this code, let's leave all that aside, and instead thank them for an opportunity to climb up a rung or two on the ladder of experience and learning.
+</p>
+
+<p>
+The author proposes refactoring this class by using the <a href="http://refactoring.com/catalog/extractMethod.html">Extract Method</a> refactoring pattern.
+This results in the following:
+
+{% highlight ruby linenos %}
+class SyncToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(data)
+    data                = data.symbolize_keys
+    account             = Account.find(data[:account_id])
+    analytics_client    = Analytics::Client.new(CC.config[:analytics_api_key])
+
+    sync_users(analytics_client, account)
+  end
+
+  def self.sync_users(analytics_client, account)
+    account_attributes  = account_attributes(account)
+
+    account.users.each do |user|
+      sync_user(analytics_client, account_attributes, user)
+    end
+  end
+
+  def self.sync_user(analytics_client, account_attributes, user)
+    create_or_update_user(analytics_client, account_attributes, user)
+  rescue SocketError => ex
+    raise ConnectionFailure.new(ex.message)
+  end
+
+  def self.create_or_update_user(analytics_client, account_attributes, user)
+    attributes = user_attributes(user, account).merge(account_attributes)
+    analytics_client.create_or_update(attributes)
+  end
+
+  def self.user_attributes(user, account)
+    {
+      id:             user.id,
+      email:          user.email,
+      account_admin:  account.administered_by?(user)
+    }
+  end
+
+  def self.account_attributes(account)
+    {
+      account_id:         account.id,
+      account_name:       account.name,
+      account_user_count: account.users.count
+    }
+  end
+end
+{% endhighlight %}
+
+<p>
+The author makes three claims about this refactored code:
+</p>
+
+<ol>
+  <li>It is not object oriented (it is a hybrid of procedural and functional code)</li>
+  <li>You cannot declare private class methods</li>
+  <li>This demotivates refactoring because this result is unsatisfying</li>
+</ol>
+
+<p>
+The first claim that this code is not object oriented, but a hybrid of procedural and functional seems compelling on the first take, but
+I argue the Extract Method refactoring makes this code <em>more object oriented</em>. There is clearly an increased number of messages being sent to `self`
+in this new formulation, and there is still the same object orientation between this class and the `Analytics::Client`. Given this refactoring, behavior
+is now better encapsulated into callable methods, one of the defining hallmarks of object oriented programming. Ironically, I would argue
+that the original example was more procedural. In the original example, there is only a passing resemblance to object oriented code due to the behavior
+residing in a class, but otherwise, the one and only method reads as a procedural list of instructions to be executed in order from start to finish.
+</p>
+
+<p>
+ Without a clear definition of functional programming by this author, it makes it difficult to determine what
+is meant by calling this code more functional. However, the side-effect generating method `create_or_update_user` is impure, and
+due to the same mixed abstractions present in this refactored version as was found in the original example, this class is unfortunately
+not very composable or reusable from a functional perspective either.
+</p>
+
+<p>
+The second claim that one cannot declare private class methods in Ruby is untrue. The method
+<a href="http://ruby-doc.org/core-1.8.6/Module.html#method-i-private_class_method">`private_class_method`</a> has been
+available in Ruby since 1.8.6. There is no requirement to open up the Singleton Class of this class in order to define
+private class methods.
+</p>
+
+<p>
+The third claim is opinion. Personally I find this code easier to understand and to reason about because the encapsulated behavior
+as methods allows my brain to follow ideas rather than a list of instructions.  I respectfully consider the distinction about the behavior
+being defined as class methods vs. instance methods as insignificant. The real problems with this class, previously described, are still
+present. The main take away here is that the Extract Method refactor only shuffled behavior around, which I would claim
+makes this code more object-oriented, but did nothing to address the mixed abstractions and Single Responsibility Principle violations.
+</p>
+
+<p>
+Next the author encourages us to reconsider the approach taken so far, by introducing the idea of instantiating this class via the `perform` class method:
+
+{% highlight ruby linenos %}
+class SyncToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(data)
+    new(data).perform
+  end
+
+  ...
+
+{% endhighlight %}
+</p>
+
+<p>
+Given this new approach focused on instantiation, the author applies the Extract Method refactoring again, resulting in the following formulation:
+
+{% highlight ruby linenos %}
+ass SyncToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(data)
+    new(data).perform
+  end
+
+  def initialize(data)
+    @data = data.symbolize_keys
+  end
+
+  def perform
+    account.users.each do |user|
+      create_or_update_user(user)
+    end
+  rescue SocketError => ex
+    raise ConnectionFailure.new(ex.message)
+  end
+
+private
+
+  def create_or_update_user(user)
+    attributes = user_attributes(user).merge(account_attributes)
+    analytics_client.create_or_update(attributes)
+  end
+
+  def user_attributes(user)
+    {
+      id:             user.id,
+      email:          user.email,
+      account_admin:  account.administered_by?(user)
+    }
+  end
+
+  def account_attributes
+    @account_attributes ||= {
+      account_id:         account.id,
+      account_name:       account.name,
+      account_user_count: account.users.count
+    }
+  end
+
+  def analytics_client
+    @analytics_client ||= Analytics::Client.new(CC.config[:analytics_api_key])
+  end
+
+  def account
+    @account ||= Account.find(@data[:account_id])
+  end
+end
+{% endhighlight %}
+</p>
+
+<p>
+In response to this approach with the focus on using instances and instance methods, the author makes a number of new claims:
+</p>
+
+<ol>
+  <li>Introducing state via instance variables and memoization eliminates the need for intermediate variables from method call to method call</li>
+  <li>It is easier to test because you can separate the instantiation of an object from the invocation of its behavior</li>
+  <li>Instantiation promotes greater composibility</li>
+  <li>Class method refactoring produces ugly code, and demotivates refactoring</li>
+  <li>Instantiation promotes greatest flexibility in formulation</li>
+</ol>
+
+<p>
+I do not disagree or raise any counter arguments in response to the first point. The return value of methods has supplanted the need
+for intermediate variables, and the use of instance variables with memoization helps to prevent repeatedly hitting the database for an account.
+This introduces state, as the author points out, and given the previous point about eliminating intermediate variables is clearly helpful. However,
+the need to introduce state is a reflection of the mixed abstractions problem described previously, and is again a symptom of a deeper, unaddressed issue
+in this class.
+</p>
+
+<p>
+The claim about easier testing due to the separation of object creation from object behavior is an interesting assertion to make. I have some problems with this one.
+A class with only class methods cannot be instantiated, so there is no need to test its creation. However, in my experience I cannot see a clear link between the ease of testing
+a class based on one's ability to instantiate that class. The factors that make behavior easier to test or more complicated to test have no relationship to the subject
+of a test being an instance or a class. Those factors are a separate topic, and I conclude this claim is slightly exaggerated and not relevant.
+</p>
+
+<p>
+The claim that instantiation allows for greater composability for enhancing or adding additional behavior is demonstrable. Using a decorator, or a collaborator object,
+it would be possible to extend the behavior of instance objects of this class without violating the <a href="http://en.wikipedia.org/wiki/Open/closed_principle">Open/Closed Principle</a>.
+However, the likelihood of such an approach for this class I would argue is highly unlikely, due to the fact that the state encapsulated in this class is an `Account` object,
+but perhaps there would be some need to reuse the data hash of the `Account` objects users info merged with the `account_attributes`. If that were the case, I would argue for a cleaner
+separation of that data from the behavior it is enabling.
+</p>
+
+<p>
+I'd like to revisit the claim that class method refactoring produces ugly code. However, this is fundamentally a matter of personal preference.
+</p>
+
+<p>
+I think the final claim that instantiation promotes the greatest flexibility is true from a certain perspective that emphasizes a traditional object oriented approach. The object oriented
+approach that is informed by classes contain behavior, and objects contain data and behavior via the use of state, are fundamentally going to approach solving problems via instance objects.
+However, while not every problem is suitable for classes with only class methods, I find that classes with class methods provide excellent contexts in which specific behavior, collaboration or
+transformations can occur. I would make the stronger claim that it is only by enforcing proper boundaries between classes with class methods that the maximum flexibility
+is achieved in object oriented programming, with the greatest reusability and modular code as an outcome of such an approach.
+</p>
+
+<p>
+Below is the refactoring I would choose to do for the original class:
+
+{% highlight ruby linenos %}
+# from the calling context...
+account = Account.find(data[:account_id])
+analytics_client = Analytics::Client.new(CC.config[:analytics_api_key])
+SyncAccountUsersToAnalyticsService.perform(account, analytics_client)
+
+class SyncAccountUsersToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(account, analytics_client)
+    account.users.each do |user|
+      begin
+        analytics_client.create_or_update(attributes_from(user, account))
+      rescue SocketError => e
+        raise ConnectionFailure.new(e.message)
+      end
+    end
+  end
+
+  def self.attributes_from(user, account)
+    {
+      id:                 user.id,
+      email:              user.email,
+      account_admin:      account.administered_by?(user),
+      account_id:         account.id,
+      account_name:       account.name,
+      account_user_count: account.users.count
+    }
+  end
+
+  private_class_method :attributes_from
+end
+{% endhighlight %}
+</p>
+
+<p>
+The first step of this refactor was to eliminate any object creation from within this class. Removing object creation from a class containing nothing but class methods
+I find is a good general rule of thumb to keep in mind. An exception to this is a factory class containing class methods, whose return value is an instantiated object.
+However, by requiring the two dependencies of this class, the account and the analytics client, to be passed to the class, not only is this class much easier to test, but
+it also helps us identify the real responsibility of this class: sync an account's users with the analytics client.
+</p>
+
+<p>
+Since our class no longer requires querying the `Account` model to find an account instance from some arbitrary data hash, nor does our class need to know anything about the configuration
+of the analytics client, we've reduced nearly all of the mixed abstractions that were present in the original class. It also clarifies the general type of this class as a collaborator
+context that enables communication between three separate entities: accounts, users and the analytics client. However, this class still violates Single Responsibility Principle, in that
+it knows how to sync the appropriate information about users and accounts with the analytics client, and how to construct the data model required by the analytics client. Let's look at
+another refactoring, that helps to isolate the construction of account-user entities independently of the act of syncing those entities with the analytics client:
+
+{% highlight ruby linenos %}
+# from the calling context...
+account = Account.find(data[:account_id])
+analytics_client = Analytics::Client.new(CC.config[:analytics_api_key])
+account_user_analytics_entities = AccountUserAnalyticsEntity.perform(account)
+SyncAccountUsersToAnalyticsService.perform(account_user_analytics_entities, analytics_client)
+
+class AccountUserAnalyticsEntity
+  def self.perform(account)
+    account.users.map do |user|
+      attributes_from(user, account)
+    end
+  end
+
+  def self.attributes_from(user, account)
+    {
+      id:                 user.id,
+      email:              user.email,
+      account_admin:      account.administered_by?(user),
+      account_id:         account.id,
+      account_name:       account.name,
+      account_user_count: account.users.count
+    }
+  end
+
+  private_class_method :attributes_from
+end
+
+class SyncAccountUsersToAnalyticsService
+  ConnectionFailure = Class.new(StandardError)
+
+  def self.perform(account_user_analytics_entities, analytics_client)
+    account_user_analytics_entities.each do |entity|
+      begin
+        analytics_client.create_or_update(entity)
+      rescue SocketError => e
+        raise ConnectionFailure.new(e.message)
+      end
+    end
+  end
+end
+{% endhighlight %}
+</p>
+
+<p>
+Now, the two classes are clearly and cleanly separated, each with one reason to change, and each with a single responsibility. Given this formulation, I'm not sure of a
+more simple way to expressively declare this behavior, nor does it suggest a procedural processing of a sequence of instructions. In both cases, each class contains a
+single public method, with a `private_class_method` defined on the `AccountUserAnalyticsEntity` class.
+</p>
+
+<p>
+I would argue that formulating this behavior as classes with class methods is far easier to understand and read at a glance than the previously provided instance method / stateful
+approach. Not only are we not requiring state in any of these classes, but we also impose an interesting constraint on these classes of no object instantiation. Why is that important?
+It requires the caller to deal with that object instantiation. You might be thinking, "Well we have to deal with object instantiation of the account and analytics client somewhere", and you are right. In fact,
+by pushing out the creation of our account and analytics client objects, we see how these two classes respect the <a href="http://martinfowler.com/articles/dipInTheWild.html">Dependency Inversion Principle</a>.
+</p>
+
+<p>
+Both of these classes represent abstractions. The idea of an account and its users are also abstractions, as is the analytics client. The Dependency Inversion Principle says,
+<em>"Abstractions should not depend on details. Details should depend on abstractions."</em><sup><a href="#6">6</a></sup>
+The detail of knowing how to locate an account within the `AccountUserAnalyticsEntity` class
+would violate the abstraction it represents because it would require that abstraction to depend on a low level detail (how to query an account). This tells us that there is a better place
+to query the account object from outside this class in which the Dependency Inversion Principle can still be honored. In a traditional web-application, this would likely occur
+at the controller level, where the low level abstraction of a controller depends on the higher level abstraction of a model, which in turn depends on the higher level abstraction of a
+class like `AccountUserAnalyticsEntity` to perform behavior without needing to worry about lower level details.
+</p>
+
+<p>
+Additionally, as a result of honoring the Dependency Inversion Priniple and the Single Responsibility Principle, we can more easily test these two classes either using real objects,
+fakes, mocks or dummies. In some cases we might want to test object creation, but more practically we probably are only concerned with verifying behavior. Considering the flexibility
+passing in the dependencies grants us in terms of testing, I would argue this approach is more flexible in its formulation than the instance object / stateful approach.
+</p>
+
+<hr />
+
+<section>
+<ol>
+  <li id="1"><a href="http://web.cse.ohio-state.edu/software/2221/web-sw1/extras/slides/22a.Static-vs-Instance-Methods.pdf" target="_blank">Static Methods vs Instance Methods</a></li>
+  <li id="2"><a href="http://andrzejonsoftware.blogspot.com/2011/02/dci-and-rails.html" target="_blank">DCI and Rails</a></li>
+  <li id="3"><a href="http://nicksda.apotomo.de/2011/07/are-class-methods-evil/" target="_blank">Are Class Methods Evil?</a></li>
+  <li id="4"><a href="http://mlomnicki.com/programming/ruby/2011/07/20/class-vs-instance-methods.html" target="_blank">Class vs Instance Methods</a></li>
+  <li id="5">The definition of "best code" is not the subject of this post, so I will leave that definition up to the reader's judgement based on their current experience.</li>
+  <li id="6"><a href="http://en.wikipedia.org/wiki/Dependency_inversion_principle" target="_blank">Dependency Inversion Principle</a></li>
+</ol>
+</section>
