@@ -22,6 +22,7 @@
     background-image: url("/assets/images/download_icon.svg");
     background-size: 2em;
     background-repeat: no-repeat;
+    border: none;
   }
 
   #download:hover {
@@ -257,6 +258,12 @@ header {
   }
   &:last-child {
     border: none;
+  }
+}
+
+.resume {
+  a {
+    border-bottom: 1px solid;
   }
 }
 
