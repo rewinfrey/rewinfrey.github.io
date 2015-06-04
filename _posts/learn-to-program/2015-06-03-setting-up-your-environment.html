@@ -1,0 +1,175 @@
+---
+layout: writing
+group: learn-to-program
+title:  "Session 1: Setting Up Your Environment"
+date:   2015-06-03 18:10:07
+subtitle: Welcome to the Wonderful World of Programming!
+categories:
+- learn-to-program
+---
+
+<h3>Welcome to the Wonderful World of Programming!</h3>
+<p>
+It is impossible to convey in words the incredible journey you have ahead of you. The many things you will
+learn, the ideas, the abstractions and the critical thinking you will gain will come to fundamentally
+change and shape the way you see the world. Whether this is a hobby or becomes a profession, programming
+will help you better understand and appreciate how the world around us works, and might even have you
+marveling that any of the technology we use everyday works at all! But we aren't here to talk about such things,
+we're here to setup your environment so you can begin your journey...
+</p>
+
+<p>
+We will be presenting these ideas in the context of the Salesforce programming language
+<a href="https://developer.salesforce.com/page/Apex_Code:_The_World%27s_First_On-Demand_Programming_Language">Apex</a>.
+These sessions are meant to provide you with enough foundational knowledge to be able to program in any language. We use Apex
+because it overlaps very well with our business needs, but you are highly encouraged to take the ideas
+and concepts learned in these sessions and apply them to another language that is personally appealing to you.
+</p>
+
+<h3>Setup Overview</h3>
+<p>
+Setting up your "environment" is a time-honored tradition everyone in programming must do. This session assumes
+you are using a computer with the <a href="http://en.wikipedia.org/wiki/OS_X">OS X</a> operating system (a Mac).
+This session will walk you through installing everything required for future sessions. By the end of this session you
+should have the following either installed or registered:
+</p>
+
+<ol>
+  <li>Java 8 <a href="http://en.wikipedia.org/wiki/Java_Development_Kit">JDK</a></li>
+  <li>The <a href="http://www.eclipse.org/ide/">Eclipse</a> <a href="http://en.wikipedia.org/wiki/Integrated_development_environment">IDE</a></li>
+  <li>The <a href="https://developer.salesforce.com/page/Force.com_IDE_Installation">Force.com Eclipse plugin</a> (for writing Apex programs)</li>
+  <li>A <a href="https://developer.salesforce.com/signup">Salesforce development account</a></li>
+</ol>
+
+<h3>Install Java 8 JDK</h3>
+<p>
+The first thing we will do is install the Java 8 JDK. Please visit this
+<a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html" target="_blank">link</a>.
+You need to 'accept' the license agreement, and download the Mac OS X x64 file.
+<img style="width: 768px; height: 550px; display: block; margin: auto;" src="/assets/images/learn-to-program/jdk.png" />
+Go to your Downloads folder, and double-click the dmg file. Once the installer launches, you'll need to double-click the package icon to install the JDK.
+</p>
+
+<h3>Install the Eclipse IDE</h3>
+<p>
+Next, you'll need to download and install the Eclipse IDE. Please visit this
+<a href="https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/luna/SR2/eclipse-java-luna-SR2-macosx-cocoa-x86_64.tar.gz">link</a>
+to download the file.
+</p>
+
+<p>
+Once you've got the file downloaded, go back to your Downloads folder and double-click the tar.gz file to unzip the folder.
+After the folder has been unzipped, drag and drop it into your Applications folder.
+</p>
+
+<p>
+Next go to your eclipse folder in your Applications folder. You should see the eclipse application icon. Right click (control click) on
+the application icon and select "Show Package Contents". It should look like this:
+<img src="/assets/images/learn-to-program/show_package_contents.png" />
+</p>
+
+<p>
+This will open a new finder window. You will need to navigate first to the MacOS folder, and locate the eclipse.ini file. Right click
+on the eclipse.ini file and choose "TextEdit" from the "Open With" menu. Please refer to the picture below:
+<img src="/assets/images/learn-to-program/eclipse_ini.png" />
+</p>
+
+<p>
+The application TextEdit will open a new window containing the contents of the eclipse.ini file. There is a small change that you'll
+need to make to tell the Eclipse IDE that we will be using the Java 8 JDK previously downloaded. Look for the line of text:
+<strong>-Dosgi.requiredJavaVersion=1.6</strong>. You need to change <strong>1.6</strong> to <strong>1.8</strong>. Please see the image
+below for clarification.
+<img src="/assets/images/learn-to-program/edit_eclipse_ini.png" />
+</p>
+
+<p>
+Unfortunately, due to various privacy and security concerns, the Eclipse IDE does not conform to what Apple considers to be a "safe"
+application. In order for us to now launch the Eclipse IDE, we will need to temporarily relax the privacy settings of our computers.
+This is only temporary and is completely safe.
+</p>
+
+<p>
+Please go to your system preferences and click on "Security & Privacy". You'll first need to click on the "lock" icon and enter in your
+system password. Next you need to select the "Anywhere" option under the "Allow apps downloaded from:" section.
+<img src="/assets/images/learn-to-program/security.png" />
+</p>
+
+<p>
+Now you should be able to launch the Eclipse IDE! Go ahead and launch the application and make sure it starts up okay. Once the Eclipse
+IDE is launched for the first time, you can go back to your Security & Privacy settings, and restore your security settings to only trust
+applications downloaded from the "Mac App Store and identified developers".
+</p>
+
+<h3>Install the Force.com Eclipse Plugin</h3>
+<p>
+Now that your Eclipse IDE is up and running, let's configure it to allow us to program using the Apex programming language.
+First go to the "help" menu, and click on "Install New Software".
+<img src="/assets/images/learn-to-program/install_new_software.png" />
+</p>
+
+<p>
+Next click on "Add" and enter in the following information:
+<br />
+<strong>Name: Force.com IDE</strong>
+<br />
+<strong>Location: http://media.developerforce.com/force-ide/eclipse42</strong>
+<img src="/assets/images/learn-to-program/add_new_software.png" />
+</p>
+
+<p>
+Click the "Select All" option to select both "Force.com IDE" and "Force.com IDE Debugger" and then click on "Finish".
+At this point, it is best to exit out of the Eclipse IDE and restart the application so the new software can be used.
+</p>
+
+<p>
+Now that your Eclipse IDE has the Force.com plugin installed, we need to setup your Force.com developer account.
+To do this, please visit this <a href="https://developer.salesforce.com/signup">link</a>. I would recommend using
+your personal email address for this account, so it won't be confused with your business email account.
+</p>
+
+<p>
+After you've signed up for a developer account, you'll want to make sure you activate your account. Please follow
+the instructions in your activation email. After you've logged in successfully, you'll need to reset your security token.
+This will be important in a few minutes. To do this, please go to "My Settings" in your Salesforce account by clicking on your
+account name's drop down menu.
+<img src="/assets/images/learn-to-program/salesforce_settings.png" />
+</p>
+
+<p>
+Next look for the menu option "Reset My Security Token" on the left hand side of your settings page. After you click on that menu
+item, you should see a "Reset Security Token" button. Click that, and you will be given notification that your security token
+has been reset, and an email with your new security token was sent to your email address.
+<img src="/assets/images/learn-to-program/reset_security_token.png" />
+</p>
+
+<p>
+Once you've confirmed that you've received your Salesforce security token, we can create your first Apex project back in the
+Eclipse IDE. Return to your Eclipse IDE and go to the "file" menu option. Next select "New" and select "Force.com Project".
+<img src="/assets/images/learn-to-program/new_project.png" />
+</p>
+
+<p>
+You'll then be presented with a form to input your Salesforce account information, including your Salesforce security token.
+Please follow the directions and submit the form to create a new Force.com project. If everything is correct, then congratulations!
+You've created your first Force.com project, and this will be the basis from which we begin programming in future sessions!
+<br />
+<img style="margin-top: 2em;" src="/assets/images/learn-to-program/finish_new_project.png" />
+</p>
+
+<h3>What's Next?</h3>
+<p>
+In this first session you've gotten a small taste of configuring your environment. Often in the world of programming,
+you have to make sure you have your "dependencies" installed correctly, and that the "plumbing" is correct between
+various applications. In this case, our dependencies are the Java 8 JDK and the Eclipse IDE. In order to create a new
+Apex project, we also saw that we needed to install the Force.com IDE plugin (which is also a dependency for us). In order
+to use the Force.com plugin, we saw that we needed to create a Salesforce developer account, and generate a security token
+in order for our Eclipse IDE to successfully create a new project with Salesforce. The security token we received from Salesforce
+is what allows us to correctly configure the plumbing between our Eclipse IDE and Salesforce.
+</p>
+
+<p>
+We will talk more about this in the sessions to follow, but for now enjoy the feeling of having navigated through configuring
+your environment successfully. In the next session, we will begin by looking at the different primitive data types Apex offers us.
+These are mostly the same primitive data types offered in almost all programming languages. Are you not sure what a primitive
+data type means? Not to worry, you'll find that out and more in the next session!
+</p>
