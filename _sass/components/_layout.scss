@@ -284,6 +284,17 @@ article {
   }
 }
 
+.definition {
+  border-radius: 0.2em;
+  background-color: #25C09D;
+  padding: 1.4em;
+  color: white;
+
+  a {
+    color: lighten($link, 40%);
+  }
+}
+
 .abstract {
   ul {
     border-bottom: 1px solid lighten($base-color, 35%);
@@ -357,7 +368,7 @@ article ol {
 
 article {
   h3 {
-    color: $base-color;
+    color: darken($base-color, 15%);
     font-size: 1.7em;
     font-weight: 400;
     line-height: 1.1em;
