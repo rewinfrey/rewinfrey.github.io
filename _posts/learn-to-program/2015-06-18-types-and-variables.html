@@ -167,7 +167,7 @@ subtle distinctions between types, as we will see as we dive deeper into the rem
 
 <p>
 The <strong>Decimal</strong> primitive data type is the type most commonly used to represent money values.<sup>*</sup>
-The following examples are <strong>expressions</strong> using the Decimal primitive data type:
+The following examples are <strong>expressions</strong> using the <strong>Decimal</strong> primitive data type:
 </p>
 
 {% highlight ruby %}
@@ -177,7 +177,7 @@ The following examples are <strong>expressions</strong> using the Decimal primit
 {% endhighlight %}
 
 <p class="definition">
-<strong>Decimals</strong> are numbers that contain a decimal point. In the context of Apex, Decimal numbers are said to be
+<strong>Decimals</strong> are numbers that contain a decimal point. In the context of Apex, <strong>Decimal</strong> numbers are said to be
 of <strong>arbitrary precision</strong> meaning there is not a pre-defined limit to how many decimal places the number can have.
 </p>
 
@@ -188,14 +188,14 @@ behavior sometimes witnessed when needing to truncate decimals.
 </p>
 
 <h3>Doubles</h3>
-<p>Like <strong>Decimals</strong>, <strong>Doubles</strong> also have decimal points. The distinction between a <strong>Double</strong> and a Decimal
-is a lower-level idea concerning the amount of memory that is allocated when a Decimal vs a <strong>Double</strong> primitive data type is used. For now,
-we are not going to worry about <strong>Doubles,</strong> but you can think of <strong>Doubles</strong> as extra big Decimals for now.
+<p>Like <strong>Decimals</strong>, <strong>Doubles</strong> also have decimal points. The distinction between a <strong>Double</strong> and a <strong>Decimal</strong>
+is a lower-level idea concerning the amount of memory that is allocated when a <strong>Decimal</strong> vs a <strong>Double</strong> primitive data type is used. For now,
+we are not going to worry about <strong>Doubles,</strong> but you can think of <strong>Doubles</strong> as extra big <strong>Decimals</strong> for now.
 
 <h3>Longs</h3>
 <p>Like <strong>Doubles</strong>, we are not going to worry about <strong>Longs</strong> at this time. In the same way <strong>Doubles</strong> are
-related to Decimals, <strong>Longs</strong> are related to <strong>Integers.</strong> For now, think of <strong>Doubles</strong> as extra big <strong>Integers</strong> that consume more memory. We won't
-need to use <strong>Longs</strong> or <strong>Doubles</strong> for some time, if ever. What is important at this time is to recognize that <strong>Doubles</strong> are extra big Decimals,
+related to <strong>Decimals,</strong> <strong>Longs</strong> are related to <strong>Integers.</strong> For now, think of <strong>Doubles</strong> as extra big <strong>Integers</strong> that consume more memory. We won't
+need to use <strong>Longs</strong> or <strong>Doubles</strong> for some time, if ever. What is important at this time is to recognize that <strong>Doubles</strong> are extra big <strong>Decimals,</strong>
 and <strong>Longs</strong> are extra big <strong>Integers.</strong>
 </p>
 
@@ -233,7 +233,7 @@ of the values representing months, days and years.
 <h3>Time</h3>
 <p>
 <strong>Time</strong> is as you would expect a primitive data type that allows us to express hours, minutes, seconds and even finer
-levels of granularity (depending on the language and the context, we can express time to an arbitrary precision similar to Decimals).
+levels of granularity (depending on the language and the context, we can express time to an arbitrary precision similar to <strong>Decimals</strong>).
 In the context of Apex we can use the <strong>Time</strong> primitive data type to represent hours, minutes, seconds and milliseconds as the lowest
 level of granularity. Here are a variety of <strong>Time</strong> <strong>statements:</strong>
 </p>
@@ -302,7 +302,7 @@ about primitive data types in terms of four broad categories:
 </ol>
 
 <p>
-Although we learned there are multiple Number primitive data types, the two we will focus on are the <strong>Integer</strong> and Decimal
+Although we learned there are multiple Number primitive data types, the two we will focus on are the <strong>Integer</strong> and <strong>Decimal</strong>
 primitive data types. We learned that <strong>Strings</strong> are any characters surrounded by single quotes (it's important in the context
 of Apex to not use double-quotes), and we also learned that entire systems of mathematics can be created by describing
 <strong>expressions</strong> merely in terms of true and false with the <strong>Boolean</strong> primitive data type. Lastly, we looked at <strong>Dates,</strong> Times and
