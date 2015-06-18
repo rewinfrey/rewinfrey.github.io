@@ -1,0 +1,379 @@
+---
+layout: writing
+group: learn-to-program
+title:  "Session 2: Types and Variables"
+date:   2015-06-19 18:10:07
+subtitle: Types Are the Building Blocks of Programs
+categories:
+- learn-to-program
+---
+
+<p>
+Types are the most basic building block of every program. We can say that underlying
+all computation that takes place around us everyday is made possible because of types.
+But what do we mean when we talk about types? For us
+this means focusing on a subset of the broader idea of types that exists in the world
+of programming known as
+<a href="https://en.wikipedia.org/wiki/Primitive_data_type" target="_blank">primitive data types</a>.
+And because we are learning about types in the context of the Apex programming language,
+we will start this exploration of types by looking at the primitive data types found
+in Apex.
+</p>
+
+<p>
+What do we mean by <em>primitive data type</em>? Primitive tells us it is the most simple,
+data means information, and type tells us something descriptive about the nature of that data.
+Is the data a number? Or is it some kind of text? Or is it the idea of true or false?
+To make this abstract idea more concrete, let's look at a couple of examples.
+</p>
+
+<h3>Integers</h3>
+
+<p>
+Given the following <strong>expression:</strong>
+</p>
+
+{% highlight ruby %}
+1 + 2 = 3
+{% endhighlight %}
+
+<p>
+How might we describe this <strong>expression</strong> in terms of <em>primitive data types</em>?
+</p>
+
+<p>
+We see there are three numbers: 1, 2 and 3. What <strong>type</strong> of numbers are they?
+In the primitive data types given to us by Apex, we would say numbers like 1, 2 and 3 are
+<strong>Integers</strong>.
+</p>
+
+<p class="definition">
+<strong>Integers</strong> are numbers without a decimal point. As a primitive data type in various programming
+languages, <strong>Integers</strong> are usually expressed in terms of a range of a maximum low and a maximum high
+number. In Apex, we can represent <strong>Integers</strong> from <strong>-2,147,483,648</strong> as the lowest possible
+number to <strong>2,147,483,647</strong> as the highest possible number. <strong>It is always preferable
+to use an Integer primitive data type when possible</strong>.
+</p>
+
+<h3>Strings</h3>
+
+<p>
+Let's look at another example, this time involving a different primitive data type:
+</p>
+
+{% highlight ruby %}
+'There are single quotes around me'
+{% endhighlight %}
+
+<p>
+In this example, we don't see an <strong>expression</strong> but rather a <strong>statement</strong>. In this case,
+we would say the primitive data type of this <strong>statement</strong> is a <strong>String</strong>. Technically, a <strong>String</strong>
+is a sequence of <strong>Characters</strong>, but Apex does not support a <strong>Character</strong> primitive data type
+independent of <strong>String</strong>.
+</p>
+
+<p class="definition">
+<strong>Strings</strong> are any characters surrounded by single quotes. There are a number of <strong>String</strong> operations we can perform
+such as converting a <strong>String</strong> of characters to all uppercase or lowercase characters, obtaining a substring of characters from a
+larger <strong>String,</strong> or even reversing a <strong>String.</strong> It's always good to consider how big any data is in terms of its memory footprint,
+but for now, let's keep things simple and say there is no limit to the size of a <strong>String</strong> we can define in Apex.
+</p>
+
+<h3>Expressions vs Statements</h3>
+
+<p>
+So far we've introduced <strong>Integers</strong> and <strong>Strings</strong> and the terms <strong>expression</strong>
+and <strong>statement</strong>. We said that this <strong>expression</strong>:
+</p>
+
+{% highlight ruby %}
+1 + 2 = 3
+{% endhighlight %}
+
+<p>
+is different than this <strong>statement</strong>:
+</p>
+
+{% highlight ruby %}
+'There are single quotes around me'
+{% endhighlight %}
+
+<p>
+What do you think is the difference between an <strong>expression</strong> and a <strong>statement</strong>?
+</p>
+
+<hr />
+
+<p>
+Before continuing lets clearly define <strong>expressions</strong> and <strong>statements</strong>, as they are
+important words we will use repeatedly going forward.
+</p>
+
+<p class="definition">
+<strong>Expressions</strong> are anything that calculates a value or performs an operation. In very simple terms, <strong>expressions</strong>
+<em>do things</em>. The body of an <strong>expression</strong> tells us how the <strong>expression</strong> does what it does. We will explore
+this idea in much more detail when we talk about functions and methods as we move towards understanding
+Classes and Objects. But for now, the simple idea that <strong>expressions</strong> do things is perfectly fine.
+</p>
+
+<p class="definition">
+<strong>Statements</strong>, unlike <strong>expressions,</strong> do nothing. Instead, <strong>Statements</strong> <em>define facts or values</em>. <strong>Statements</strong>
+can be used as inputs or in the body of <strong>expressions,</strong> but should not be thought of as the same thing as <strong>expressions.</strong>
+If you're ever unsure about whether or not something is a <strong>statement</strong> or an <strong>expression,</strong>
+ask yourself if some action is happening. If the answer is no, then you know it is a <strong>statement.</strong> The idea of <strong>statements</strong> in
+programming will have more significance when we talk about variables and assignment.
+</p>
+
+<h3>Booleans</h3>
+<p>
+Next in our introduction to primitive data types, let's look at the <a href="https://en.wikipedia.org/wiki/Boolean_data_type" target="_blank">Boolean type</a>.
+The term <strong>Boolean</strong> comes from <a href="https://en.wikipedia.org/wiki/George_Boole" target="_blank">George Boole</a> and a system of mathematics credited to him
+known as <a href="https://en.wikipedia.org/wiki/Boolean_algebra" target="_blank">Boolean Algebra</a>. In Boolean Algebra, all <strong>variables</strong> are
+represented as one of two values:
+</p>
+
+{% highlight ruby %}
+true
+
+false
+{% endhighlight %}
+
+<p class="definition">
+<strong>Booleans</strong> refer two only two possible values, <strong>true</strong> or <strong>false</strong>. We use <strong>Booleans</strong> most commonly
+in defining control flow through programs in what is commonly referred to as <a href="https://en.wikipedia.org/wiki/Branch_(computer_science)" target="_blank">conditional branching</a>.
+For now though, you only need to remember that the <strong>Boolean</strong> primitive data type refers to only two values.
+</p>
+
+<h3>Booleans vs Strings</h3>
+
+<p>
+In the previous sections we defined the <strong>String</strong> primitive data type as any group of characters surrounded by single quotes, and <strong>Boolean</strong> primitive data types
+as being one of two values: true or false. But how would we describe the following <strong>statements</strong> in terms of primitive data types?
+</p>
+
+{% highlight ruby %}
+'true'
+
+'false'
+{% endhighlight %}
+
+<p>
+In this case, both of these <strong>statements</strong> are <strong>Strings.</strong> We can say they are <strong>String</strong> representations of <strong>Boolean</strong> values, but their primitive
+data type is still just a <strong>String.</strong> The rule that <strong>Strings</strong> are any characters wrapped with single quotes here demonstrates the sometimes
+subtle distinctions between types, as we will see as we dive deeper into the remaining number primitive data types.
+</p>
+
+<h3>Decimals</h3>
+
+<p>
+The <strong>Decimal</strong> primitive data type is the type most commonly used to represent money values.<sup>*</sup>
+The following examples are <strong>expressions</strong> using the Decimal primitive data type:
+</p>
+
+{% highlight ruby %}
+5.00 + 7.50 = 12.50
+
+1.0000000000001 + 0.0000000000000 = 1.0000000000001
+{% endhighlight %}
+
+<p class="definition">
+<strong>Decimals</strong> are numbers that contain a decimal point. In the context of Apex, Decimal numbers are said to be
+of <strong>arbitrary precision</strong> meaning there is not a pre-defined limit to how many decimal places the number can have.
+</p>
+
+<p>
+<strong><sup>*<sup></strong>Depending on the context, decimals may not be the best way to calculate or store money values. Many
+people agree that dealing with money is best done with <strong>Integers</strong> to avoid problems with rounding and the strange
+behavior sometimes witnessed when needing to truncate decimals.
+</p>
+
+<h3>Doubles</h3>
+<p>Like <strong>Decimals</strong>, <strong>Doubles</strong> also have decimal points. The distinction between a <strong>Double</strong> and a Decimal
+is a lower-level idea concerning the amount of memory that is allocated when a Decimal vs a <strong>Double</strong> primitive data type is used. For now,
+we are not going to worry about <strong>Doubles,</strong> but you can think of <strong>Doubles</strong> as extra big Decimals for now.
+
+<h3>Longs</h3>
+<p>Like <strong>Doubles</strong>, we are not going to worry about <strong>Longs</strong> at this time. In the same way <strong>Doubles</strong> are
+related to Decimals, <strong>Longs</strong> are related to <strong>Integers.</strong> For now, think of <strong>Doubles</strong> as extra big <strong>Integers</strong> that consume more memory. We won't
+need to use <strong>Longs</strong> or <strong>Doubles</strong> for some time, if ever. What is important at this time is to recognize that <strong>Doubles</strong> are extra big Decimals,
+and <strong>Longs</strong> are extra big <strong>Integers.</strong>
+</p>
+
+<h3>The Scourge Of Programming: Time</h3>
+
+<p>
+Programming applications for the real world inevitably deals with some notion of time, dates, or the combination of time and dates, datetimes.
+In most programming languages concepts of <strong>Date</strong> or <strong>Time</strong> or <strong>DateTime</strong> are regarded as primitive data types and Apex is no exception. Apex provides
+us with the primitive data types of <strong>Date</strong>, <strong>Time</strong> and <strong>DateTime</strong>.
+</p>
+
+<h3>Date</h3>
+<p>
+The <strong>Date</strong> primitive data type represents a date without the notion of time. Let's take a look at a couple of examples of
+<strong>Date</strong> <strong>statements:</strong>
+</p>
+
+{% highlight ruby %}
+2015/06/18
+
+06/18/2015
+
+2015-07-08
+
+12-12-12
+{% endhighlight %}
+
+<p class="definition">
+<strong>Dates</strong> only represent the notion of a date independent of time, and can be written as <strong>statements</strong> in a variety of ways.
+We will explore ways to format dates when we talk about <strong>Date</strong> objects. We will place special emphasis on removing any ambiguity in our
+<strong>Date</strong> <strong>statements,</strong> e.g. 12-12-12, by remembering to always format dates in a way that removes the possibility of misinterpretation
+of the values representing months, days and years.
+</p>
+
+<h3>Time</h3>
+<p>
+<strong>Time</strong> is as you would expect a primitive data type that allows us to express hours, minutes, seconds and even finer
+levels of granularity (depending on the language and the context, we can express time to an arbitrary precision similar to Decimals).
+In the context of Apex we can use the <strong>Time</strong> primitive data type to represent hours, minutes, seconds and milliseconds as the lowest
+level of granularity. Here are a variety of <strong>Time</strong> <strong>statements:</strong>
+</p>
+
+{% highlight ruby %}
+
+05:15:00
+
+15:20:20
+
+10:10:10:10
+{% endhighlight %}
+
+<p class="definition">
+<strong>Times</strong> let us represent data in terms of hours, minutes, seconds and milliseconds within Apex. <strong>Time</strong> can be thought
+of in terms of a 24 hour clock, or a 12 hour clock using the AM and PM designation. As programmers it is highly recommended that
+you become comfortable with the 24 hour clock because it is frequently the default mode for representing time.
+</p>
+
+<h3>DateTime</h3>
+<p>
+As you've probably already guessed the <strong>DateTime</strong> primitive data type combines <strong>Dates</strong> and <strong>Time</strong> together as one
+type. However, there is an additional piece of information that needs to be considered when dealing with <strong>DateTime</strong> values, and
+it is the scourge of programming known as time zones.
+</p>
+
+<p>
+We will talk about programming with time zones when the time is right, but for now all you need to focus on is the <strong>DateTime</strong>
+primitive data type and the way it is represented as a <strong>statement</strong> or value. Let's take a look a few examples of how <strong>DateTime</strong> values
+can be represented:
+</p>
+
+{% highlight ruby %}
+2015-06-18 05:32:24
+
+2015-06-17 00:00:00
+
+22:37:51.703Z
+
+1434605952372
+
+{% endhighlight %}
+
+<p class="definition">
+<strong>DateTimes</strong> conceptually are simple and easy to grasp, but is likely the most difficult primitive
+data type to work with. <strong>DateTimes</strong> are complicated by the fact that they can be represented in terms of a date and time: 2015-06-18 05:32:24,
+or they can be represented in terms of their <strong>Date</strong> component only: 2015-06-17 00:00:00. Or in some contexts we may only care about the
+<strong>Time</strong> component: 22:37:51.703Z. The 'Z' at the end of the <strong>Time</strong> indicates the <a href="https://en.wikipedia.org/wiki/List_of_military_time_zones" target="_blank">Zulu time zone</a>
+which corresponds with the <a href="https://en.wikipedia.org/wiki/Greenwich_Mean_Time" target="_blank">Greenwich Mean Time (GMT)</a>. Although there are other
+possible representations of <strong>DateTime</strong> values, the last example above is the number of milliseconds since January 1, 1970 00:00:00Z. Why is that important?
+January 1, 1970 is called <a href="https://en.wikipedia.org/wiki/Unix_time" target="_blank">Unix time or epoch time</a> and provides a universally consistent representation
+of time regardless of time zone, operating system or platform. We will not likely use the epoch time in these sessions, but it serves to
+illustrate a little about the complexity that surrounds programming with dates and time.
+</p>
+
+<h3>Wrapping Up</h3>
+<p>
+Now that you're familiar with the basic primitive data types offered in Apex, we can generalize what we've learned
+about primitive data types in terms of four broad categories:
+</p>
+<ol>
+  <li>Numbers</li>
+  <li>Text</li>
+  <li>Time</li>
+  <li>Booleans</li>
+</ol>
+
+<p>
+Although we learned there are multiple Number primitive data types, the two we will focus on are the <strong>Integer</strong> and Decimal
+primitive data types. We learned that <strong>Strings</strong> are any characters surrounded by single quotes (it's important in the context
+of Apex to not use double-quotes), and we also learned that entire systems of mathematics can be created by describing
+<strong>expressions</strong> merely in terms of true and false with the <strong>Boolean</strong> primitive data type. Lastly, we looked at <strong>Dates,</strong> Times and
+their combined primitive data type, <strong>DateTime,</strong> and also looked at their various representations and peeled back a few layers
+of the complexities surrounding programming with <strong>Dates</strong> and <strong>Times.</strong>
+</p>
+
+<p>
+This brief introduction to primitive data types has hopefully provided you with a model for understanding the
+basic building blocks of programs and prepares you to begin exploring how to construct these primitive data types in Apex.
+The goal is to give you the mental model needed to be able to correctly identify primitive data types and also
+identify what primitive data type to use in different situations. The challenge questions below will provide you with
+some application practice so you can verify your understanding.
+</p>
+
+<p>
+If you would like to read more about the data types in Apex, a detailed, complete list of types offered by Apex can be viewed
+<a href="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_primitives.htm" target="_blank">here</a>.
+We did not cover all of the primitive data types offered by Apex just yet, because not all of Apex's primitive
+data types are necessary for understanding how to program. But the majority of Apex's
+primitive data types are found in just about every programming language, and the primitive
+data types we've covered in this session are immediately transferable to most languages.
+</p>
+
+<h3>Challenges</h3>
+<p>
+<strong>Please answer these questions before the next sesssion. We will go over these questions and talk about the answers
+at the beginning of the next session.</strong>
+</p>
+
+<p><strong>Please idenfity the following primitive data types:</strong></p>
+<ol>
+  <li>123</li>
+  <li>'14.5'</li>
+  <li>123.0</li>
+  <li>05-12-2015</li>
+  <li>00:00:00Z</li>
+  <li>'Hello World'</li>
+  <li>true</li>
+  <li>'566'</li>
+  <li>12:12:12</li>
+  <li>'false'</li>
+  <li>'12/12/12'</li>
+</ol>
+
+<p><strong>Please identify the best primitive data type for the situation:</strong>
+<br />
+<strong>Example:</strong> You want to represent an account owner's first and last name.
+<br />
+<strong>Answer:</strong> First and last name are best represented by the <strong>String</strong> primitive data type.
+</p>
+<ol>
+  <li>A customer called and asked for a report of all their transactions year to date within the app.</li>
+  <li>You want to calculate the total revenue generated by job board post orders for the month of May.</li>
+  <li>Crothers gave you a list of opportunities to call to schedule demos. He wants to see the list at the end of the day indicating whether or not you were able to setup a demo.</li>
+  <li>JB needs to know how many franchise locations a new opportunity offers.</li>
+  <li>Margot wants to understand when customers are logging into the app so she can track usage patterns throughout the day.</li>
+  <li>Robyn has asked you to calculate the average worth of one hour of phone time to total contract revenue generated for a given time frame for your pod.</li>
+  <li>Nate has requested a report of corporate accounts indicating if they have logged into the app this month or not.</li>
+  <li>To better prioritize your day, you want to construct a list of phone numbers in order of their priority.</li>
+  <li>Adam wants the total number of support phone call hours to drop, so you code a new feature for the application to make a particularly difficult part of the
+     app easier to use and understand. Afterwards you get a list of phone call logs with the datetimes of each phone call. What primitive data type would your report
+     for Adam use to show whether or not support phone call hours dropped as a result of your new feature?</li>
+</ol>
+
+
+<h3>You Can Has More Types?</h3>
+<p>
+If you find the idea of types interesting and would like to study the more abstract
+idea of types, then I would point you to the fascinating mathematical system known as
+<a href="https://en.wikipedia.org/wiki/Category_theory" target="_blank">Category Theory</a>. We
+won't be talking about category theory in the near future, but that does not mean you
+should not explore this system on your own!
+</p>
