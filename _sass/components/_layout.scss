@@ -46,6 +46,11 @@ dt {
   line-height: 1.5em;
 }
 
+.answer {
+  color: $secondary-color;
+  font-weight: 600;
+}
+
 .play {
   .idea {
     width: 100%;
@@ -360,7 +365,7 @@ section ol {
 article ol {
   font-size: 1.3em;
   margin: 1.2em 0;
-  padding: 0 1.5em;
+  padding: 0 1.9em;
   li {
     padding: 0.2em 0;
   }

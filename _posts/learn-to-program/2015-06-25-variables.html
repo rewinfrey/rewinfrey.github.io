@@ -1,0 +1,309 @@
+---
+layout: writing
+group: learn-to-program
+title:  "Session 3: Variables"
+date:   2015-06-25 18:10:07
+subtitle: Variables Are The Containers For Data Types
+categories:
+- learn-to-program
+---
+
+<p>
+In the last session we looked at <a href="http://www.rickwinfrey.com/learn-to-program/2015/06/19/types-and-variables.html" target="_blank">Primitive Data Types</a>
+such as <strong>Integer</strong>, <strong>String</strong>, <strong>Boolean</strong> and <strong>Decimal</strong>. We also learned about the difference
+between <strong>statements</strong> and <strong>expressions</strong>. Today we are going to focus our attention on a special component of statements
+called <strong>variables</strong>.
+</p>
+
+<p>
+Depending on the programming language a <strong>variable</strong> consists of at least two distinct parts: a <strong>name</strong> and a <strong>value</strong>. However,
+in languages like Apex, Java or C, <strong>variables</strong> consist of three distinct parts: a <strong>name</strong>, a <strong>value</strong> and a <strong>type</strong>.
+</p>
+
+<p>
+Let's take a look at what <strong>variable assignment statements</strong> look like in Apex:
+</p>
+
+{% highlight ruby linenos %}
+/* Integer variables */
+Integer number = 1;
+
+Integer age = 157;
+
+/* String variables */
+String favoriteBand = 'Jackson 5';
+
+String daBoss = 'Adam Robinson';
+
+/* Decimal variables */
+Decimal quarterlyRevenue = 999999.99;
+
+Decimal averageGPA = 3.5;
+
+/* Boolean variables */
+Boolean truthy = true;
+
+Boolean falsey = false;
+
+/* Date variables are special: */
+Date mahBday = Date.newInstance(1982, 04, 03);
+
+Date nextNewYear = Date.newIstance(2016, 01, 01);
+
+/* Time variables are also special: */
+Time lunchTime = Time.newInstance(12, 0, 0, 0);
+
+Time dinnerTime = Time.newInstance(19, 0, 0, 0);
+
+/* If Date variables are special, and Time variables are special,
+ Then DateTime variables must be special, too. */
+DateTime lastLogin = DateTime.newInstance(2015, 06, 24, 10, 0, 0);
+{% endhighlight %}
+
+<h3>Breaking It Down</h3>
+<p>
+Let's break down a single <strong>variable assignment statement</strong> to understand the components.
+Given the following statement:
+</p>
+
+{% highlight ruby linenos %}
+Integer number = 1;
+{% endhighlight %}
+
+<p>
+The first component of the statement is the <strong>type</strong>. In this example,
+we are <strong>declaring</strong> an <strong>Integer variable</strong>:
+</p>
+
+{% highlight ruby linenos %}
+/* The first component of a variable assignment statement is the type (Integer) */
+Integer number = 1;
+{% endhighlight %}
+
+<p>
+The second component of this statement is the <strong>name</strong> of the <strong>variable</strong>, number.
+One of the most difficult aspects of programming is naming <strong>variables</strong> well, something we
+will talk more about later. The <strong>name</strong> is really not important for the computer and is used
+to help humans understand what information <strong>variables</strong> are holding. In this instance we are creating
+a <strong>variable</strong> to hold an <strong>Integer</strong>, so we use the generic <strong>name: number</strong>:
+</p>
+
+{% highlight ruby linenos %}
+/* The second component of a variable assignment statement is the name (number) */
+Integer number = 1;
+{% endhighlight %}
+
+<p>
+The final component is the <strong>value</strong> we want to <strong>assign</strong>
+the <strong>Integer variable number</strong> with, which in this case is 1.
+As the term <strong>variable</strong> implies, the <strong>value</strong> of a <strong>variable</strong>
+can change while a program is running. This is mainly why <strong>variables</strong> are called
+<strong>variables</strong> - because their values can vary over time. We are not changing
+the <strong>value</strong> of <strong>number</strong> just yet. For now, we are simply assigning its <strong>value</strong>:
+</p>
+
+{% highlight ruby linenos %}
+/* The final component of a variable assignment statement is the value (1) */
+Integer number = 1;
+{% endhighlight %}
+
+<p>
+Lastly, as part of the syntax requirements of Apex, we conclude this <strong>variable assignment
+  statement</strong> with a <strong>;</strong> (semicolon) to indicate the end of the statement:
+</p>
+
+{% highlight ruby linenos %}
+/* Don't forget your ; character at the end of each statement.
+   Otherwise it is a syntax error. */
+Integer number = 1;
+{% endhighlight %}
+
+<h3>Declaring Variables</h3>
+<p>
+Defining a variable by specifying its <strong>type</strong>, <strong>name</strong> and <strong>value</strong>
+as a <strong>variable assignment statement</strong> is more commonly referred to as <strong>declaring a variable</strong>.
+Let's practice <strong>declaring variables</strong> within Eclipse. To do this,
+we are going to re-open your existing Salesforce project that we created during
+<a href="http://www.rickwinfrey.com/learn-to-program/2015/06/03/setting-up-your-environment.html" target="_blank">Session 1</a>.
+If you have trouble finding your project, you should look in your home directory. A simple way to do this
+is to go to your Finder, and press ⌘ ⇧ g together. This will prompt you to enter in a path. To go to your
+home directly, type <strong>~</strong> and press enter:
+</p>
+
+<img src="/assets/images/learn-to-program/home_directory_finder.png" />
+
+<p>
+Once you have navigated to your home directory, look for the <strong>workspace</strong>
+directory. Assuming you did not define a custom path for your Salesforce project workspace,
+your project should be there.
+</p>
+
+<p>
+For the remainder of the session we are going to spend time in the <strong>Execute Anonymous</strong>
+tab of the Eclipse IDE. This will allow us to execute Apex code without any complicated setup, nor needing
+to worry about project structure for now. Look towards the bottom of your Eclipse window, and you should
+see the <strong>Execute Anonymous</strong> tab. This tab is resizable, and will probably be easier to use
+if you make it larger:
+</p>
+
+<img src="/assets/images/learn-to-program/execute_anonymous.png" />
+
+<p>
+We are now going to practice writing variable assignment statements and executing them to ensure
+our syntax is correct. We will practice together and will cover the following:
+</p>
+
+<ol>
+  <li>Create an <strong>Integer variable</strong> named <strong>oneHundred</strong> whose value is 100.</li>
+  <li>Create an <strong>Integer variable</strong> named <strong>twoHundred</strong> whose value is 200.</li>
+  <li>Create a <strong>String variable</strong> named <strong>firstName</strong> whose value is your first name.</li>
+  <li>Create a <strong>String variable</strong> named <strong>lastName</strong> whose value is your last name.</li>
+</ol>
+
+<p>
+The final result should look like this:
+</p>
+
+{% highlight ruby linenos %}
+Integer oneHundred = 100;
+Integer twoHundred = 200;
+
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+{% endhighlight %}
+
+<h3>Variables From Other Variables</h3>
+<p>
+So far, we have <strong>declared variables</strong> using simple values. <strong>Declaring variables</strong>
+in the real world however is often more interesting, especially when we <strong>declare</strong> a new <strong>variable</strong> whose <strong>value</strong>
+is a calculation, operation or <strong>expression</strong> of existing <strong>variables</strong> and their <strong>values</strong>. To illustrate this,
+let's practice <strong>declaring variables</strong> whose <strong>values</strong> are the <strong>expression</strong> of other <strong>variables</strong>:
+</p>
+
+<ol>
+  <li>Create an <strong>Integer variable</strong> named <strong>threeHundred</strong> whose value is the sum of <strong>oneHundred</strong> and <strong>twoHundred</strong>.</li>
+  <li>Create a <strong>String variable</strong> named <strong>fullName</strong> whose value is the concatenation of <strong>firstName</strong> and <strong>lastName</strong>.</li>
+</ol>
+
+<p>
+The final result should look like this:
+</p>
+
+{% highlight ruby linenos %}
+Integer oneHundred = 100;
+Integer twoHundred = 200;
+
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+
+Integer threeHundred = oneHundred + twoHundred;
+
+String fullName = firstName + lastName;
+{% endhighlight %}
+
+<h3>Debugging</h3>
+<p>
+At this point, you might be wondering how it is possible to verify that <strong>threeHundred</strong> and <strong>fullName</strong>
+have the correct values? Fortunately, Apex gives us the facility to <strong>debug</strong> our variables' values by using a special
+method:
+</p>
+
+{% highlight ruby linenos %}
+Integer sum = 10 + 100;
+
+System.debug(sum);
+{% endhighlight %}
+
+<p>
+We won't worry about what <strong>System</strong> means just yet, but when we use the <strong>debug</strong> method,
+it prints the value of whatever variable we pass to it in the <strong>User Debug Logs</strong>:
+</p>
+
+<img src="/assets/images/learn-to-program/debug_example.png" />
+
+<p>
+Returning back to our <strong>variables</strong> threeHundred and fullName, let's see how we can apply the <strong>debug</strong> method
+to those variables and verify their values are correct:
+</p>
+
+{% highlight ruby linenos %}
+Integer oneHundred = 100;
+Integer twoHundred = 200;
+
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+
+Integer threeHundred = oneHundred + twoHundred;
+
+String fullName = firstName + lastName;
+
+System.debug(threeHundred);
+
+System.debug(fullName);
+{% endhighlight %}
+
+<h3>The Only Constant is Change</h3>
+<p>
+Previously, we stated that <strong>variables' values</strong> can change as a program is running. To help illustrate how this works,
+let's walk through the following steps:
+</p>
+
+<ol>
+  <li>Create an <strong>Integer variable</strong> named <strong>yolo</strong> whose value is 1.</li>
+  <li>Write a debug statement to output the value of <strong>yolo</strong> and verify that the value is 1.</li>
+  <li><strong>Reassign</strong> the value of <strong>yolo</strong> with the number 2.</li>
+  <li>Write another debug statement to output the value of <strong>yolo</strong> and verify that the value is now 2.</li>
+  <li>Finally, <strong>Reassign</strong> the value of <strong>yolo</strong> back to its original value of 1.</li>
+  <li>Write one last debug statement to verify the value of <strong>yolo</strong> is its original value.</li>
+</ol>
+
+<p>
+The final result should look like this:
+</p>
+
+{% highlight ruby linenos %}
+Integer yolo = 1;
+
+System.debug(yolo);
+
+yolo = 2;
+
+System.debug(yolo);
+
+yolo = 1;
+
+System.debug(yolo);
+{% endhighlight %}
+
+<p>
+You might be wondering why we do not require the <strong>type</strong> information on lines 5 or 9. The answer is because we
+<strong>declared</strong> the variable on line 1, and after that, we are free to change its value with a more simple
+assignment statement like those on line 5 and 9. The takeaway is that the <strong>type</strong> information is only required
+when we first <strong>declare</strong> a variable, but assignment statements using a previously <strong>declared</strong> variable
+do not need to specify the <strong>type</strong>, as it is already known.
+</p>
+
+<h3>Challenges</h3>
+<p><strong>Determine what is wrong with the following variable declarations, and fix them if necessary:</strong></p>
+
+{% highlight ruby linenos %}
+Integer first = 23.0;
+
+Decimal second = 23;
+
+String third = '23';
+
+Boolean fourth = 'false';
+
+Decimal fifth = 1 + 2.0;
+
+Integer sixth = 1 + 2 + '3';
+
+Boolean seventh = true;
+
+String eighth = 1 + ' number';
+
+String ninth = true + ' yolo';
+
+Integer tenth = fifth + second;
+{% endhighlight %}
