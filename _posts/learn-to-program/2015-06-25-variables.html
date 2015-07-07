@@ -307,3 +307,31 @@ String ninth = true + ' yolo';
 
 Integer tenth = fifth + second;
 {% endhighlight %}
+
+<h3>Challenge Answers</h3>
+{% highlight ruby linenos %}
+Integer first = 23.0; /* Illegal assignment from Decimal to Integer */
+Integer first = 23;
+
+Decimal second = 23; /* No error */
+
+String third = '23'; /* No error */
+
+Boolean fourth = 'false'; /* Illegal assignment from String to Boolean */
+Boolean fourth = false;
+
+Decimal fifth = 1 + 2.0; /* No error */
+
+Integer sixth = 1 + 2 + '3'; /* Illegal assignment from String to Integer */
+Integer sixth = 1 + 2 + 3;
+
+Boolean seventh = true; /* No error */
+
+String eighth = 1 + ' number'; /* No error */
+
+String ninth = true + ' yolo'; /* No error */
+
+Integer tenth = fifth + second; /* Illegal assignment from Decimal to Integer */
+Decimal tenth = fifth + second;
+Integer tenth = (Integer) fifth + (Integer) second; /* This is a technique called casting. We will talk about this in later sesssions */
+{% endhighlight %}
