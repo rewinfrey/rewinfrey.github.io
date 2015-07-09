@@ -1,0 +1,375 @@
+---
+layout: writing
+group: learn-to-program
+title:  "Session 4: Functions (a.k.a Methods)"
+date:   2015-07-09 18:10:07
+subtitle: Functions Are Methods Without Objects
+categories:
+- learn-to-program
+---
+
+<p>
+In the last session we examined <a href="http://www.rickwinfrey.com/learn-to-program/2015/06/25/variables.html" target="_blank">Variables</a>. We found out
+that <strong>variables</strong> in Apex have three components: a <strong>type</strong>, <strong>name</strong> and a <strong>value</strong>. We also
+learned about <strong>declaring variables</strong> and that a <strong>variable's value</strong> can change over time (hence the name <strong>variable</strong>). But <strong>variables</strong>
+aren't all that useful by themselves. What if we want to use those <strong>variables</strong> to do something? I suppose we could keep building up more and more <strong>variables</strong>
+from the values of other variables, but at some point that would get out of hand. What we need are functions, er, no methods, wait, but maybe we mean functions?
+</p>
+
+<p>
+In the great world of computer programming exists multiple terms that are almost synonymous with each other, yet are different on subtle points of distinction. Two such terms that we will
+be learning today are <strong>functions</strong> and <strong>methods</strong>. What are these two terms and how do they differ? I'm glad you asked...
+</p>
+
+<p class="definition">
+<strong>Functions</strong> are "self contained" modules of code that accomplish a specific task. <strong>Functions</strong> usually <em>take in</em> data, process it, and <em>return</em> a result.
+Once a function is written, it can be used over and over and over again. Functions can be <em>called</em> from the inside of other functions. <em>Definition appropriated from
+<a href="http://www.cs.utah.edu/~germain/PPS/Topics/functions.html">here</a></em>
+</p>
+
+<p class="definition">
+Whereas, <strong>methods</strong> are the same as <strong>functions</strong> but are associated with an <strong>object</strong> and represents a <em>signal</em> or <em>message</em>
+that can be <em>sent</em> to an <strong>object</strong> (equivalent to <em>calling</em> a <strong>function</strong>). The term <strong>method</strong> is limited to the context of
+<strong>Object Oriented Programming</strong> and is the kind of programming we will be doing in Apex later. For now, you can think of <strong>functions</strong> and
+<strong>methods</strong> as the same thing.
+</p>
+
+<p>
+Now that we have the definitions out of the way, for the remainder of this session we will use the term <strong>function</strong> rather than <strong>method</strong>. Let's take a
+look at an example <strong>function</strong> in Apex:
+</p>
+
+{% highlight ruby linenos %}
+
+public static void helloWorld() {
+  System.debug('Hello World!');
+}
+
+{% endhighlight %}
+
+<p>
+Let's break this apart. On line 1 of the example above there are four components. The first component: <strong>public</strong> represents the scope at which this <strong>function</strong> is made available
+to the outside world. We are not prepared to talk about <strong>public</strong>, <strong>protected</strong> and <strong>private</strong> just yet, so for now we can always use <strong>public</strong>
+because we always want our <strong>functions</strong> to be publically available.
+</p>
+
+<p>
+The second component is <strong>static</strong>. This component is a bit more difficult to explain without having first explored the ideas of <strong>Classes</strong> and <strong>Objects</strong>,
+and soon you will! But for now, we will refer to all of our <strong>functions</strong> using <strong>static</strong> after <strong>public</strong>.
+</p>
+
+<p>
+The third component is <strong>void</strong>. This component is one of the most critical components of a <strong>function definition</strong> because it indicates the return type of the <strong>function's
+return value</strong>. If you recall our session on <a href="http://www.rickwinfrey.com/learn-to-program/2015/06/19/types-and-variables.html" target="_blank"><strong>Primitive Data Types</strong></a>,
+you can specify any of the types we have already learned about as the third component of a <strong>function definition</strong>. In this example, <strong>void</strong> indicates that this
+<strong>function</strong> has no return value. Below are some examples showing various <strong>functions</strong> whose return values are other <strong>Primitive Data Types</strong>:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String myName() {
+  return 'Rick';
+}
+
+public static Integer addOnePlusOne() {
+  return 1 + 1;
+}
+
+public static Decimal pi() {
+  return 3.14;
+}
+
+public static Boolean trueOrFalse() {
+  return true;
+}
+
+{% endhighlight %}
+
+<p>
+The final and fourth component of our original example above is <strong>helloWorld()</strong>. This represents the name of the <strong>function</strong>. In this example, we have called our <strong>function</strong> <strong>helloWorld</strong>
+and we do not require any input arguments, resulting in <strong>helloWorld()</strong>. We will talk about input parameters in just a moment. Please take note that the convention in the Apex programming
+language is to use the <a href="https://en.wikipedia.org/wiki/CamelCase" target="_blank">camelCase</a> format for names (first word is lowercased and all proceeding words are capitalized).
+</p>
+
+<p>
+Now that we have identified the four primary components of a <strong>function definition</strong> let's talk about the <strong>function body</strong>. In Apex, the body of a <strong>function</strong> always begins with an
+opening { and ends with a }. Without the surrounding { } Apex will consider the <strong>function body</strong> to be invalid and will most likely result in a syntax error. I like to think of
+the { and } as pieces of bread for a sandwich in which the meat (body of the <strong>function</strong>) is where all the good stuff is. In our first example above, the entire <strong>function body</strong>
+is the line containing: <em>System.debug('Hello World');</em>
+</p>
+
+<h3>Creating Your First Functions</h3>
+<p>
+This enables us to now write our own <strong>functions</strong>! Let's try writing a few <strong>functions</strong> together.
+</p>
+
+<ol>
+  <li>Write a function named two-plus-two that adds two with two.</li>
+  <li>Write a function named my-first-and-last-name that returns your first and last name.</li>
+  <li>Write a function named my-age that outputs your age to the System debugger.</li>
+</ol>
+
+<p>
+Please check your answers:
+</p>
+
+{% highlight ruby linenos %}
+
+public static Integer twoPlusTwo() {
+  return 2 + 2;
+}
+
+public static String myFirstAndLastName() {
+  return 'Rick Winfrey';
+}
+
+public static void myAge() {
+  System.dubug(105);
+}
+
+{% endhighlight %}
+
+<h3>Functions With Input Parameters</h3>
+<p>
+The <strong>functions</strong> we have written and looked at so far have been relatively simple.
+The <strong>function</strong> body contains code that is called and returns a result or performs a side-effect.
+This works well for simple <strong>functions</strong>, but in the real world, many of the <strong>functions</strong> we create will
+depend on inputs. These input parameters will help determine the return value of the our <strong>functions</strong>,
+and that return value may then become the input of another <strong>function</strong>, and so on.
+</p>
+
+<p>
+Let's look at how we can define <strong>functions</strong> that can accept one or many input parameters in Apex:
+</p>
+
+{% highlight ruby linenos %}
+
+public static void sayHello(String person) {
+  System.debug('Hello, ' + person);
+}
+
+{% endhighlight %}
+
+<p>
+In this example, we see there is one input parameter. This input parameter is of type <strong>String</strong>,
+and is given the name <strong>person</strong>. Within the body of our <strong>function</strong> we can then reference the input
+parameter named person like any <strong>String</strong> variable, including writing the value of person to the System
+debugger. Next, let's use our <strong>function</strong> and examine how we can call a <strong>function</strong> while passing it an input parameter.
+</p>
+
+{% highlight ruby linenos %}
+
+public static void sayHello(String person) {
+  System.debug('Hello, ' + person);
+}
+
+sayHello('Rick');
+
+{% endhighlight %}
+
+<p>
+In the example above, we call the <strong>function</strong> `sayHello` with the input parameter 'Rick' by simply calling the name of the <strong>function</strong>
+while passing in the value we want to stand in for the person <strong>String</strong> variable. Let's look at a few more examples
+involving different types:
+</p>
+
+{% highlight ruby linenos %}
+
+public static Integer timesTen(Integer number) {
+  return number * 10;
+}
+
+public static String fullName(String firstName, String lastName) {
+  return firstName + ' ' + lastName;
+}
+
+public static Decimal applySalesTax(Decimal amount) {
+  return amount * 1.10;
+}
+
+{% endhighlight %}
+
+<h3>Composing Functions</h3>
+<p>
+Finally, I'd like us to look at an example <strong>function</strong> named invoice. It takes in the full name of the person whom submitted
+an order and the full amount of the product including sales tax. The full amount should also include a $10 service charge for
+processing. The only responsibility of the invoice <strong>function</strong> should be to take in full name and full amount and format
+an invoice in the following format:
+</p>
+
+<p>
+Thank you, {full name} for your order!
+<br />
+Your total (including sales tax) is ${full amount}.
+</p>
+
+<p>
+Do you know how to write this <strong>function</strong>? We know from the examples above that we already have <strong>functions</strong> that give us a person's
+full name and that apply sales tax. Let's see how we can use those <strong>functions</strong> while creating a couple new <strong>functions</strong> that will
+allow us to compose our <strong>functions</strong> together. By combining our <strong>functions</strong>, we want to ultimately return the output above:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fullName(String firstName, String lastName) {
+  return firstName + ' ' + lastName;
+}
+
+public static Decimal applySalesTax(Decimal amount) {
+  return amount * 1.10;
+}
+
+public static Decimal applyServiceCharge(Decimal amount) {
+  return amount + 10;
+}
+
+public static String invoice(String fullName, Decimal fullAmount) {
+  String greeting    = 'Thank you, ' + fullName + ' for your order!';
+  String billSummary = 'Your total (including sales tax) is $' + fullAmount + '.';
+  return greeting + '\n' + billSummary;
+}
+
+/* Using intermediate variables: */
+Decimal amount = 100.00;
+
+Decimal amountWithServiceCharge = applyServiceCharge(amount);
+
+Decimal fullAmount = applySalesTax(amountWithServiceCharge);
+
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+String fullName = fullName(firstName, lastName);
+
+String exampleInvoice = invoice(fullName, fullAmount);
+
+System.debug(exampleInvoice);
+
+/* This results in the following output:
+Thank you, Rick Winfrey for your order!
+Your total (including sales tax) is $121.0000.
+*/
+
+{% endhighlight %}
+
+<p>
+This is great, but notice how the amount of $121.0000 has four decimal places? In this case, we can call a <strong>function</strong> named
+<a href="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_methods_system_decimal.htm#apex_System_Decimal_setScale" target="_blank">setScale()</a>.
+</p>
+
+{% highlight ruby linenos %}
+
+/* New and improved invoice function using setScale on fullAmount
+   to limit the number of decimal places to 2: */
+public static String invoice(String fullName, Decimal fullAmount) {
+  String greeting    = 'Thank you, ' + fullName + ' for your order!';
+  String billSummary = 'Your total (including sales tax) is $' + fullAmount.setScale(2) + '.';
+  return greeting + '\n' + billSummary;
+}
+
+/* Using intermediate variables: */
+Decimal amount = 100.00;
+
+Decimal amountWithServiceCharge = applyServiceCharge(amount);
+
+Decimal fullAmount = applySalesTax(amountWithServiceCharge);
+
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+String fullName = fullName(firstName, lastName);
+
+String exampleInvoice = invoice(fullName, fullAmount);
+
+System.debug(exampleInvoice);
+
+/* Using setScale in our invoice function, our output now appears correctly:
+Thank you, Rick Winfrey for your order!
+Your total (including sales tax) is $121.00.
+*/
+
+{% endhighlight %}
+
+<p>
+We were able to not only use the return values of <strong>functions</strong> as the inputs to <strong>functions</strong> (function composition),
+but we also saw that inside the body of a <strong>function</strong> we can call other <strong>functions</strong>. These
+ideas may seem basic and simple, but programming is little more than the application of
+these simple ideas as simple <strong>functions</strong>, composed with each other to build large,
+complex systems. To see how we can more directly compose our <strong>functions</strong> together,
+let's look at how we can rewrite the above example without the use of intermediate variables:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fullName(String firstName, String lastName) {
+  return firstName + ' ' + lastName;
+}
+
+public static Decimal applySalesTax(Decimal amount) {
+  return amount * 1.10;
+}
+
+public static Decimal applyServiceCharge(Decimal amount) {
+  return amount + 10;
+}
+
+public static String invoice(String fullName, Decimal fullAmount) {
+  String greeting    = 'Thank you, ' + fullName + ' for your order!';
+  String billSummary = 'Your total (including sales tax) is $' + fullAmount.setScale(2) + '.';
+  return greeting + '\n' + billSummary;
+}
+
+/* Our initial variables are still required */
+Decimal amount = 100.00;
+String firstName = 'Rick';
+String lastName = 'Winfrey';
+
+String exampleInvoice = invoice(fullName(firstName, lastName), applySalesTax(applyServiceCharge(amount)));
+
+System.debug(exampleInvoice);
+
+/* This also results in the correct output:
+Thank you, Rick Winfrey for your order!
+Your total (including sales tax) is $121.00.
+*/
+
+{% endhighlight %}
+
+<p>
+Composing <strong>functions</strong> in this manner is sometimes a benefit, but other times not as easy to read and understand.
+Although this example above is meant to illustrate how you can compose <strong>functions</strong> without the need for
+intermediate variables, it's best to always consider what is the most readable and easy to understand when writing
+your code. In this case, I would strongly encourage the use of intermediate variables, as they help make it easier
+to follow and reason about what is happening. Eventually, however, when you gain a little more experience and become more
+accustomed to reading code, you will not need to rely on as many intermediate variables, and can think more quickly
+in the functional composition way of writing and structuring your code.
+</p>
+
+<h3>Challenges</h3>
+<p><strong>Please write the following functions according to the descriptions:</strong></p>
+
+<ol>
+  <li>Write a function named last-first, that takes as input a first and last name, and outputs '{last name}, {first name}'</li>
+  <li>Write a function named gpa, that takes as input the total sum of all grades earned and outputs the gpa (using the 4.0 point system) in decimal format (with a scale of 1 decimal place)</li>
+  <li>Write a function named mrr, that takes as input the amount of an annual subscription and outputs the monthly recurring revenue value of that annual subscription (with a scale of 2 decimal places)</li>
+  <li>Write a function named arr, that takes as input the amount of a monthly subscription and outputs the annual recurring revenue value of that monthly subscription (with a scale of 2 decimal places)</li>
+</ol>
+
+<p><strong>Please debug the following functions and fix them if necessary:</strong></p>
+{% highlight ruby linenos %}
+
+public static fullName(String firstName, string lastName) {
+  return firstName + ' ' + lastName;
+}
+
+public static Integer ageFromBirthYear(birthYear) {
+  return 2015 - birthYear;
+}
+
+public static Integer employeeCount() {
+  77;
+}
+
+public static void log(message) {
+  return System.debug(message);
+}
+
+{% endhighlight %}
