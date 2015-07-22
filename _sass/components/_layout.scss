@@ -14,6 +14,17 @@
   margin: 0px 0.2em;
 }
 
+.movie {
+  float: left;
+  width: 2em;
+  height: 2em;
+  background-image: url("/assets/images/movie.svg");
+  background-size: 2em;
+  background-repeat: no-repeat;
+  border: none;
+  margin-left: 0.55em;
+}
+
 .resume {
   #download {
     float: right;
