@@ -395,7 +395,7 @@ public static String lastFirst(String firstName, String lastName) {
 </p>
 
 {% highlight ruby linenos %}
-public static Decimal lastFirst(Decimal grades, Decimal numberOfGrades) {
+public static Decimal gpa(Decimal grades, Decimal numberOfGrades) {
   return grades / numberOfGrades;
 }
 {% endhighlight %}
@@ -416,7 +416,7 @@ public static Decimal mrr(Decimal annualSubscriptionValue) {
 
 {% highlight ruby linenos %}
 public static Decimal arr(Decimal monthlySubscriptionValue) {
-  return (annualSubscriptionValue * 12).setScale(2);
+  return (monthlySubscriptionValue * 12).setScale(2);
 }
 {% endhighlight %}
 
@@ -444,6 +444,8 @@ public static Integer employeeCount() {
 public static void log(message) {
   return System.debug(message);
 }
+/* Missing the type declaration of the first input parameter for message */
+/* public static void log(String message) */
 /* Functions whose return type is void cannot return a value, we should remove the return statement */
 /* System.debug(message); */
 
