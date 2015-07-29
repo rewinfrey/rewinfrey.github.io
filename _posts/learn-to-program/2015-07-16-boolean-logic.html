@@ -1,0 +1,883 @@
+---
+layout: writing
+group: learn-to-program
+title:  "Session 5: Introduction To Boolean Logic"
+date:   2015-07-16 18:10:07
+subtitle: And, Or and Not -- Oh My!
+categories:
+- learn-to-program
+---
+
+<p>
+So far we have learned about <a href="http://www.rickwinfrey.com/learn-to-program/2015/06/19/types-and-variables.html">primitive data types</a>,
+<a href="http://www.rickwinfrey.com/learn-to-program/2015/06/25/variables.html">variables</a> and
+<a href="http://www.rickwinfrey.com/learn-to-program/2015/07/09/methods.html">functions</a>. Given only these
+building blocks we can begin to think about creating programs that compose our functions and variables together
+in order to create behavior we want. However, there is an important piece missing that will help us control
+how our functions are composed together. We are missing <a href="https://en.wikipedia.org/wiki/Boolean_algebra">boolean logic</a>.
+This is the first session of several sessions on <a href="https://en.wikipedia.org/wiki/Control_flow">control flow</a>, and serves
+as the basic foundation for more advanced control flow constructs we will look at in the coming sessions.
+</p>
+
+<h3>Truth tables</h3>
+<p>
+In order to define and describe boolean logic, at least initially, we will be using
+<a href="https://en.wikipedia.org/wiki/Truth_table">truth tables</a>. Truth tables are useful because they illustrate
+the relationships between inputs and outputs. Truth tables should be read as a series of inputs that culminate in an
+outcome. Each row then defines the values of each input (columns), that are used by the operation being defined to
+create an output (final column). The first group of boolean algebra expressions we will look at are unary expressions
+(expressions that involve one term).
+</p>
+
+<h3>Logical False</h3>
+<p class="definition">
+Given an input called a <a href="http://www.math.fsu.edu/~pkirby/mad2104/SlideShow/s2_1.pdf">proposition</a> (a statement that can be true
+or false), then the logical false value of a proposition that is true or false will always be false. This is a funny way of saying
+that logical false is always false, regardless of the proposition or statement we are describing.
+</p>
+
+<p>
+The following truth table is used to describe the relationship between a proposition <strong>p</strong> with
+logical false. Notice that no matter what <strong>p</strong> is the logical false representation is always false:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p</th>
+      <th>False</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+An example function that illustrates this behavior could be the following function:
+</p>
+
+{% highlight ruby linenos %}
+
+public static Boolean logicalFalse(Boolean proposition) {
+  return false;
+}
+
+{% endhighlight %}
+
+<p>
+No matter what the input is (in this case the input to our function is labelled as a proposition),
+our function logicalFalse will always return a false value of type Boolean. Expressed as a truth table or as a function
+in Apex, the idea is very simple (if you feel confused, it's probably because you're over-thinking it).
+Logical false is an operation whose outcome is always false, no matter what the input is.
+</p>
+
+<h3>Logical True</h3>
+<p class="definition">
+Like logical false, logical true tells us that regardless of a proposition <strong>p</strong>, the logical true value
+of a proposition will always be true. The following truth table defines this for us:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p</th>
+      <th>True</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+public static Boolean logicalTrue(Boolean proposition) {
+  return true;
+}
+
+{% endhighlight %}
+
+<h3>Logical Identity</h3>
+<p class="definition">
+Unlike logical false and logical true, logical identity does not impose a value on a proposition. Instead, it preserves
+the value of the proposition such that the logical identity value of a proposition is the logical value of the proposition
+statement. This means that if our proposition is true, then logical identity's value is true. If the proposition's logical
+value is false, then logical identity's value is false:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p</th>
+      <th>p</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+public static Boolean logicalIdentity(Boolean proposition) {
+  return proposition;
+}
+
+{% endhighlight %}
+
+<h3>Logical Negation</h3>
+<p class="definition">
+This unary logical operation has the effect of flipping the truth value of a proposition to its opposite truth value. If a
+proposition is true, then when we apply the logical negation to that true value, the result is false. Likewise, if a propsition
+is false and we apply logical negation, then the resulting truth value is true. Logical negation flips the truth value to its
+opposite for any proposition:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p</th>
+      <th>¬p</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% highlight ruby linenos %}
+public static Boolean logicalNegation(Boolean proposition) {
+  return !proposition;
+}
+
+{% endhighlight %}
+
+<p>
+In Apex, the `!` is a special operator named the 'compliment operator'. The logical compliment, just
+like the logical negation of a proposition is the opposite truth value of the proposition.
+</p>
+
+<p>
+We've now seen unary operations in boolean algebra, now let's turn our attention to operations involving
+more than one proposition. The first one we will investigate is logical and.
+</p>
+
+<h3>Logical And</h3>
+<p class="definition">
+The logical and operation
+requires that two or more propositions' truth values all be true for the logical and operation to return
+true as its truth value. If any of the propositions' truth values are false, then logical and will
+always return false as its logical value.
+</p>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 ^ p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% highlight ruby linenos %}
+/* In Apex, we denote logical and using the && operator */
+public static Boolean logicalAnd(Boolean proposition1, Boolean proposition2) {
+  return proposition1 && proposition2;
+}
+
+{% endhighlight %}
+
+<h3>Logical Or</h3>
+<p class="definition">
+The logical or operation is like the logical and operation, but is less retrictive. In order
+for the logical or operation to return true as its truth value, only one of the propositions
+need have a true value.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 v p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% highlight ruby linenos %}
+/* In Apex, we denote logical or using the || operator */
+public static Boolean logicalOr(Boolean proposition1, Boolean proposition2) {
+  return proposition1 || proposition2;
+}
+
+{% endhighlight %}
+
+<h3>Logical Equality</h3>
+<p class="definition">
+Logical equality is a tricky concept. In its most simple definition, logical equality is an
+operation that returns true whenever two or more propositions are considered to be equal. This
+sounds simple enough until one asks "what does it mean for two propositions to be equal?". Given
+the numerous ways to describe equality in many programming languages, we will focus only on
+the two equality operations defined automatically for us by Apex (value equality and reference equality).
+</p>
+
+<p>
+First let's look at value equality. Value equality asks if two or morepropositions have the same values.
+If they do, the value equality operation returns true, otherwise if two or more propositions do not
+share the same values, then they are not considered to be equal under the value equality operation
+and the result is false:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 = p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% highlight ruby linenos %}
+/* In Apex, we denote value equality by using the == operator */
+public static Boolean valueEquality(Boolean proposition1, Boolean proposition2) {
+  return proposition1 == proposition2;
+}
+
+{% endhighlight %}
+
+<p>
+Next, let's look at reference equality. Reference equality is not concerned with values,
+but rather concerned with where in memory two or more propositions live. If two or more propositions
+are defined in the same place in memory, then the propositions are considered to be referentially equal (meaning
+they represent the same exact things in memory). Otherwise, reference equality returns false.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 === p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Address1</td>
+      <td>Address1</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>Address1</td>
+      <td>Address2</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>Address2</td>
+      <td>Address1</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>Address2</td>
+      <td>Address2</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote referential equality by using the === operator */
+public static Boolean referenceEquality(Boolean proposition1, Boolean proposition2) {
+  return proposition1 === proposition2;
+}
+
+{% endhighlight %}
+
+<h3>Logical Inequality</h3>
+<p class="definition">
+Previously we described logical equality. Given that we can describe in Apex logical equality
+in terms of value and referential equality, then in a similar way we can define logical inequality
+in Apex in terms of value and referential inequality.
+</p>
+
+<p>
+Consider value inequality first:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 != p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% highlight ruby linenos %}
+/* In Apex, we denote value inequality by using the != operator */
+public static Boolean valueInequality(Boolean proposition1, Boolean proposition2) {
+  return proposition1 != proposition2;
+}
+
+{% endhighlight %}
+
+
+<p>
+Next, let's consider referential inequality:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 !== p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Address1</td>
+      <td>Address1</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>Address1</td>
+      <td>Address2</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>Address2</td>
+      <td>Address1</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>Address2</td>
+      <td>Address2</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote referential inequality by using the !== operator */
+public static Boolean referenceInequality(Boolean proposition1, Boolean proposition2) {
+  return proposition1 !== proposition2;
+}
+
+{% endhighlight %}
+<h3>Less Than</h3>
+<p class="definition">
+Another important boolean algebra operation that is related to the idea of equality
+is the less than operation. In this case, rather than talking about propositions we are
+interested in values. If value1 is less than value2, the less than operation returns true.
+Otherwise it returns false.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 < p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote less than by using the < operator */
+public static Boolean lessThan(Int value1, Int value2) {
+  return value1 < value2;
+}
+
+{% endhighlight %}
+
+<h3>Greater Than</h3>
+<p class="definition">
+The greater than operation is the compliment of the less than operation. If value1 is greater
+than value2, the greater than operation returns true. Otherwise it returns false.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 > p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote greater than by using the > operator */
+public static Boolean greaterThan(Int value1, Int value2) {
+  return value1 > value2;
+}
+
+{% endhighlight %}
+
+<h3>Less Than Or Equal To</h3>
+<p class="definition">
+We can combine ideas of equality and the less than operation together. In this case if value1
+is less than or equal to value 2, the less than or equal to operation returns true. Otherwise it returns
+false.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 <= p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote less than or equal to by using the <= operator */
+public static Boolean lessThanOrEqualTo(Int value1, Int value2) {
+  return value1 <= value2;
+}
+
+{% endhighlight %}
+
+<h3>Greater Than Or Equal To</h3>
+<p class="definition">
+We can combine ideas of equality and the greater than operation together. In this case if value1
+is greater than or equal to value 2, the greater than or equal to operation returns true. Otherwise it returns
+false.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 >= p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+{% highlight ruby linenos %}
+/* In Apex, we denote greater than or equal to by using the >= operator */
+public static Boolean greaterThan(Int value1, Int value2) {
+  return value1 >= value2;
+}
+
+{% endhighlight %}
+
+<h3>DeMorgan's Law</h3>
+<p class="definition">
+The final concept we will look at is a unique and interesting property we can apply to
+boolean algebra expressions. <a href="https://en.wikipedia.org/wiki/De_Morgan%27s_laws">DeMorgan's laws</a> state that
+the negation of a logical and operation applied to some propositions is the same as the
+logical or of the negated propositions.
+</p>
+
+
+{% highlight ruby linenos %}
+/* DeMorgan's Laws In Apex */
+!(true && true) == !true || !true
+!(false || false) == !false && !false
+
+{% endhighlight %}
+
+<p>
+DeMorgan's Laws are helpful to remember in situations where a complicated boolean algebraic
+expression is difficult to understand. Sometimes, using DeMorgan's Laws, we can transform
+these boolean algebraic expressions into logically equivalent expressions that are easier
+for us to understood. This doesn't come up very often but when it does it is very handy to know.
+</p>
+
+<h3>Challenges</h3>
+<p>Please fill in the missing values that make these truth tables logically correct:</p>
+
+<p>1.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 && p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>2.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 || p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>3.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>(p1 && p2) || p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>4.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>(p1 || p2) && p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>5.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p3</th>
+      <th>(p1 && p2) || (p2 && p3)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td></td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>6.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p3</th>
+      <th>(p1 || p2) || (p2 || p3) || (p1 && p3)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td></td>
+      <td></td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td></td>
+      <td></td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Apply DeMorgan's Laws to the following boolean algebra expressions:</strong></p>
+<p>1. (p1 && p2)</p>
+<p>2. (p1 || p2)</p>
+<p>3. (p1 || p2) && (p2 || p3)</p>
+<p>4. (p1 && p2) || (p2 && p3)</p>

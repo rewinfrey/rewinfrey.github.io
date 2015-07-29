@@ -42,6 +42,38 @@
   }
 }
 
+table {
+  margin-top: 1.5em;
+  border-collapse: collapse;
+  border-spacing: 0;
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid #cfcfcf;
+}
+
+thead tr {
+  background-color: #eee;
+}
+
+tr {
+  border-bottom: 1px solid #cfcfcf;
+}
+
+td, th {
+  padding: 4px;
+  border-left: 1px solid #cfcfcf;
+  width: 150px;
+}
+
+td:last-child, th:last-child {
+  border-left: 2.5px solid #cfcfcf;
+  font-weight: 800;
+}
+
+td:last-child {
+  background-color: #F5F5F5;
+}
+
 body {
   background: #fff;
 }
