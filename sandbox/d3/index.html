@@ -1,0 +1,17 @@
+---
+layout: sandbox
+group: Sandbox
+title: Sandbox
+---
+
+<ul class="posts article">
+  {% for box in site.categories['d3'] %}
+    <li>
+      <div class="title-container">
+        <h1 class="title">
+          <a href="{{ BASE_PATH }}{{ box.url }}">{{ box.title }}</a>
+        </h1>
+      </div>
+    </li>
+  {% endfor %}
+</ul>

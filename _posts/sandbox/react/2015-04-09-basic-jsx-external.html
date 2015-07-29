@@ -1,0 +1,51 @@
+---
+layout: sandbox
+group: Sandbox
+title: "Basic Example with External JSX"
+date: 2015-04-09 12:17:12
+categories:
+- sandbox
+- react
+---
+
+<h1>Basic Example with External JSX</h1>
+<div id="container">
+  <p>
+    If you can see this, React is not working right. This is probably because you&apos;re viewing
+    this on your file system instead of a web server. Try running
+    <pre>
+      python -m SimpleHTTPServer
+    </pre>
+    and going to <a href="http://localhost:8000/">http://localhost:8000/</a>.
+  </p>
+</div>
+<h4>Example Details</h4>
+<p>This is written with JSX in a separate file and transformed in the browser.</p>
+<p>
+  Learn more about React at
+  <a href="http://facebook.github.io/react" target="_blank">facebook.github.io/react</a>.
+</p>
+<script src="/assets/javascripts/console-polyfill.js"></script>
+<script src="/assets/javascripts/react-0.13.1/react.js"></script>
+<script src="/assets/javascripts/react-0.13.1/JSXTransformer.js"></script>
+<script type="text/jsx">
+  var ExampleApplication = React.createClass({
+    render: function() {
+      var elapsed = Math.round(this.props.elapsed  / 100);
+      var seconds = elapsed / 10 + (elapsed % 10 ? '' : '.0' );
+      var message =
+        'React has been successfully running for ' + seconds + ' seconds.';
+
+      return <p>{message}</p>;
+    }
+  });
+
+  var start = new Date().getTime();
+
+  setInterval(function() {
+    React.render(
+      <ExampleApplication elapsed={new Date().getTime() - start} />,
+      document.getElementById('container')
+    );
+  }, 50);
+</script>
