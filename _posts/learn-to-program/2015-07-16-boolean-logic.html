@@ -884,3 +884,187 @@ for us to understand. This doesn't come up very often but when it does it is ver
 <p>2. (p1 || p2)</p>
 <p>3. (p1 || p2) && (p2 || p3)</p>
 <p>4. (p1 && p2) || (p2 && p3)</p>
+
+<h3>Challenge Answers</h3>
+<p>Please fill in the missing values that make these truth tables logically correct:</p>
+
+<p>1.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 && p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T/F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>2.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p1 || p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>3.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>(p1 && p2) || p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>4.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>(p1 || p2) && p2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>5.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p3</th>
+      <th>(p1 && p2) || (p2 && p3)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>T</td>
+      <td>T/F</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>F</td>
+      <td>T/F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>6.</p>
+<table>
+  <thead>
+    <tr>
+      <th>p1</th>
+      <th>p2</th>
+      <th>p3</th>
+      <th>(p1 || p2) || (p2 || p3) || (p1 && p3)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F</td>
+      <td>T</td>
+      <td>T</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>T</td>
+      <td>T/F</td>
+      <td>T/F</td>
+      <td>T</td>
+    </tr>
+    <tr>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+      <td>F</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Apply DeMorgan's Laws to the following boolean algebra expressions:</strong></p>
+<p>1. (p1 && p2) = !p1 || !p2</p>
+<p>2. (p1 || p2) = !p1 && !p2</p>
+<p>3. (p1 || p2) && (p2 || p3) = !p1 && !p2 || !p2 && !p3</p>
+<p>4. (p1 && p2) || (p2 && p3) = !p1 || !p2 && !p2 || !p3</p>
