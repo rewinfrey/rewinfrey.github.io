@@ -1,0 +1,303 @@
+---
+layout: learn_to_program
+group: learn-to-program
+title:  "Session 6: If Else & FizzBuzz"
+date:   2015-08-24 18:10:07
+subtitle: If this then that, else that then this
+categories:
+- learn-to-program
+---
+
+<p>
+Now that we have the building blocks of Primitive Data Types, functions and boolean logic, we
+can have some fun and build a simple program called <a href="https://en.wikipedia.org/wiki/Fizz_buzz">FizzBuzz</a>.
+We will use the FizzBuzz program to introduce the concept of conditional branching using
+if else statements in Apex.
+</p>
+
+<p>
+To introduce the If Else facility in Apex, let's take a look at an example:
+</p>
+
+{% highlight ruby linenos %}
+
+public static void simpleIfElse(Integer num) {
+  if (num > 50) {
+    System.debug(num + ' is larger than 50');
+  } else {
+    System.debug(num + ' is less than 50');
+  }
+}
+
+simpleIfElse(56); /* output: 56 is larger than 50 */
+
+simpleIfElse(43); /* output: 43 is less than 50 */
+
+{% endhighlight %}
+
+<p>
+Breaking down this example we see that we can use the Apex keywords if and else to
+create a conditional branch in our code. The statement `if (num > 50)` is the boolean
+logic we use to determine if the if condition is true. In this case, if the Integer
+variable num is greater than 50, this boolean expression will return true and evaluate
+the if condition. Otherwise, if the Integer variable num is less than 50 then the else
+condition is evaluated.
+</p>
+
+<p class="definition">
+If Else is a common programming construct that is found in most programming languages.
+If Else is useful for when we want to be selective about what code is evaluated depending
+on whether or not certain conditions (boolean expression) is true or false. If Else is
+one of the simplest and most powerful control flow ideas you will find in programming.
+</p>
+
+<p>
+In our example above there is a slight problem, perhaps you've already spotted it? The
+if condition is true when the num is greater than 50. The output then correctly states
+that the value of num is greater than 50. However, what happens when we pass 50 to this
+function?
+</p>
+
+{% highlight ruby linenos %}
+
+public static void simpleIfElse(Integer num) {
+  if (num > 50) {
+    System.debug(num + ' is larger than 50');
+  } else {
+    System.debug(num + ' is less than 50');
+  }
+}
+
+simpleIfElse(50); /* output: 50 is less than 50 */
+
+{% endhighlight %}
+
+<p>
+This is odd. 50 is not less than 50, but our conditional logic is not smart
+enough to determine if the number we pass to our function is exactly equal
+to 50. Is there something we can do to make this possible? Yes! We can use
+a slightly more advanced version of If Else, the If Else If pattern.
+</p>
+
+{% highlight ruby linenos %}
+
+public static void simpleIfElseIf(Integer num) {
+  if (num == 50) {
+    System.debug(num + ' is equal to 50');
+  } else if (num > 50) {
+    System.debug(num + ' is greater than 50');
+  } else {
+    System.debug(num + ' is less than 50');
+  }
+}
+
+simpleIfElseIf(50); /* output: 50 is equal to 50 */
+
+simpleIfElseIf(55); /* output: 55 is greater than 50 */
+
+simpleIfElseIf(45); /* output: 45 is less than 50 */
+{% endhighlight %}
+
+<p>
+Using If Else If we are now able to have more control over the flow of the code
+that is executed in the body of our functions. If Else If works the same way as
+If Else we learned initially, but allows us to write multiple boolean expressions
+that we can check against. When a boolean expression evaluates to true, its code
+gets evaluated and all others are skipped. If none of the boolean expressions evaluate
+to true, then the else's conditional branch is evaluated. Because order matters,
+please take care to consider which boolean expression is more important, or should be
+checked first, so that you do not inadvertently create a bug in the conditional branching
+of your functions.
+</p>
+
+<p>
+Now that we have the main idea, let's take a look at the FizzBuzz program mentioned earlier.
+FizzBuzz is a simple program that many programmers write as a fun exercise or during
+a programming interview. The rules are simple. Determine if a number is evenly divisible by
+3. If it is, have the program output 'Fizz'. Otherwise determine if a number is evenly divisible
+by 5. If it is, have the program output 'Buzz'. There is a special case in which a number is
+divisible by both 3 and 5. In such cases, the program should output 'FizzBuzz'. Sound easy?
+Let's try it!
+</p>
+
+<p>
+First let's write a function named fizzBuzz that takes as input an Integer called num, and returns
+a String whose value is one of four possibilities: 'Fizz', 'Buzz', 'FizzBuzz', or the number passed
+to the function cast to a String. Initially, let's make it so our fizzBuzz function returns the number
+passed to it cast to a String:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fizzBuzz(Integer num) {
+  return String.valueOf(num);
+}
+
+{% endhighlight %}
+
+</p>
+Here we use the `String.valueOf` method to convert the Integer value to a String value.
+</p>
+
+<p>
+Next, let's add an If Else that determines if the number is evenly divisible by 3. If it is,
+we'll evaluate the if condition and return 'Fizz', otherwise we'll return the String representation of our number:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fizzBuzz(Integer num) {
+  if (Math.mod(num, 3) == 0) {
+    return 'Fizz';
+  else {
+    return String.valueOf(num);
+  }
+}
+
+{% endhighlight %}
+
+<p>
+To determine if a number evenly divides another number, it is common to use the <a href="https://en.wikipedia.org/wiki/Modulo_operation">modulo operation</a> in programming.
+If you're new to the idea of modulus, it is division, but instead of wanting to know how many times a number
+can divide another number, modulo tells us the remainder of the initial division. As with most things a simple
+example will hopefully help clear it up:
+</p>
+
+
+{% highlight ruby linenos %}
+
+Math.mod(10, 1);  /* output: 0 */
+Math.mod(10, 2);  /* output: 0 */
+Math.mod(10, 3);  /* output: 1 */
+Math.mod(10, 4);  /* output: 2 */
+Math.mod(10, 5);  /* output: 0 */
+Math.mod(10, 6);  /* output: 4 */
+Math.mod(10, 7);  /* output: 3 */
+Math.mod(10, 8);  /* output: 2 */
+Math.mod(10, 9);  /* output: 1 */
+Math.mod(10, 10); /* output: 0 */
+
+{% endhighlight %}
+
+<p>
+The modulo operation makes it simple for us to write a boolean expression that will return true if a given number is evenly
+divisible by 3 or 5 or both 3 and 5. Above we wrote the if condition for deciding when we should return 'Fizz', let's try writing
+the boolean expression for determining when to return 'Buzz';
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fizzBuzz(Integer num) {
+  if (Math.mod(num, 3) == 0) {
+    return 'Fizz';
+  else if(Math.mod(num, 5) == 0) {
+    return 'Buzz';
+  } else {
+    return String.valueOf(num);
+  }
+}
+
+{% endhighlight %}
+
+<p>
+Using the If Else If we learned before, we added an Else If condition to our control flow for our fizzBuzz function. Now, we determine if
+the number passed to the function is evenly divisible by 3, and if so return 'Fizz'. If the number is not evenly divisible by 3, we then
+determine if the number is evenly divisible by 5. If so, we return 'Buzz'. And lastly, if the number is not evenly divisible by 3 or 5,
+we return the String representation of the number.
+</p>
+
+<p>
+Our fizzBuzz function is almost complete, but there is one condition missing - 'FizzBuzz'! For this special case, we want to determine if a
+number is evenly divisible by both 3 and 5. If we step back and consider what we have written so far in our fizzBuzz function, hopefully we
+recognize that the order of the boolean expressions is important, and that our boolean expression to determine if our number is evenly divisible
+by both 3 and 5 needs to come before we check the other conditions. This is because if we add the boolean expression after our existing boolean expressions,
+the check that determines if a number is evenly divisible by 3 will return 'Fizz' for numbers that are evenly divisible by both 3 and 5. That would be
+an unfortunate mistake in the logic of this function, and so we reason that the check for if a number is evenly divisible by both 3 and 5 must come first:
+</p>
+
+{% highlight ruby linenos %}
+
+public static String fizzBuzz(Integer num) {
+  if (Math.mod(num, 3) == 0 && Math.mod(num, 5) == 0) {
+    return 'FizzBuzz';
+  } else if (Math.mod(num, 3) == 0) {
+    return 'Fizz';
+  } else if(Math.mod(num, 5) == 0) {
+    return 'Buzz';
+  } else {
+    return String.valueOf(num);
+  }
+}
+
+{% endhighlight %}
+
+<p>
+And that's it! However, looking at this code, it is functional and correct, but it doesn't make the heart sing. Is there a way we could help
+improve the readability of this code? I think there is a way. Perhaps we can improve what the code is communicating by using functions
+and well thought out names to make it easier to understand. Other programmers and our future selves will thank us for spending a little time now
+in order to save us and others time later in terms of ease of understanding what this code is doing. Let's see what this looks like if we
+make each boolean expression its own function:
+</p>
+
+{% highlight ruby linenos %}
+
+public static Boolean isFizz(Integer num) {
+  return Math.mod(num, 3) == 0;
+}
+
+public static Boolean isBuzz(Integer num) {
+  return Math.mod(num, 5) == 0;
+}
+
+public static String fizzBuzz(Integer num) {
+  if (isFizz(num) && isBuzz(num)) {
+    return 'FizzBuzz';
+  } else if (isFizz(num)) {
+    return 'Fizz';
+  } else if(isBuzz(num)) {
+    return 'Buzz';
+  } else {
+    return String.valueOf(num);
+  }
+}
+
+{% endhighlight %}
+
+<p>
+There are other ways to make this more elegant, but this hopefully illustrates the value we can add to
+our code by spending a little extra time thinking about the readability of our code. In this case,
+reading the fizzBuzz function body now reads a little more like a story. It allows another programmer
+of this code to easily read through the fizzBuzz function without needing to understand the details
+of what the isFizz or isBuzz functions are doing. Although this is a simple example, applying this principle
+will go a very long way towards helping your code be easier to maintain and understand by your fellow teammates,
+and also your future self.
+</p>
+
+<h3>Challenge</h3>
+<p>
+Write a function named guessTheNumber that takes as input an Integer representing a guess, and returns a String
+describing how hot or cold the guessed number is from the secret number. If the number is within 5 of the secret number, the guess
+is very hot. If the guess is 10 within the secret number the guess is hot. If the guess is 20 within the secret number, the guess is
+warm. And if the guess is more than 20 away from the secret number, the guess is cold. For now, assume the secret number is always 100.
+Finally, your function's output should also indicate if the person should guess higher or lower.
+Your guessTheNumber function may call other functions if you feel it improves the readability of your guessTheNumber function.
+Please see the example output below for more clarification.
+</p>
+
+{% highlight ruby linenos %}
+
+guessTheNumber(50); /* output: Your guess of 50 is cold! Try guessing higher. */
+
+guessTheNumber(75); /* output: Your guess of 75 is cold! Try guessing higher. */
+
+guessTheNumber(85); /* output: Your guess of 85 is warm! Try guessing higher. */
+
+guessTheNumber(105); /* output: Your guess of 105 is hot! Try guessing lower. */
+
+guessTheNumber(98); /* output: Your guess of 98 is very hot! Try guessing higher. */
+
+guessTheNumber(100); /* output; Your guess of 100 is correct! Congratulations. */
+
+{% endhighlight %}
+
+
