@@ -333,8 +333,9 @@ mysql> CREATE INDEX sha_context_repository_id ON ci_statuses (sha, context, repo
 
 <p>
 If I were going to submit this change in a PR, I would only feel comfortable doing so by benchmarking the query. I would first like to explain the query plan
-to verify that the overall number of records the MySQL server must iterate over is reduced. I would also like to benchmark the original query against this new version
-to verify that execution time is reduced. One last potential gotcha to mention here because of the addition of the new indexes on the ci_statuses table is that
-creating a new index will lock the table. I would expect special coordination with the DBA would be required to deploy these changes to production.
+to verify that the overall number of records the MySQL server must iterate over is reduced compared with the original query plan. I would also like to benchmark
+the original query against this new version to verify that execution time is reduced. One last potential gotcha to mention here because of the addition of the
+new indexes on the ci_statuses table is that creating a new index will lock the table. I would expect special coordination with the DBA would be required to
+deploy these changes to production.
 </p>
 </article>
