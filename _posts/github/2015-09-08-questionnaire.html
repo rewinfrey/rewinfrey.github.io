@@ -1,0 +1,328 @@
+---
+layout: default
+group: github
+title: Github Application Engineer Questionnaire
+categories:
+- github
+---
+<article>
+<h1 class="title">GitHub Application Engineer Questionnaire</h1>
+<p>
+<em>
+Thanks again for applying to the Application Engineer job at GitHub! The purpose of this gist is to get a better sense
+of your technical skills and overall communication style. Take as much time as you need to answer these questions.
+</em>
+</p>
+
+<p>
+<em>
+Engineers at GitHub communicate primarily in written form, via GitHub Issues and Pull Requests.
+We expect our engineers to communicate clearly and effectively; they should be able to concisely express both
+their ideas as well as complex technical concepts.
+</em>
+</p>
+
+<p>
+<em>
+Please answer the following questions in as much detail as you feel comfortable with. The questions are
+purposefully open-ended, and we hope you take the opportunity to show us your familiarity with various
+technologies, tools, and techniques. Limit each answer to half a page if possible; walls of text are
+not required, and you'll have a chance to discuss your answers in further detail during a phone interview
+if we move forward in the process. Finally, feel free to use google, man pages and other resources if you'd like.
+</em>
+</p>
+
+<h3>Q1 Part 1</h3>
+<p>
+<strong>
+Knowing what you know about GitHub, how would you design the high level infrastructure for github.com?
+</strong>
+</p>
+
+<a style="border: none;" href="/assets/images/gh-architecture.png" target="_blank"><img style="margin-top: 2em;" src="/assets/images/gh-architecture.png" /></a>
+
+<p>
+I suspect the total volume of traffic Github receives is well above <a href="http://githubengineering.com/rearchitecting-github-pages/">thousands of requests per second</a>.
+For this reason a good load balancer is critical. <a href="http://www.haproxy.org/#desc">HAProxy</a> is an open-sourced, high-performing and stable proxy and load balancing solution
+for directing a high volume of traffic to a pool of application servers.
+</p>
+
+<p>
+I would also stand up HAProxy monitoring to understand how volume of traffic peaks or spikes throughout a 24 hour window. Knowing when
+traffic peaks and spikes allows us to strategize how to help mitigate pressure and strain on the available app servers during those times.
+I'm a big believer in "automate everything" and I would want an automated resource allocation process that can adjust the number of application
+servers dynamically based on the volume of traffic recorded by the HAProxy monitors.
+</p>
+
+<p>
+For each independent service and for the main Rails application, I would provision a base number of servers fed by a resource pool of available servers.
+I would make each server available for use for any service. I think of this as <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution Principle</a>
+applied to hardware. If the HAProxy monitor detects traffic increasing above a predefined threshold, then servers would be pulled from the resource pool and provisioned as a new service
+of the service type most affected by the increase in traffic. As traffic reduces, provisioned servers can be de-provisioned and placed back in the resource pool to match the level of
+resources required for the current volume of traffic.
+</p>
+
+<p>
+I would use a single data center consisting of several master (write / read nodes) segmented by service type, each with several slave (read only) nodes. Having one data center
+certainly reduces complexity that naturally arises from needing to make data available and consistent when multiple data centers are involved and data becomes distributed
+(thinking about the <a href="https://en.wikipedia.org/wiki/CAP_theorem">CAP theorem</a>). I would also setup a well-defined fail-over policy in the event of a master node failure.
+To this end, having effective monitoring in place for each node, indicating resource health and utilization, while also ensuring that an automated process exists for promotion
+of a slave node to master in the event of a master node failure would help me sleep much better at night.
+</p>
+
+<p>
+Finally, I would stand up cache servers (thinking <a href="http://memcached.org/">memcached</a>) between the application servers and the data center.
+Caching will help reduce load on the data center and increase overall application performance and responsiveness.
+</p>
+
+<h3>Q1 Part 2</h3>
+<p>
+<strong>
+What sequence of steps would happen when loading http://www.github.com in a browser? Don't worry about describing the specific libraries and services that handle each step.
+</strong>
+</p>
+<p>
+Given a user without an existing Github session visits github.com, the first step is to authenticate the user. If the user does not have a Github account, the user issues a sign up
+POST request to create the user record. Github validates against the username, email address and password on the client, so I would assume the server also verifies that the
+username, email address and password issued are valid as extra precaution in case someone decides to fiddle with the form parameters being sent with the POST request to the server.
+Assuming the user's username, email address and password are all valid, I would imagine a sequence of steps to create the new user profile and user records in the database would
+proceed in the context of specific, abstracted business logic (rather than have the business logic live completely within the body of the create action of the User controller).
+Based on the outcome of the creation of the new user, a flash message should be delivered to the user along with a redirect back either to the sign up page if validation or user creation failed,
+or to the user's new dashboard with a success message if the validation and user creation succeeded.
+</p>
+
+<p>
+Given a user with an active session visits github.com, I would expect the dashboard controller to initiate a series of procedural steps to retrieve the necessary resources
+required for the dashboard view. I would imagine this occurs through some form of abstracted business logic that may leverage PORO's to encapsulate, collate or aggregate the
+model objects retrieved from the database. I imagine the controller would leverage a presenter or perhaps a combination of presenters for the model objects.
+The presenter(s) would encapsulate the user's available personas depending on their organization memberships, newsfeed, broadcasts, repositories the user has contributed to, and the
+user's available repositories.
+</p>
+
+<p>
+Based on the high level infrastructure above, I would imagine that the request is first received by the user's nearest HAProxy load balancer, which then directs the request
+to the appropriate application server. I would also imagine that any cache misses at this point might kick off a series of cache warming background jobs to cache the user's
+repositories, issues, and other resources (particularly expensive resources to retrieve and process).
+</p>
+
+<h3>Q2 Part 1</h3>
+<p>
+<strong>
+Describe the common components of web application frameworks.
+</strong>
+</p>
+
+<p>
+A modern web application framework is most likely built on the MVC abstraction (<a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">model-view-controller</a>)
+based on the <a href="https://heim.ifi.uio.no/~trygver/1979/mvc-1/1979-05-MVC.pdf">original paper</a> by <a href="https://en.wikipedia.org/wiki/Trygve_Reenskaug">Trygve Reenskaug</a>.
+This approach commonly uses three main components:
+</p>
+
+<ol>
+<li>Models</li>
+<li>Views</li>
+<li>Controllers</li>
+</ol>
+
+<p>
+In addition to the above three most common components, there are other abstractions commonly employed by web application frameworks. Many of these abstractions are detailed
+in books like Martin Fowler's <a href="http://martinfowler.com/books/eaa.html"><em>Patterns of Enterprise Application Architecture</em></a>. Some of these abstractions are
+ORM abstractions like Active Record and Data Mapper, enhanced model abstractions like the Presenter pattern, or enhanced controller abstractions like the Application Controller pattern.
+</p>
+
+<h3>Q2 Part 2</h3>
+<p>
+<strong>
+What purpose does each component serve?
+</strong>
+</p>
+
+<p>
+<strong>Models</strong> are often represented as data structures. Models might be records from the database or just a simple data structure that is predefined.
+The importance of models is that they are provide a form of abstraction around the core units (often referred to as entities) of a typical web application.
+These entities or models are fancy data structures that are meant to be easily consumed by other layers of abstraction (i.e. <strong>controllers</strong> and <strong>views</strong>).
+In practical terms, models typically are the resources we are interested in serving via our web application. A user model for instance, contains the necessary
+information that is most likely stored in a database for a given user. Often, models also define behavior for instances of models or their classes. It's usually
+considered good practice to define behavior on models that is required for either updating or formatting aspects of the data contained by the model, but to avoid
+defining behavior that would be considered to be "business logic" on the models directly for the encompassing web application. In Q2 Part 3 I'll describe why this is the case
+in more general terms but centers around the idea of <a href="https://en.wikipedia.org/wiki/Separation_of_concerns">"separation of concerns"</a>.
+</p>
+
+<p>
+<strong>Views</strong> represent the interface between a web application and its users. In the context of a web application, a view is the resulting html and css
+that is rendered by the user's client. Views define and provide the possible interactions provided to users in order to retrieve, update, destroy or create resources
+on the server (represented by the web application's underlying <strong>models</strong>). Views are what most users associate with when they think about a web application,
+and their importance cannot be underestimated.
+</p>
+
+<p>
+<strong>Controllers</strong> provide a layer of abstraction between <strong>views</strong> and <strong>models</strong>. Controllers can be thought of as helping coordinate
+interactions between <strong>views</strong> and <strong>models</strong>. Commonly controllers define a series of use cases or actions that requests from <strong>views</strong>
+can make to the controllers. Within the context of a single use case or action it is common for the controller to retrieve a model if the web request is a GET request,
+or update the model if the request is PUT, POST or DELETE. Whereas <strong>models</strong> might represent the heart of a web application, controllers represent the brains
+of a web application. This is because business logic necessary to update or aggregate a collection of model resources often is where the complexity lives in any web application.
+Handling that complexity entirely in a controller action may make sense up to a certain point, but utilizing only models, views and controllers will disadvantage any
+web application as it grows in size and complexity.
+</p>
+
+<p>
+Moving beyond the three traditional components of a web application framework, it is common to find object oriented patterns like the presenter pattern
+employed to help extend the usefulness of models within a view context. Presenters are traditionally used to encapsulate state of a model and provide convenience
+methods that purposefully format that state for the benefit of a view context. However, particularly when dealing with collections of models within a controller context,
+there might be special business logic that is required to be evaluated that does not contain information that will be presented back to the user in the view context returned
+by the server. In these cases, other approaches or object oriented patterns can be used to create new layers of abstraction specifically to decouple the business logic of a web
+application from the application framework. One commonly used abstraction for helping decouple business logic from the web application framework is the Service Layer abstraction
+detailed in Martin Fowler's <em>Patterns of Enterprise Application Architecture</em>.
+</p>
+
+<h3>Q2 Part 3</h3>
+<p>
+<strong>
+What is the benefit of separating each component from the others?
+</strong>
+</p>
+<p>
+The benefits of separating each component from the others are many. Each component can be thought of as a separate abstraction, and the way these components or abstractions
+fit together form layers of abstraction. When viewed from this lens, testing becomes easier when boundaries of a layer of abstraction are well defined.
+Code contexts are less coupled, more modular and easier to understand and maintain. Layers of abstraction encourage us as software developers to think more about our
+object interactions, and to consider the SOLID principles when writing new contexts. Having a common set of abstractions that most web application frameworks use also
+improves the likelihood of adoption of that framework. If a new framework utilizes commonly used and well understood abstractions, software developers can easily pick
+up that new framework and become productive with it quickly and efficiently. Using these common abstractions, each with a specific responsibility and purpose, also
+makes life easier for software developers in terms of reasoning about code and knowing where to look to find a specific context within a large system. This means
+debugging or trouble shooting errors also becomes easier because the type of error can point the software developer to the correct layer of abstraction. Well defined
+layers of abstraction go a long way towards preventing cyclical dependencies from being created, as it is easier to enforce proper flow of control of a system.
+Also importantly, separating components helps us to decouple business logic from the web application framework serving that business logic.
+Decoupled business logic means we can reuse that business logic business independently of the web application framework in other contexts (microservices, API's, etc.).
+</p>
+
+<h3>Q3</h3>
+<p>
+<strong>
+Given the following table schema, indexes, and query plan, explain how the query is executed and what you would do to improve the performance.
+</strong>
+</p>
+
+{% highlight sql %}
+mysql> describe ci_statuses;
++-----------------+--------------+------+-----+---------+----------------+
+| Field           | Type         | Null | Key | Default | Extra          |
++-----------------+--------------+------+-----+---------+----------------+
+| id              | int(11)      | NO   | PRI | NULL    | auto_increment |
+| state           | varchar(255) | NO   |     | unknown |                |
+| sha             | varchar(255) | NO   | MUL | NULL    |                |
+| repository_id   | int(11)      | NO   | MUL | NULL    |                |
+| created_at      | datetime     | YES  |     | NULL    |                |
+| updated_at      | datetime     | YES  |     | NULL    |                |
+| pull_request_id | int(11)      | YES  | MUL | NULL    |                |
+| context         | varchar(255) | YES  |     | default |                |
++-----------------+--------------+------+-----+---------+----------------+
+
+indexes:
++----------------------------+------------------------------+--------+
+| Index_name                 | Columns                      | Unique |
++----------------------------+------------------------------+--------+
+| PRIMARY                    | id                           |    1   |
+| sha                        | sha                          |    0   |
+| pull_request_id_created_at | pull_request_id, created_at  |    0   |
+| repository_id_created_at   | repository_id, created_at    |    0   |
++----------------------------+------------------------------+--------+
+
+mysql> explain SELECT r.id FROM repositories r JOIN ci_statuses s ON s.repository_id = r.id GROUP BY s.sha HAVING COUNT(s.context) > 1;
++-------------+-------+--------+--------------------------+---------+---------+-----------------+-----------+--------------------------+
+| select_type | table | type   | possible_keys            | key     | key_len | ref             | rows      | Extra                    |
++-------------+-------+--------+--------------------------+---------+---------+-----------------+-----------+--------------------------+
+| SIMPLE      | s     | index  | repository_id_created_at | sha     | 767     | NULL            | 122041204 |                          |
+| SIMPLE      | r     | eq_ref | PRIMARY                  | PRIMARY | 4       | s.repository_id |         1 | Using where; Using index |
++-------------+-------+--------+--------------------------+---------+---------+-----------------+-----------+--------------------------+
+
+{% endhighlight %}
+
+<p>
+The query is joining the repositories table with the ci_statuses table using the foreign key repository_id. The problem with this query is that even though there
+is an index on repository_id and sha, the GROUP BY sha portion of the query means that every record in the ci_statuses table must be iterated over in order
+for the GROUP BY clause to know what records to group. This unfortunately defeats the purpose of having indexes, because we still have to iterate
+over the entire table, and is why the explain output of the query plan indicates that the first step the MySQL server will take is to look at the sha key of 122,041,204 rows.
+That's a lot of rows! I'd just like to point out that technically resource_id is a multi-column index with the created_at column, but since repository_id is the left-most column
+in the index, repository_id can be treated the same as a single column index.
+</p>
+
+<p>
+The way I would approach this problem is to first reduce the result set the GROUP BY clause has to iterate over by filtering out records that we know are
+not going to be of interest. The second step would be to create a new single column index to support the query that generates the filtered result set.
+The third step would be to remove the join since it appears to be unnecessary. The fourth step would be to create a new compound index to optimize the GROUP BY query.
+</p>
+
+<p>
+We can first reduce the result set the GROUP BY clause has to iterate over by writing a simple SQL query that returns only records of interest. In this case,
+the only records we eventually want to GROUP BY are those records whose context column values are not null:
+</p>
+
+{% highlight sql %}
+
+mysql> SELECT * FROM ci_statuses WHERE context IS NOT NULL;
+
+{% endhighlight %}
+
+<p>
+However, now that we are using the context column from the ci_statuses table to reduce the initial result set before grouping,
+it would be prudent to add an index for the context column. Here we create a new index on ci_statuses for the context column:
+</p>
+
+{% highlight sql %}
+
+mysql> CREATE INDEX context ON ci_statuses (context);
+
+{% endhighlight %}
+
+<p>
+Now that we have an index created for the context column, and we have the ability to generate a reduced result set of the records of interest from the ci_statuses
+table, let's leverage MySQL's optimized ability to generate temporary tables on the fly in our original query. This approach allows us to take advantage of MySQL's well optimized
+internal temporary table generation abilities while simultaneously reducing the number of rows we will have to iterate over in the GROUP BY clause. Tweaking the simple query above
+to select only the columns of interest, we place it in the original query plan to yield the following new query:
+</p>
+
+{% highlight sql %}
+
+mysql> SELECT r.id
+FROM repositories r
+JOIN (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL) s
+ON s.repository_id = r.id
+GROUP BY s.sha
+HAVING COUNT(s.context) > 1;
+
+{% endhighlight %}
+
+<p>
+However, it appears that the JOIN is unnecessary. We are selecting the id from the repositories table, but that is equivalent to the repository_id column
+in the ci_statuses table. Given that we must query the ci_statuses table, we can eliminate the JOIN with the repositories table which will also boost performance
+and yields a simpler query:
+</p>
+
+{% highlight sql %}
+
+mysql> SELECT s.repository_id
+FROM (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL) s
+GROUP BY s.sha
+HAVING COUNT(s.context) > 1;
+
+{% endhighlight %}
+
+<p>
+The final step is to create a compound index that is specific to the format of this query. This compound index must be written with the columns in a specific
+order so that the performance benefits can be realized. This order is first indexing the column in the GROUP BY clause (sha), then the HAVING clause (context), and finally
+the SELECT clause (repository_id):
+</p>
+
+{% highlight sql %}
+
+mysql> CREATE INDEX sha_context_repository_id ON ci_statuses (sha, context, repository_id);
+
+{% endhighlight %}
+
+<p>
+If I were going to submit this change in a PR, I would only feel comfortable doing so by benchmarking the query. I would first like to explain the query plan
+to verify that the overall number of records the MySQL server must iterate over is reduced. I would also like to benchmark the original query against this new version
+to verify that execution time is reduced. One last potential gotcha to mention here because of the addition of the new indexes on the ci_statuses table is that
+creating a new index will lock the table. I would expect special coordination with the DBA would be required to deploy these changes to production.
+</p>
+</article>
