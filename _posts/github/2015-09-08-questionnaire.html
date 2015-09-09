@@ -297,7 +297,7 @@ to select only the columns of interest, we place it in the original query plan t
 
 mysql> SELECT r.id
 FROM repositories r
-JOIN (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL OR context != '') s
+JOIN (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL) s
 ON s.repository_id = r.id
 GROUP BY s.sha
 HAVING COUNT(s.context) > 1;
@@ -313,7 +313,7 @@ and yields a simpler query:
 {% highlight sql %}
 
 mysql> SELECT s.repository_id
-FROM (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL OR context != '') s
+FROM (SELECT sha, repository_id, context FROM ci_statuses WHERE context IS NOT NULL) s
 GROUP BY s.sha
 HAVING COUNT(s.context) > 1;
 
