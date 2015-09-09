@@ -7,14 +7,14 @@ categories:
 ---
 <article>
 <h1 class="title">GitHub Application Engineer Questionnaire</h1>
-<p>
+<p class="introduction">
 <em>
 Thanks again for applying to the Application Engineer job at GitHub! The purpose of this gist is to get a better sense
 of your technical skills and overall communication style. Take as much time as you need to answer these questions.
 </em>
 </p>
 
-<p>
+<p class="introduction">
 <em>
 Engineers at GitHub communicate primarily in written form, via GitHub Issues and Pull Requests.
 We expect our engineers to communicate clearly and effectively; they should be able to concisely express both
@@ -22,7 +22,7 @@ their ideas as well as complex technical concepts.
 </em>
 </p>
 
-<p>
+<p class="introduction">
 <em>
 Please answer the following questions in as much detail as you feel comfortable with. The questions are
 purposefully open-ended, and we hope you take the opportunity to show us your familiarity with various
@@ -183,16 +183,28 @@ What is the benefit of separating each component from the others?
 </p>
 <p>
 The benefits of separating each component from the others are many. Each component can be thought of as a separate abstraction, and the way these components or abstractions
-fit together form layers of abstraction. When viewed from this lens, testing becomes easier when boundaries of a layer of abstraction are well defined.
-Code contexts are less coupled, more modular and easier to understand and maintain. Layers of abstraction encourage us as software developers to think more about our
-object interactions, and to consider the SOLID principles when writing new contexts. Having a common set of abstractions that most web application frameworks use also
-improves the likelihood of adoption of that framework. If a new framework utilizes commonly used and well understood abstractions, software developers can easily pick
-up that new framework and become productive with it quickly and efficiently. Using these common abstractions, each with a specific responsibility and purpose, also
-makes life easier for software developers in terms of reasoning about code and knowing where to look to find a specific context within a large system. This means
-debugging or trouble shooting errors also becomes easier because the type of error can point the software developer to the correct layer of abstraction. Well defined
-layers of abstraction go a long way towards preventing cyclical dependencies from being created, as it is easier to enforce proper flow of control of a system.
+fit together form layers of abstraction. One of the first great advantages to having separate layers of abstraction is that testing becomes easier. Along with easier testing,
+separating layers of abstraction also allows us to improve the quality of our code in other ways.
+</p>
+
+<p>
+Separate layers of abstraction promotes decoupling. As our code contexts become less coupled, they tend to become more modular and easier to understand and maintain.
+Layers of abstraction encourage us as software developers to think more about our object interactions, and to consider the SOLID principles and rules of simple design
+when writing new contexts. Separate layers of abstraction also provides a common set of ideas that once learned makes it simple to work on different systems built on those
+abstractions.
+</p>
+
+<p>
+If a new framework utilizes commonly used and well understood abstractions, software developers can easily pick up that new framework and become productive with it quickly and efficiently.
+Having common abstractions, each with a specific responsibility and purpose, makes life easier for software developers in terms of reasoning about code and knowing
+where to look to find a specific context within a large system. This means debugging or trouble shooting errors also becomes easier because the type of error can point the
+software developer to the correct layer of abstraction.
+</p>
+
+<p>
+Well defined layers of abstraction also go a long way towards preventing cyclical dependencies from being created, as it is easier to enforce proper flow of control of a system.
 Also importantly, separating components helps us to decouple business logic from the web application framework serving that business logic.
-Decoupled business logic means we can reuse that business logic business independently of the web application framework in other contexts (microservices, API's, etc.).
+Decoupled business logic means we can reuse that business logic independently of the web application framework in other contexts (microservices, API's, etc.).
 </p>
 
 <h3>Q3</h3>
