@@ -44,7 +44,8 @@ Knowing what you know about GitHub, how would you design the high level infrastr
 <p>
 I suspect the total volume of traffic Github receives is well above <a href="http://githubengineering.com/rearchitecting-github-pages/">thousands of requests per second</a>.
 For this reason a good load balancer is critical. <a href="http://www.haproxy.org/#desc">HAProxy</a> is an open-sourced, high-performing and stable proxy and load balancing solution
-for directing a high volume of traffic to a pool of application servers.
+for directing a high volume of traffic to a pool of application servers. I would stand up several HAProxy load balancers across global regions to help manage the flow of traffic to
+github.com for Github's global user base.
 </p>
 
 <p>
@@ -86,7 +87,7 @@ Given a user without an existing Github session visits github.com, the first ste
 POST request to create the user record. Github validates against the username, email address and password on the client, so I would assume the server also verifies that the
 username, email address and password issued are valid as extra precaution in case someone decides to fiddle with the form parameters being sent with the POST request to the server.
 Assuming the user's username, email address and password are all valid, I would imagine a sequence of steps to create the new user profile and user records in the database would
-proceed in the context of specific, abstracted business logic (rather than have the business logic live completely within the body of the create action of the User controller).
+proceed in the context of specific, abstracted business logic (rather than have the business logic live completely within the body of the create action of the Users controller).
 Based on the outcome of the creation of the new user, a flash message should be delivered to the user along with a redirect back either to the sign up page if validation or user creation failed,
 or to the user's new dashboard with a success message if the validation and user creation succeeded.
 </p>
@@ -139,7 +140,7 @@ What purpose does each component serve?
 
 <p>
 <strong>Models</strong> are often represented as data structures. Models might be records from the database or just a simple data structure that is predefined.
-The importance of models is that they are provide a form of abstraction around the core units (often referred to as entities) of a typical web application.
+The importance of models is that they provide a form of abstraction around the core units (often referred to as entities) of a typical web application.
 These entities or models are fancy data structures that are meant to be easily consumed by other layers of abstraction (i.e. <strong>controllers</strong> and <strong>views</strong>).
 In practical terms, models typically are the resources we are interested in serving via our web application. A user model for instance, contains the necessary
 information that is most likely stored in a database for a given user. Often, models also define behavior for instances of models or their classes. It's usually
@@ -158,7 +159,7 @@ and their importance cannot be underestimated.
 <p>
 <strong>Controllers</strong> provide a layer of abstraction between <strong>views</strong> and <strong>models</strong>. Controllers can be thought of as helping coordinate
 interactions between <strong>views</strong> and <strong>models</strong>. Commonly controllers define a series of use cases or actions that requests from <strong>views</strong>
-can make to the controllers. Within the context of a single use case or action it is common for the controller to retrieve a model if the web request is a GET request,
+can make to the application. Within the context of a single use case or action it is common for the controller to retrieve a model if the web request is a GET request,
 or update the model if the request is PUT, POST or DELETE. Whereas <strong>models</strong> might represent the heart of a web application, controllers represent the brains
 of a web application. This is because business logic necessary to update or aggregate a collection of model resources often is where the complexity lives in any web application.
 Handling that complexity entirely in a controller action may make sense up to a certain point, but utilizing only models, views and controllers will disadvantage any
