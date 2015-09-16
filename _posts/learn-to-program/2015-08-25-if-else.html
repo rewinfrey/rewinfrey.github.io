@@ -302,4 +302,58 @@ guessTheNumber(100); /* output; Your guess of 100 is correct! Congratulations. *
 
 {% endhighlight %}
 
+<h3>Challenge Answer</h3>
 
+{% highlight ruby linenos %}
+
+public static Boolean differenceGreaterThanZero(Integer num1, Integer num2) {
+  return (num1 - num2) > 0;
+}
+
+public static Boolean comparison(Integer guess, Integer secret, Integer threshold) {
+  return (differenceGreaterThanZero(secret, guess) && (secret - guess) < threshold) || (differenceGreaterThanZero(guess, secret) && ((guess - secret)) < threshold);
+}
+
+public static Boolean isGuessHigh(Integer guess, Integer secret) {
+  return guess > secret;
+}
+
+public static String guessTheNumber(Integer guess) {
+  Integer secret = 100;
+  String response = '';
+  String suggestion = '';
+
+  if (secret == guess) {
+    return 'Your guess of ' + guess + ' is correct! Congratulations!';
+  } else if (comparison(guess, secret, 5)) {
+    response = 'Your guess of ' + guess + ' is very hot! ';
+  } else if (comparison(guess, secret, 10)) {
+    response = 'Your guess of ' + guess + ' is hot! ';
+  } else if (comparison(guess, secret, 20)) {
+    response = 'Your guess of ' + guess + ' is warm! ';
+  } else {
+    response = 'Your guess of ' + guess + ' is cold! ';
+  }
+
+  if (isGuessHigh(guess, secret)) {
+    suggestion = 'Try guessing lower.';
+  } else {
+    suggestion = 'Try guessing higher.';
+  }
+
+  return response + suggestion;
+}
+
+System.debug(guessTheNumber(50)); /* output: Your guess of 50 is cold! Try guessing higher. */
+
+System.debug(guessTheNumber(75)); /* output: Your guess of 75 is cold! Try guessing higher. */
+
+System.debug(guessTheNumber(85)); /* output: Your guess of 85 is warm! Try guessing higher. */
+
+System.debug(guessTheNumber(105)); /* output: Your guess of 105 is hot! Try guessing lower. */
+
+System.debug(guessTheNumber(98)); /* output: Your guess of 98 is very hot! Try guessing higher. */
+
+System.debug(guessTheNumber(100)); /* output; Your guess of 100 is correct! Congratulations. */
+
+{% endhighlight %}
