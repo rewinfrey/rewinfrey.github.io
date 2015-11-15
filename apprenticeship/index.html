@@ -1,0 +1,31 @@
+---
+layout: default
+group: Apprenticeship
+title: Apprenticeship
+---
+
+<ul class="posts article">
+  {% for post in site.categories['apprenticeship'] limit 10 %}
+    <li>
+      <div class="title-container">
+        <h1 class="title">
+          <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a>
+        </h1>
+        <div class="content-preview">
+          <p>{{ post.content | strip_html | truncatewords: 75, '...' }}</p>
+        </div>
+        <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
+        <span class="spacer">»</span>
+        {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
+        <span class="read-time">
+          {% if read_time == 0 %}
+            1 minute
+          {% else %}
+           {{ read_time }} minutes
+          {% endif %}
+          ({{ post.content | strip_html | number_of_words }} words)
+        </span>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
