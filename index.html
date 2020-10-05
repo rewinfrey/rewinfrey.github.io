@@ -1,31 +1,30 @@
 ---
-layout: with_sidebar
-group: About
-title: About
+layout: default
+group: Writings
+title: Writings
 ---
-<article>
-<p>
-I identify as a builder and a creator. I enjoy the challenge of building and architecting
-resilient, well tested, modular software. I equally enjoy encouraging and helping others grow
-to uncover more of their potential.
-</p>
-
-<p>
-I'm currently a grad student in DePaul University's <a href="http://www.cdm.depaul.edu/academics/Pages/Current/Requirements-MS-In-Predictive-Analytics-Computational.aspx">
-Predictive Analytics program with a focus on computational methods</a>. I'm excited to formally
-learn techniques like regression analysis, spatial reduction analysis (e.g. PCA and LDA) and monte carlo algorithms
-to create machine learning models. I want to leverage these skills to enhance software functionality or to
-help a business make sense of its data to properly identify priorities and direction.
-</p>
-
-<p>
-In my free time I enjoy loving my wonderful <a href="http://www.stephaniebriones.com" target="_blank">partner</a>,
-making different types of salsas, playing with languages like Haskell and Elm, learning more about math, practicing
-meditation and Tonglen, and building hobby electronics like a homemade <a href="http://monome.org" target="_blank">monome</a> and
-<a href="http://atreus.technomancy.us/" target="_blank">atreus</a>.
-<p>
-
-<p>
-For more information please have a look at my <a href="/resume">resume</a>.
-</p>
-</article>
+<ul class="posts article">
+  {% for post in site.categories['writings'] limit:10 %}
+    <li>
+      <div class="title-container">
+        <h1 class="title">
+          <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a>
+        </h1>
+        <div class="content-preview">
+          <p>{{ post.content | strip_html | truncatewords: 75, '...' }}</p>
+        </div>
+        <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
+        <span class="spacer">»</span>
+        {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
+        <span class="read-time">
+          {% if read_time == 0 %}
+            1 minute
+          {% else %}
+           {{ read_time }} minutes
+          {% endif %}
+          ({{ post.content | strip_html | number_of_words }} words)
+        </span>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
