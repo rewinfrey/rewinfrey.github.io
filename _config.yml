@@ -19,6 +19,6 @@ sass:
   style: :compressed
 
 # code highlighting
-highlighter: pygments
+highlighter: rouge
 
 exclude: ['vendor']
