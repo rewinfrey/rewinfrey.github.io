@@ -21,4 +21,4 @@ sass:
 # code highlighting
 highlighter: rouge
 
-exclude: ['vendor', '.jekyll-cache']
+exclude: ['vendor']

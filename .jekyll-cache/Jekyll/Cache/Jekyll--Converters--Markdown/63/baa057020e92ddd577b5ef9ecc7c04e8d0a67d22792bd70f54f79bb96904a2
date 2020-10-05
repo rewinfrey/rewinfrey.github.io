@@ -1,0 +1,20 @@
+I"I
+<p><a href="http://docs.oracle.com/javase/1.5.0/docs/api/java/net/ServerSocket.html">ServerSockets</a> and <a href="http://docs.oracle.com/javase/1.5.0/docs/api/java/net/Socket.html">Sockets</a> are classes found in the <a href="http://docs.oracle.com/javase/1.5.0/docs/api/java/net/package-summary.html">java.net package</a>. They both implement the <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/net/SocketOptions.html">SocketOptions interface</a> and extend <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/lang/Object.html">Object</a>. ServerSocket and Socket both inherit from the abstract class <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/net/SocketImpl.html">SocketImpl</a>, which is responsible for implementing the SocketOptions interface. What this means practically is that ServerSocket and Socket are essentially the same class, yet there is a key difference in their expected behavior.</p>
+
+<p>From the ServerSocket documentation:</p>
+<blockquote>
+  <p>This class implements server sockets. A server socket waits for requests to come in over the network. It performs some operation based on that request, and then possibly returns a result to the requester.</p>
+</blockquote>
+
+<p>ServerSocket is what makes it possible for a socket to be bound to a port and listen for any connection requests. If you enjoyed <a href="http://selfless-singleton.rickwinfrey.com/2013/01/23/a-sockets-story/">yesterday’s post about a socket story</a>, a ServerSocket represents the bird, transmitting the alert to the girl that a new message was received at her port (or mailbox).</p>
+
+<p>Regular sockets are more simple than ServerSockets in that they only make requests and receive responses. They are bound to ports, but cannot listen indefinitely for incoming requests. From the Socket documentation:</p>
+
+<blockquote>
+  <p>This class implements client sockets (also called just “sockets”). A socket is an endpoint for communication between two machines.</p>
+</blockquote>
+
+<p>In the process of building a Java webserver - it’s important to know this distinction - or else it will be very difficult to get past the initialization of the server!</p>
+
+<p>If you’re curious about sockets, and what you can do with them and how to program with them, this book has been wonderful to read: <a href="http://workingwithtcpsockets.com/">Working With TCP Sockets</a> by Jesse Storimer. He also has another book all about <a href="http://workingwithunixprocesses.com/">Working With Unix Processes</a> that filled in lots of gaps I didn’t know I even had about some of the fundamentals of Unix.</p>
+:ET
