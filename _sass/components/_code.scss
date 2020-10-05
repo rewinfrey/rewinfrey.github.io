@@ -1,11 +1,23 @@
 pre {
   background-color: #fff;
-  line-height: 1em !important;
+  font-family: Consolas, "Liberation Mono", Menlo !important;
+  line-height: 1.5em !important;
+  margin: 0;
   padding: 1em 0;
+  text-align: left;
+  overflow-x: auto;
+}
+
+.gutter {
+  width: auto;
+}
+
+td.gutter {
+  border: none;
 }
 
 code {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace !important;
+  // font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace !important;
 }
 
 .gist-meta {
@@ -28,12 +40,43 @@ code {
 }
 
 .lineno {
+  background-color: #F5F5F5;
   padding: .5em;
   color: #aaa;
   text-align: right;
-  background-color: #F5F5F5;
-  line-height: 1.6;
+  width: auto;
 }
+
+.highlight {
+  margin: 0;
+
+  table {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  tr {
+    border: none;
+  }
+
+  td {
+    background-color: #fff;
+    // font-family: Consolas, "Liberation Mono", Menlo;
+    font-weight: $regular;
+    margin: 0;
+    padding: 0;
+    &.code {
+      border: none;
+      padding-left: .5em;
+    }
+  }
+
+  tbody {
+    border: none;
+  }
+}
+
 .highlight  { background: #ffffff; }
 .highlight .c { color: #999988; font-style: italic } /* Comment */
 .highlight .err { color: #a61717; background-color: #e3d2d2 } /* Error */
