@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
-ruby "2.2.3"
-gem 'jekyll', '2.4.0'
+ruby "2.6.0"
+gem 'jekyll'
 gem 'rake'
 gem 'foreman'
 gem 'thin'
