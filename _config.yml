@@ -5,8 +5,6 @@ title: "Rick Winfrey"
 description: "Rick Winfrey"
 baseurl: "/"
 
-#host: '127.0.0.1'
-
 markdown: kramdown
 permalinks: /:categories/:title
 
@@ -21,4 +19,4 @@ sass:
 # code highlighting
 highlighter: rouge
 
-exclude: ['vendor']
+exclude: ['vendor', 'jekyll-cache']
