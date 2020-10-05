@@ -4,7 +4,7 @@
     <a class="site-title" href="/">Rick Winfrey</a>
     <ul>
       {% for heading in site.headings %}
-      <li {% if heading == page.group %}class="current"{% endif %}><a href="{{ heading | downcase | prepend: site.baseurl }}">{{ heading }}</a></li>
+      <li {% if heading == page.group %}class="current"{% endif %}><a href="{{ heading | downcase | prepend: '/' }}">{{ heading }}</a></li>
       {% endfor %}
     </ul>
   </div>
