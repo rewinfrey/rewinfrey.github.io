@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: writing
 group: Archive
 title: "Pairing Tour Day 3 - Mike Ebert"
 date: 2013-05-20 17:00:00
