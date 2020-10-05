@@ -20,7 +20,7 @@ layout: default
       </span>
       <br />
       {% for movie in page.movies %}
-        <a class="movie" href={{ movie }} title="Watch Session {{forloop.index + 1 }}" target="_blank"></a>
+        <a class="movie" href={{ movie }} title="Watch Session {{forloop.index}}" target="_blank"></a>
       {% endfor %}
     </div>
     {{ content }}
