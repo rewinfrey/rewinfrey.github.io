@@ -1,0 +1,53 @@
+---
+layout: writing
+group: Writings
+title: "Animating Generative Text"
+date: 2015-05-28 21:10:07
+categories:
+- writings
+---
+
+<div>
+  <p>
+    This animation updates the opacity of every new character in four increments starting from 0 and ending at 1.
+  </p>
+
+  <p class="prompt">Can you write a small poem?</p>
+  <div class="demo-container">
+    <p id="demo-1"></p>
+  </div>
+</div>
+
+<div>
+  <p>
+    This animation updates the opacity of every new word in four increments starting from 0 and ending at 1 with a
+    play on order of execution for simultaneously displaying the gradients of a single word.
+  </p>
+
+  <p class="prompt">Can you write a small poem?</p>
+  <div class="demo-container">
+    <p id="demo-2"></p>
+  </div>
+</div>
+
+<div>
+  <p>
+    This animation indicates the probability of the generating word as it is added to the output stream.
+    It also reveals the words probabiliy on hover.
+  </p>
+  <div class="demo-container">
+    <p id="demo-3" class="demo-text-probability-parent"></p>
+  </div>
+</div>
+
+<div>
+  <p>
+    This animation indicates the probability of the resulting word as the difference between 1 and the probability of
+    the generating word as a change in opacity / hue.
+  </p>
+  <div class="demo-container">
+    <p id="demo-3" class="demo-text-probability-opacity"></p>
+  </div>
+</div>
+
+<script src="/assets/javascripts/animating-generative-text.js"></script>

@@ -158,6 +158,23 @@ dt {
   }
 }
 
+.demo-container {
+  max-width: $content-width;
+  height: 550px;
+  margin: 4em auto;
+  width: 90%;
+  overflow:  hidden;
+
+  @media #{$mobile} {
+    margin: 2.2em auto;
+  }
+
+  p {
+    color: #687789e3;
+    font-family: 'futura';
+  }
+}
+
 .sandbox {
   text-align: center;
 }
