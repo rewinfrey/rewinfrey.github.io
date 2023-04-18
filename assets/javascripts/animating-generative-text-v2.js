@@ -1,19 +1,27 @@
 const AnimateText = {
-  consoleLog: function(msg) {
-    return function(resolve, reject) {
-      console.log(msg);
-      return resolve();
-    }
-  },
+  consoleLog:
+    ((msg) =>
+      (resolve) => {
+        console.log(msg);
+        return resolve();
+      }
+    ),
 
   withPromise:
-    function (op, cont) {
-      let promise = new Promise((resolve, reject) => op(resolve, reject))
-      promise.then(cont)
+    function (op) {
+      return new Promise((resolve, reject) => op(resolve, reject));
     },
 
-  sleep: function(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  sleep: function(ms, resolve) {
+    return ((resolve) => setTimeout(resolve, ms));
+  },
+
+  main2: async function() {
+    await this.withPromise((stop) => this.consoleLog("promise one")(stop));
+    await this.withPromise((stop) => this.sleep(1000)(stop));
+    await this.withPromise((stop) => this.consoleLog("promise two")(stop));
+    await this.withPromise((stop) => this.sleep(1000)(stop));
+    await this.withPromise((stop) => this.consoleLog("promise three")(stop));
   },
 
   main: async function() {
@@ -44,4 +52,4 @@ const AnimateText = {
   },
 };
 
-AnimateText.main()
+AnimateText.main2()
