@@ -131,9 +131,7 @@ function wordIter() {
       const char = inputString[index2];
       let promise = new Promise((resolve, reject) => {
           if (charIsWordBoundary(char)) {
-            console.log("pushing word buffer: ", wordBuffer);
             wordQueue.push({ value: wordBuffer, opacity: initialOpacity});
-            console.log("pushing char: ", char);
             wordQueue.push({ value: char, opacity: initialOpacity});
             wordBuffer = "";
             outputWordString= ""; // reset the outputString for each word.
