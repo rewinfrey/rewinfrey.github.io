@@ -2,8 +2,7 @@ pre {
   background-color: #fff;
   font-family: Consolas, "Liberation Mono", Menlo !important;
   line-height: 1.5em !important;
-  margin: 0;
-  padding: 1em 0;
+  margin-block: 0em;
   text-align: left;
   overflow-x: auto;
 }
@@ -48,7 +47,7 @@ code {
 }
 
 .highlight {
-  margin: 0;
+  margin: 1em 0 0 0;
 
   table {
     margin: 0;
