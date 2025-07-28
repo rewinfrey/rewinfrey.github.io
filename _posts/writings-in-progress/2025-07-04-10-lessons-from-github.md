@@ -1,139 +1,147 @@
 ---
 layout: writing
 group: writings
-title: "10 lessons after 10 years at GitHub"
+title: "10 lessons from 10 years at GitHub"
 date: 2025-07-04 14:00:00
 categories:
 - writings-in-progress
 ---
 
-After nearly a decade working at GitHub as a software engineer, I've decided to pass the baton and begin a new adventure.
+After nearly a decade at GitHub as a software engineer, I've decided to pass the baton and begin a new adventure.
 
-I've worked on GitHub's Rails monolith, but most of my engineering focus was on building code intelligence services and features external to the Rails application.
+While I worked on GitHub's Rails monolith, most of my focus was building code intelligence services external to it.
 
-This included many contributions to Tree-sitter language grammars and the Tree-sitter library / runtime.
-I helped build a R&D program analysis library in Haskell named <a href="https://github.com/github/semantic">Semantic</a>.
-Shipped GitHub's first version of code navigation powering jump-to-definition and find-all-references.
-Next I helped evolve the code navigation service to offer zero-config precise code navigation, powered by the underlying technology we created at GitHub named <a href="https://github.com/github/stack-graphs">Stack Graphs</a>.
-With the rise of generative AI I contributed to bringing Copilot Chat to the web, and was the primary author of the prompt-building library to manage dynamic contexts, and is still used today.
-Most recently, I've spent the past ~two years focused on GitHub's amazing code search system, Blackbird.
+This included contributing to <a href="https://tree-sitter.github.io/tree-sitter/">Tree-sitter</a> grammars and its runtime, helping build a research program analysis library in Haskell called <a href="https://github.com/github/semantic">Semantic</a>, and shipping GitHub's first <a href="https://docs.github.com/en/repositories/working-with-files/using-files/navigating-code-on-github">code navigation</a> service powering jump-to-definition and find-all-references features.
 
-There are many lessons learned over these past 10 years, but after some reflection here are the top 10 lessons I've distilled.
+Later, I helped evolve the system into zero-config precise code navigation using <a href="https://github.com/github/stack-graphs">Stack Graphs</a>. With the rise of generative AI, I contributed to Copilot Chat for the web and authored the prompt-building library that powers its dynamic context logic.
+
+Most recently, I spent the last two years working on GitHub's world-class code search system, <a href="https://github.blog/engineering/architecture-optimization/the-technology-behind-githubs-new-code-search/">Blackbird</a>.
+
+Over these years, I've learned a lot. Here are the 10 most important lessons I'm taking with me.
+
+---
 
 ### 1. The core is the moat
 
-GitHub's platform is an indispensable service for the companies and individual engineers world wide that host their code there. None of that matters if the core functionality of the platform is buggy, slow, or has poor user experience.
+GitHub's platform is indispensable, but only because its core experience is stable, fast, and reliable.
 
-I often see people describe "moats" in terms of specific features, data, or users, but I think these perspectives often overthink the simple rule that any product or platform company's moat is its core functionality. 1000 features have little to no value if 900 have spotty availability, are buggy, and most importantly, are slow.
+People often describe “moats” in terms of features, data, or network effects. But none of that matters if your foundation is broken. A product with 1,000 features has little value if 900 are buggy or slow.
+
+The real moat is consistently nailing the core experience. Always.
+
+---
 
 ### 2. Build first for customers
 
-Leading up to the 2018 acquisition of GitHub by Microsoft, the [dear GitHub](https://github.com/dear-github/dear-github) letter became an infamous example of users asking for legitimate features to address friction and pain around maintaining open source projects. In 2018, under Nat Friedman's tour as CEO of GitHub, a "paper cuts" initiative was launched to help address these pain points and other items of friction. This was largely successful and helped to re-establish good will and trust between the open source community and GitHub.
+Before GitHub's 2018 acquisition by Microsoft, the [Dear GitHub](https://github.com/dear-github/dear-github) letter captured widespread frustration with the platform. Under Nat Friedman's leadership, a “paper cuts” initiative helped rebuild trust with the open source community by fixing small but painful issues.
 
-This example highlights a tension within product and platform companies in which internal usage patterns dictate product priorities for extended periods of time. This is "dogfooding" to the extreme. When internal usage patterns dominate product or platform direction, businesses risk over-fitting to a narrowed cone of use-cases.
+The lesson? Dogfooding is good, but over-relying on internal usage can lead to blind spots. You risk overfitting your product to narrow needs and ignoring broader customer pain.
 
-At some point, after enough over-fitting, if your business is lucky like GitHub, customers may offer a "dear x" letter carefully outlining their product frustrations and requests. If your business is unlucky, your customers will churn without any feedback, making it hard to understand and predict, but is likely because a competitor is building what customers want.
+If you're lucky, customers will tell you what's broken. If you're not, they'll leave without saying a word.
 
-### 3. Make it work, make it scale, make it faster
+---
 
-Kent Beck coined the infamous "Make it work, make it right, make it fast", and is as true today as when it was first written. But for large-scale platforms like GitHub, I learned that there is a slightly different formula that works well. That is "Make it work, make it scale, make it faster".
+### 3. Make it work. Make it scale. Make it faster.
 
-Shortly after joining the code search team, I saw an opportunity to optimize one of the core processes for maintaining the health and stability of GitHub's code search system, the "backfill" process. This process iterated over 120+ million repositories and produced an up-to-date index for code search.
+Kent Beck's classic advice, “make it work, make it right, make it fast”, holds true. But at scale, I've found another ordering works better: “Make it work, make it scale, make it faster.”
 
-Over time, changes to the system along with ingesting more and more repos (120+ million repos is _a lot_ of repos), resulted in backfill durations of ~5 days. This made failures in the process particularly painful and costly in terms of time lost. Long backfill durations also represented an availability risk in case there was catastrophic data loss. It also reduced team velocity in our ability to ship experimental new features or make index breaking changes.
+When I joined the code search team, our backfill job, responsible for keeping our 120+ million repository index fresh, was taking five days to complete. This bottleneck made experimentation risky and recovery from failure slow.
 
-Speed is a form of trust in software systems. Software that provides fast feedback loops are always preferred over slow systems that make developers wait. The same is just as true of the systems and tools we build for internal development as it is for the systems and products that generate revenue.
+After several weeks of optimization, I cut the process from 5 days to 34 hours, a 72% improvement. It instantly increased trust in our system and unlocked team velocity.
 
-After a few weeks of CPU and memory profile guided optimization work, I reduced backfill duration from 5 days to 34 hours, a 72% improvement. We immediately felt the benefits on the team. Backfills were no longer a pain point that reduced trust in our systems. Speedier backfills increased not only the team's trust in our systems, but also increased our team's velocity.
+Speed builds trust. Whether its for internal tools or user-facing products, faster wins every time.
 
-The main takeaway for me is there is no end to "make it faster". Optimization work, when prioritized and done well, reaps benefits that reverberate through all layers of the business, from product and sales to application, service, and infrastructure engineering teams. Most of all, "making it faster" always enhances the customer experience and builds trust in the product.
+---
 
 ### 4. Know your tools, especially the ones you build
 
-Especially in developer tools, you can’t afford to treat tools as abstract concepts. You have to use them, internalize them, and master them so you understand the layers of experience they provide firsthand.
+In dev tools, there's no substitute for real usage. If you're not using your own product, you're building on assumptions.
 
-If you're building a product or tool you don't use, you're building on assumptions. If you're lucky, you'll build something valuable. But more likely than not, you'll end up building something that works for a limited perspective that misses the mark for your customers.
+Great engineers don't just use tools, they study them, tweak them, master them. They invest in their craft by continuously learning, challenging assumptions, and experimenting with new workflows and tools.
 
-Similarly, the best engineers I know don't just know their development tools, they invest heavily in them.
+Follow your curiosity. Stay uncomfortable. Keep tinkering. Remember to play. Our craft improves with care.
 
-Follow your curiosity! Make friends with discomfort! Keep experimenting, learning, refining, and playing.
+---
 
-Craft, like product, improves with curiosity.
+### 5. Good telemetry is priceless. Bad telemetry is noise.
 
-### 5. There's no substitute for good telemetry, but too much can hurt you
+If you can't measure it, you can't fix it. But if you measure everything, you can't see anything.
 
-If you can't measure what your system is doing, you're flying blind. But if you measure everything, you're flying through fog.
+Over-logging and dashboard overload create fog, not clarity. The best observability isn't about quantity, it's about relevance.
 
-Too much telemetry creates noise. It buries signals in irrelevant stats, clutters dashboards, and leads you to chase red herrings during incidents. Logging and metrics aren't just about collection, they're about clarity.
+Keep dashboards lean. Prune aggressively. During every incident, ask:
 
-Dashboards and logs should be continuously curated, pruned, with shared ownership by the whole team. This requires all members to be equally invested in understanding the purpose of logs and metrics. When those logs and metrics no longer provide clarity, remove them!
+- What helped us resolve this faster?
+- What slowed us down?
 
-Otherwise, pretty dashboards with pretty graphs that make things look sophisticated and complex are performative, but don't help when it actually matters.
+Telemetry should evolve with your systems, or it'll betray you when it matters most.
 
-Every incident is a chance to ask:
+---
 
-* What logging / metrics slowed things down?
-* What logging / metrics helped speed debugging up?
+### 6. Legacy code is a historic renovation project
 
-Telemetry must evolve with your system, or it will fail you when you need it most.
+Legacy systems carry the business. Customers rely on them. Maintaining them is an honor, not a chore.
 
-### 6. Treat legacy code like a historic renovation project
+In software, unlike architecture, you can renovate without permits. But that requires discipline: knowing what to preserve and what to rework.
 
-That legacy system carried the business. Customers depend on it. Renovating it is a privilege, not a burden. Treat legacy code as precious. It is! But always remember that in the digital world, unlike the physical world, code is extremely malleable, and that invites continual improvement and refactoring over time.
+Leaders who overlook this work during performance reviews risk starving the systems that got them here. Refactoring legacy systems is hard, risky, and essential. It should be celebrated and rewarded.
 
-Renovating legacy code requires finesse. Knowing what to preserve and what to modernize without breaking trust.
-
-Leaders that overlook this work, especially during performance reviews, are failing their business and engineering organizations. You cannot run successful software companies that only build new features without ever reinvesting in the software that first made the business successful.
-
-Legacy code renovation is some of the most challenging and risky engineering work there is, and should be rewarded and lauded just as much as new feature work.
+---
 
 ### 7. Software is a team sport
 
-No matter how skilled you are, your impact (and growth) will always be shaped by how well you work with others within your team, across teams, and across layers of the business.
+No matter how skilled you are, your impact depends on how well you collaborate, within your team and across functions.
 
-Some of the most pivotal lessons in my career came from:
+Some career-changing lessons I've learned:
 
-* Every day stand and deliver.
-* Be upfront and honest about what is working and what is not working.
-* Hold yourself accountable for everything you commit to doing.
-* Steal workflows and tips from people whose work was exceptional.
-* Always take the long-view when building relationships.
-* Don't want until a project is complete to reflect. Continuously reflect and touch base with others on the work while it is happening.
-* Identify the strengths of your teammates and learn from them.
-* Be generous with sharing your strengths to help and aid your teammates.
-* Communication is time and energy. Be mindful and considerate of what you're asking of others when communicating.
+- Deliver consistently.
+- Own what you commit.
+- Reflect while building, not just after.
+- Learn from teammates' strengths and share your own.
+- Communicate with care, it costs others time and energy.
 
-Advancing as an engineer isn't just about knowledge and skill. It's also about your relationships, the quality of those connections, your ability and willingness to play to your team's strengths and look for opportunities to fill in gaps. It takes continuous reflection and a daily commitment to foster excellence. All of these factors combined make for a powerful career accelerator because it provides a foundation built on ability, trust, and camaraderie, and will open doors for better and more valuable opportunities.
+Growth isn't just about skill. It's about trust, connection, and shared momentum.
+
+---
 
 ### 8. Value is subjective
 
-The best technology does not always win. There are many reasons for why this happens, but I'd argue that most reasons stem from a simple truth - value is subjective. Don't assume others will see the same value you see in your best technology.
+The best tech doesn't always win. That's because value is rarely objective.
 
-Instead, I've come to appreciate that effective influence often wins. What do I mean by effective influence? In this context, it means influencing the perceived value of something. How can we do that? Show the business case. Lead by demonstration. Prove the impact. Repeat.
+Influence matters. And influence starts with making the case:
+- Show the business impact.
+- Prove it with demos and results.
+- Tell a compelling story. Repeat it.
 
-And still, don't be surprised when your best technology still doesn't win. Always remember that influence is an arena. Some seats are closer to the decision maker than others. That’s the game. Always play it with integrity.
+Even then, your best ideas might not win. That's okay. Influence is a game with uneven footing, some seats are closer to the decision-maker. Play with integrity, and once the decision is made, commit and move forward.
+
+---
 
 ### 9. Read the research
 
-This lesson was especially acute to me with the sudden rise of generative AI. Incredible research happening at an accelerated rate is freely available on sites like <a https://arxiv.org>Arxiv</a>. This ranges from interaction design patterns for AI systems, to orchestration schemes combining multiple LLMs, to changes in transformer model attention to better suit a specific problem domain, etc. It's a huge untapped pool of ideas and exploration. So the first step is following and reading the research. You don't have to read everything, usually an abstract will tell you enough to understand the direction and value proposition. But if you're intimiated to read computer science research papers, take a look at <a href="https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf">How to Read a Paper</a>.
+With the explosion of generative AI, the gap between what's published and what's productized is wider than ever.
 
-While reading and staying up with research is already ahead of the curve for most developers, we can go farther still. We can go deeper, and probe why a research experiment succeeded, and ask questions like:
+Amazing ideas are freely available on <a href="https://arxiv.org">Arxiv</a>. You don't have to read everything, just skim abstracts to spot patterns.
 
-* What characteristics of the underlying algorithms contributed to this outcome?
-* How can these algorithms or solution be synthesized into seemingly unrelated domains?
-* What connections does this research have with other current research?
+But if you go deeper, ask:
+- What's the key insight behind this result?
+- Can it apply to other domains?
+- How does it build on or challenge prior work?
 
-One of my favorite things to do with generative AI is to summarize research papers. Not only to provide high level summary of the important points from each section, but to also use "deep research" features to exhaust the resources in the research paper's bibliography, and summarize the backing research in two important wants:
+My favorite trick: use AI to summarize a paper's bibliography and trace its intellectual lineage. Research is a superpower. Use it.
 
-* What contribution did this backing research make to the current research paper?
-* Where does the backing research differ or contradict the current research paper?
+---
 
-Actively reading and internalizing existing research is a super power, but to really tap the value we need to push for more and discover intersections that no one's mapped yet.
+### 10. Be flexible enough to adapt. Be focused enough to matter.
 
-### 10. Be flexible enough to adapt. Be focused enough to matter
+One of the best pieces of advice I got at GitHub: “Some degree of fungibility is good.”
 
-Finally, one of the best pieces of advice I ever received was from a senior leader at GitHub, who pushed me to consider that "as an engineer, some degree of fungibility is good". No matter where our careers take us and how we specialize over time, it's surprisingly refreshing and helpful to remember that we are fungible to some degree!
+Adaptability unlocks opportunities. Specialization gives you the leverage to pursue them.
 
-This idea of fungibility is half of the picture. What I internalize from being fungible is the idea of being flexible and adaptable. But these skills augment our career's specialization and depth! When adaptability and specialization combine, it opens the door to explore new problems no one else has solved. If fungibility is the ticket to accessing these new problems, then depth and specialization is the vehicle to explore and solve them.
+If fungibility gets you in the room, depth helps you lead once you're there.
 
-That's why after 10 years of diving deep and specializing in code intelligence at GitHub, I’m joining <a href="https://nuanced.dev>Nuanced</a> to help bring to bear program language and static analysis techniques to help curate and provide effective code intelligence for AI code generation workflows. This is a huge unsolved problem, particularly for large, complex codebases, and will leverage all of my 10 years of experience learnings from GitHub. I couldn't be more excited.
+After 10 years specializing in code intelligence, I'm excited to join <a href="https://nuanced.dev">Nuanced</a> to help apply program analysis and static analysis techniques to improve code generation workflows for AI.
+
+This is a significant, unsolved problem, especially for large, complex codebases, and I'm excited to bring everything I've learned at GitHub to help solve it.
+
+---
