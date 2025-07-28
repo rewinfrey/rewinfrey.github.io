@@ -9,7 +9,7 @@ layout: post
       <span class="divide"></span>
       {% assign read_time = page.content | number_of_words | divided_by: site.words_per_minute %}
       <span class="date">{{ page.date | date: "%B %d, %Y" }}</span>
-      <span class="spacer">»</span>
+      <span class="spacer">|</span>
       <span class="read-time">
         {% if read_time == 0 %}
           1 minute

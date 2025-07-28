@@ -12,7 +12,7 @@ title: Writings
         </h1>
         <div class="title-info">
           <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
-          <span class="spacer">»</span>
+          <span class="spacer">|</span>
           {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
           <span class="read-time">
             {% if read_time == 0 %}
