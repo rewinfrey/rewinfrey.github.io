@@ -142,6 +142,4 @@ If fungibility gets you in the room, depth helps you lead once you're there.
 
 After 10 years specializing in code intelligence, I'm excited to join <a href="https://nuanced.dev">Nuanced</a> to help apply program analysis and static analysis techniques to improve code generation workflows for AI.
 
-This is a significant, unsolved problem, especially for large, complex codebases, and I'm excited to bring everything I've learned at GitHub to help solve it.
-
----
+Effective and efficient code context is a significant, unsolved problem, especially for large, complex codebases, and I'm excited to bring everything I've learned at GitHub to help solve it.
