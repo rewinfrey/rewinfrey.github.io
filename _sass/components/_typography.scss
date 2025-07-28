@@ -44,7 +44,7 @@ a {
   text-decoration: none;
   color: $link;
   &:hover {
-    color: #1CA889;
+    color: lighten($link, 15%);
   }
 }
 

@@ -335,13 +335,11 @@ header {
 
 article {
   ul {
-    padding: 1.1em;
+    padding-top: 1em;
+    padding-left: 1em;
+    color: lighten($base-color, 10%);
     li {
       list-style: circle;
-      color: $secondary-color;
-      span {
-        color: lighten($base-color, 10%);
-      }
     }
   }
 
@@ -448,6 +446,10 @@ article {
     line-height: 1.1em;
     margin: 1.4em 0 0.6em 0;
   }
+
+  p {
+    color: $base-color;
+  }
 }
 
 .title {
@@ -467,7 +469,7 @@ article {
 }
 
 .spacer {
-  color: $secondary-color;
+  color: lighten($secondary-color, 20%);
   letter-spacing: -2px;
   margin: 0 5px;
 }
