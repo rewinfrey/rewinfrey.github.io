@@ -8,30 +8,37 @@ const AnimateText = {
   inputString: "",
   steps: 0,
 
+  // Console log combinator that resolves a promise after logging a message.
   consoleLog: ((msg) => ((resolve) => { console.log(msg); return resolve() })),
 
+  // Sleeps for a given number of milliseconds.
+  sleep: ((ms) => ((resolve) => setTimeout(resolve, ms))),
+
+
+  // Returns a promise that resolves after executing the given operation.
   promise: function(op) {
     return new Promise((resolve, reject) => op(resolve, reject))
   },
 
-  sleep: ((ms) => ((resolve) => setTimeout(resolve, ms))),
-
+  // Returns a function that resolves a promise with the given operation.
   resolveWith: function(op) {
     return function(resolve) {
       return op(resolve);
     }
   },
 
+  // Returns a function that resolves a promise with the given operation,
+  // allowing the operation to be called recursively.
   resolveWithFix: function(op) {
     return function(resolve) {
       return op(op, resolve);
     }
   },
 
-  wordIteratorProbability: function(op, next, opts) {
+  // Produces a generative AI text animation in which each character fades in sequentially.
+  charIterator: function(op, next, opts) {
     function initOpts() {
       opts = {};
-      opts.inputWords = this.inputString.replaceAll("\n", " newline ").replaceAll(" ", " space ").split(" ");
       opts.index = 0;
       opts.queue = [];
       opts.output = "";
@@ -42,61 +49,50 @@ const AnimateText = {
       initOpts.bind(this)();
     }
 
-    console.log(opts.queue);
-    if (opts.index >= opts.inputWords.length && opts.queue.length == 0) {
-      console.log("finished wordIterator");
+    if (opts.index > this.inputString.length && opts.queue.length == 0) {
       return next();
     }
 
     this.promise(
       this.resolveWith((next) => {
-        setTimeout(async () => {
+        setTimeout(() => {
           this.promise(
             this.resolveWith((next) => {
               opts.output = "";
-              if (opts.index < opts.inputWords.length) {
-                const word = opts.inputWords[opts.index];
-                opts.queue.push({ word: word, opacity: this.initialOpacity, probability: Math.random().toFixed(2) });
+              if (opts.index < this.inputString.length) {
+                const char = this.inputString[opts.index];
+                opts.queue.push({ char: char, opacity: this.initialOpacity});
               }
               return next();
             })
           ).then(() => {
             opts.queue = opts.queue.filter((element) => {
-              console.log(element.probability);
               if (element.opacity >= 100) {
-                if (element.word === 'newline') {
+                if (element.char === '\n') {
                   opts.outputWithOpacity += `<br>`;
                   return false;
                 }
 
-                if (element.word == 'space') {
-                  opts.outputWithOpacity += ` `;
-                  return false
-                }
-
-                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%" title="${element.probability}">${element.word}</span>`;
+                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.char}</span>`;
                 return false;
               }
 
               element.opacity += (100 / this.steps);
-              if (element.word === 'newline') {
+              if (element.char === '\n') {
                 opts.output += `<br>`;
-              } else if (element.word === 'space') {
-                opts.output += ` `;
               } else {
-                opts.output += `<span style="position: relative; opacity: ${element.opacity}%" title="${element.probability}">${element.word}<span style="font-size: 7px; position: absolute; bottom: 12px; left: 5px;">${element.probability}</span></span>`;
+                opts.output += `<span style="opacity: ${element.opacity}%">${element.char}</span>`;
               }
 
               return true;
             });
-          });
-
+          })
           return next();
-        }, this.wordProbabilityDelay);
+        }, this.charDelay);
       })
     ).then(() =>
       this.promise(this.resolveWith((next) => {
-        this.wordProbabilityContext.innerHTML = opts.outputWithOpacity + opts.output;
+        this.charContext.innerHTML = opts.outputWithOpacity + opts.output;
         opts.index++;
         return next();
       }))
@@ -106,7 +102,7 @@ const AnimateText = {
   wordIterator: function(op, next, opts) {
     function initOpts() {
       opts = {};
-      opts.inputWords = this.inputString.replaceAll("\n", " newline ").replaceAll(" ", " space ").split(" ");
+      opts.inputWords = this.inputString.replaceAll("\n", " newline ").replaceAll(" ", " space ").trim().split(/\s+/);
       opts.index = 0;
       opts.queue = [];
       opts.output = "";
@@ -117,9 +113,7 @@ const AnimateText = {
       initOpts.bind(this)();
     }
 
-    console.log(opts.queue);
     if (opts.index >= opts.inputWords.length && opts.queue.length == 0) {
-      console.log("finished wordIterator");
       return next();
     }
 
@@ -166,7 +160,7 @@ const AnimateText = {
           });
 
           return next();
-        }, this.delay);
+        }, this.wordDelay);
       })
     ).then(() =>
       this.promise(this.resolveWith((next) => {
@@ -177,9 +171,12 @@ const AnimateText = {
     ).then(() => op.bind(this)(op, next, opts));
   },
 
-  charIterator: function(op, next, opts) {
+
+  // Produces a generative AI text animation including the display of each word's probability.
+  wordIteratorProbability: function(op, next, opts) {
     function initOpts() {
       opts = {};
+      opts.inputWords = this.inputString.replaceAll("\n", " newline ").replaceAll(" ", " space ").trim().split(/\s+/);
       opts.index = 0;
       opts.queue = [];
       opts.output = "";
@@ -190,57 +187,74 @@ const AnimateText = {
       initOpts.bind(this)();
     }
 
-    if (opts.index > this.inputString.length && opts.queue.length == 0) {
+    if (opts.index >= opts.inputWords.length && opts.queue.length == 0) {
       return next();
     }
 
     this.promise(
       this.resolveWith((next) => {
-        setTimeout(() => {
+        setTimeout(async () => {
           this.promise(
             this.resolveWith((next) => {
               opts.output = "";
-              if (opts.index <= this.inputString.length) {
-                const char = this.inputString[opts.index];
-                opts.queue.push({ char: char, opacity: this.initialOpacity});
+              if (opts.index < opts.inputWords.length) {
+                const word = opts.inputWords[opts.index];
+                opts.queue.push({ word: word, opacity: this.initialOpacity, probability: Math.random().toFixed(2) });
               }
               return next();
             })
           ).then(() => {
             opts.queue = opts.queue.filter((element) => {
               if (element.opacity >= 100) {
-                if (element.char === '\n') {
+                if (element.word === 'newline') {
                   opts.outputWithOpacity += `<br>`;
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.char}</span>`;
+                if (element.word === 'space') {
+                  opts.outputWithOpacity += ` `;
+                  return false
+                }
+
+                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%" title="${element.probability}">${element.word}</span>`;
                 return false;
               }
 
               element.opacity += (100 / this.steps);
-              if (element.char === '\n') {
+              if (element.word === 'newline') {
                 opts.output += `<br>`;
+              } else if (element.word === 'space') {
+                opts.output += ` `;
               } else {
-                opts.output += `<span style="opacity: ${element.opacity}%">${element.char}</span>`;
+                opts.output += `
+                  <span style="position: relative; opacity: ${element.opacity}%" title="${element.probability}">
+                    ${element.word}
+                    <span style="font-size: 7px; position: absolute; bottom: 12px; left: 5px;">
+                      ${element.probability}
+                    </span>
+                  </span>
+                `;
               }
 
               return true;
             });
-          })
+          });
+
           return next();
-        }, this.delay);
+        }, this.wordProbabilityDelay);
       })
     ).then(() =>
       this.promise(this.resolveWith((next) => {
-        this.charContext.innerHTML = opts.outputWithOpacity + opts.output;
+        this.wordProbabilityContext.innerHTML = opts.outputWithOpacity + opts.output;
         opts.index++;
         return next();
       }))
     ).then(() => op.bind(this)(op, next, opts));
   },
 
-  main: async function(charContextId, wordContextId, wordProbabilityContextId, inputString, steps, delay, wordProbabilityDelay) {
+  // Main function responsible for initializing and executing all animations.
+  // This is not serious code, please do not use this.
+  main: async function(charContextId, wordContextId, wordProbabilityContextId, inputString, steps, charDelay, wordDelay, wordProbabilityDelay) {
     this.promise(
       this.resolveWith(
         (next) => {
@@ -249,26 +263,34 @@ const AnimateText = {
           this.wordProbabilityContext = document.getElementById(wordProbabilityContextId);
           this.inputString = inputString;
           this.steps = steps;
-          this.delay = delay;
+          this.charDelay = charDelay;
+          this.wordDelay = wordDelay;
           this.wordProbabilityDelay = wordProbabilityDelay;
           return next();
         }
       )
     ).then(
       () => {
+        // It's nicer to view all animations occurring in parallel.
         this.promise(this.resolveWithFix(this.charIterator.bind(this)));
         this.promise(this.resolveWithFix(this.wordIterator.bind(this)));
         this.promise(this.resolveWithFix(this.wordIteratorProbability.bind(this)));
+
+        // But this is how the same set of animations could be executed sequentially using a simple promise chain.
+        // this.promise(this.resolveWithFix(this.charIterator.bind(this)))
+        //   .then(() => this.promise(this.resolveWithFix(this.wordIterator.bind(this))))
+        //   .then(() => this.promise(this.resolveWithFix(this.wordIteratorProbability.bind(this))));
       }
     );
-
-    this.promise(this.resolveWith(this.consoleLog("promise one"))
-    ).then(() => this.promise(this.resolveWith(this.sleep(1000)))
-    ).then(() => this.promise(this.resolveWith(this.consoleLog("promise two")))
-    ).then(() => this.promise(this.resolveWith(this.sleep(1000)))
-    ).then(() => this.promise(this.resolveWith(this.consoleLog("promise three"))))
   },
 }
 
+// Generated poem from ChatGPT-3.5-turbo using the prompt "Write a poem about generative AI text animation."
 var input = 'With fading text, opacity\'s grace,\nA dance of words, in cyberspace.\n\nEach line a tale, a story told,\nFrom the depths of data, it unfolds.\n\nProbabilistic, a realm unknown,\nA digital mind, uniquely grown.\n\nPoetic beauty, in lines entwined,\nA glimpse of art, by code designed.\n\nSo let us ponder, this digital art,\nA symphony of bytes, a work of heart.\n\nGenerative marvel, a wondrous sight,\nA poem born, in the virtual light.\n';
-AnimateText.main("char", "word", "wordProbability", input, 5, 10, 20);
+
+var steps = 20; // Number of steps for the animation. Increasing this will make the animation appear "smoother" and its duration longer.
+var charDelay = 20; // Delay in milliseconds for character animation
+var wordDelay = 20; // Delay in milliseconds for word animation
+var wordProbabilityDelay = 20; // Delay in milliseconds for word probability animation
+
+AnimateText.main("char", "word", "wordProbability", input, steps, charDelay, wordDelay, wordProbabilityDelay);

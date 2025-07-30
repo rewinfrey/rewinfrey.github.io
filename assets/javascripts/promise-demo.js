@@ -1,18 +1,18 @@
+var consoleLog = ((msg) => ((next) => { console.log(msg); return next() }));
+
+var promise = ((op) => new Promise((resolve, reject) => op(resolve, reject)));
+
+var sleep = ((ms) => ((next) => setTimeout(next, ms)));
+
+var resolveWith = ((op) => ((next) => op(next)));
+
 const PromiseDemo = {
-  consoleLog: ((msg) => ((next) => { console.log(msg); return next() })),
-
-  promise: ((op) => new Promise((resolve, reject) => op(resolve, reject))),
-
-  sleep: ((ms) => ((next) => setTimeout(next, ms))),
-
-  resolveWith: ((op) => ((next) => op(next))),
-
   main: async function() {
-    await this.promise(this.resolveWith(this.consoleLog("promise one")));
-    await this.promise(this.resolveWith(this.sleep(1000)));
-    await this.promise(this.resolveWith(this.consoleLog("promise two")));
-    await this.promise(this.resolveWith(this.sleep(1000)));
-    await this.promise(this.resolveWith(this.consoleLog("promise three")));
+    promise(resolveWith(consoleLog("promise one")))
+      .then(() => promise(resolveWith(sleep(1000))))
+      .then(() => promise(resolveWith(consoleLog("promise two"))))
+      .then(() => promise(resolveWith(sleep(1000))))
+      .then(() => promise(resolveWith(consoleLog("promise three"))));
   },
 };
 
