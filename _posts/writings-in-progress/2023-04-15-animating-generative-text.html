@@ -1,44 +1,98 @@
 ---
 layout: writing
 group: writings
-title: "Animating Generative Text"
+title: "Animating Generative AI Text with Promises and the Y-Combinator"
 date: 2023-04-15 21:10:07
 categories:
 - writings-in-progress
 ---
 
-<div>
-  <p>
-    This animation updates the opacity of every new character in four increments starting from 0 and ending at 1.
-  </p>
+<p>
+  The core concept was simple: take some input words representing generative AI produced text, iterate over the characters or words,  adjust the opacity of each character or word over time from 0 to 1 (i.e. from fully transparent to fully opaque), and reflect each update in the DOM. To make things more interesting, I created an abstraction over JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise constructor</a>, using a series of combinators. The result is a sort of mini-promise engine for declarative chaining that uses the <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator#What_is_a_.22combinator.22.3F">Y-combinator</a> for recursion. This has no practical purpose other than it allowed me to scratch my curiosity itch for better understanding promises in JavaScript, and experiment with ideas about animating text for generative AI applications. Note: this code is not written to be used in real systems!
+</p>
 
-  <p class="prompt">Can you write a small poem?</p>
-  <div class="demo-container">
-    <p id="char"></p>
-  </div>
+<p>
+  For this experiment, I created three animations described below. Some technical details about the implementation follow after the animations.
+</p>
+
+<h3>Animations</h3>
+
+<p>
+  This animation updates the opacity of every new character in four increments starting from 0 and ending at 1.
+</p>
+
+<div class="demo-container">
+  <p id="char"></p>
 </div>
 
-<div>
-  <p>
-    This animation updates the opacity of every new word in four increments starting from 0 and ending at 1 with a
-    play on order of execution for simultaneously displaying the gradients of a single word.
-  </p>
+<p>
+  This animation updates the opacity of every new word in four increments starting from 0 and ending at 1 with a
+  play on order of execution for simultaneously displaying the gradients of a single word.
+</p>
 
-  <p class="prompt">Can you write a small poem?</p>
-  <div class="demo-container">
-    <p id="word"></p>
-  </div>
+<div class="demo-container">
+  <p id="word"></p>
 </div>
 
-<div>
-  <p>
-    This animation indicates the probability of the generating word as it is added to the output stream.
-    It also reveals the words probabiliy on hover.
-  </p>
-  <div class="demo-container">
-    <p id="wordProbability" class="demo-text-probability-parent"></p>
-  </div>
+<p>
+  This animation indicates the probability of the generating word as it is added to the output stream.
+  It also reveals the words probabiliy on hover.
+</p>
+<div class="demo-container">
+  <p id="wordProbability" class="demo-text-probability-parent"></p>
 </div>
+
+<h3>Building a mini promise engine</h3>
+
+<p>
+  This silly thing started by creating a lightweight combinator abstracting over JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise constructor</a> (<code>new Promise((resolve, reject) => ...)</code>. The motivation for this combinator was to me treat each async step in the animation pipeline as an explicit operation I can chain. Instead of relying on async/await or implicit chaining, this.promise gives me full control over when and how resolution happens, which made it a perfect playground for learning.
+</p>
+
+<p>
+  At the heart of this experiment are a couple of tiny combinators that abstract how Promise resolution flows through the system. Here’s the first one:
+</p>
+
+{% highlight javascript linenos %}
+  resolveWith: function(op) {
+    return function(resolve) {
+      return op(resolve);
+    }
+  }
+{% endhighlight %}
+
+<p>
+  This mostly functions as an identity combinator and makes it easy to chain calls to <code>this.promise</code>. This is because it always returns a <code>(resolve) => {}</code> function. It essentially wraps a callback-style operation into the expected structure for a Promise executor.
+</p>
+
+<pre class="mermaid">
+flowchart TD
+  P["this.promise(op)<br><code>→ Promise</code>"]
+  R1["resolveWith(op)<br><code>→ (resolve) => op(resolve)</code>"]
+  R2["resolveWithFix(op)<br><code>→ (resolve) => op(op, resolve)</code>"]
+  D["Direct function<br><code>(resolve) => { ... }</code>"]
+
+  O1["op(resolve)<br><em>one-shot operation</em>"]
+  O2["op(op, resolve, opts)<br><em>recursive async step</em>"]
+
+  DOM1["DOM update<br>+ queue filtering"]
+  DOM2["DOM update<br>+ queue filtering"]
+
+  P -->|calls| R1
+  P -->|calls| R2
+  P -->|calls| D
+
+  R1 -->|calls| O1
+  R2 -->|calls| O2
+
+  O1 --> DOM1
+  O2 --> DOM2
+
+  O2 -->|recurse| R2
+</pre>
 
 <script type="module" src="/assets/javascripts/animating-generative-text-v2.js"></script>
 <script type="module" src="/assets/javascripts/promise-demo.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true });
+</script>

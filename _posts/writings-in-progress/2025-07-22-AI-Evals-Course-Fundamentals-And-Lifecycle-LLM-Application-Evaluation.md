@@ -1,8 +1,9 @@
 ---
 layout: writing
 group: writings
-title: "AI Evals: Fundamentals & Lifecycle LLM Application Evaluation"
+title: "Evaluating AI Applications: Fundamentals & Lifecycle"
 date: 2025-07-22 14:00:00
+summary: An exploration of how Ruby's <code>inject</code> and <code>zip</code> methods can be implemented using nothing but anonymous functions and the Y-combinator. A silly, elegant, mind-bending combinator journey that is slower than you'd like.
 categories:
 - writings-in-progress
 ---
