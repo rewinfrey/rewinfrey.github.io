@@ -17,29 +17,108 @@ categories:
 
 <h3>Animations</h3>
 
+<h4>Character-by-character animation</h4>
+
 <p>
   This animation updates the opacity of every new character in four increments starting from 0 and ending at 1.
 </p>
 
+<div class="controls" id="controls-char">
+  <label>
+    Steps: <span id="stepsValue-char">20</span>
+    <input type="range" id="steps-char" min="1" max="100" value="20" />
+  </label>
+  <br>
+  <label>
+    Delay (ms): <span id="delayValue-char">20</span>
+    <input type="range" id="delay-char" min="0" max="100" value="20" />
+  </label>
+  <br>
+  <button id="play-char" class="control" aria-label="Play">
+    <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+  </button>
+
+  <button id="pause-char" class="control" aria-label="Pause">
+    <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+  </button>
+
+  <button id="clear-char" class="control" aria-label="Clear">
+    <span class="fa-solid fa-trash" aria-hidden="true"></span>
+  </button>
+</div>
+
 <div class="demo-container">
   <p id="char"></p>
 </div>
+
+<h4>Word-by-word animation</h4>
 
 <p>
   This animation updates the opacity of every new word in four increments starting from 0 and ending at 1 with a
   play on order of execution for simultaneously displaying the gradients of a single word.
 </p>
 
+<div class="controls" id="controls-word">
+  <label>
+    Steps: <span id="stepsValue-word">20</span>
+    <input type="range" id="steps-word" min="1" max="100" value="20" />
+  </label>
+  <br>
+  <label>
+    Delay (ms): <span id="delayValue-word">20</span>
+    <input type="range" id="delay-word" min="0" max="100" value="20" />
+  </label>
+  <br>
+  <button id="play-word" class="control" aria-label="Play">
+    <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+  </button>
+
+  <button id="pause-word" class="control" aria-label="Pause">
+    <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+  </button>
+
+  <button id="clear-word" class="control" aria-label="Clear">
+    <span class="fa-solid fa-trash" aria-hidden="true"></span>
+  </button>
+</div>
+
 <div class="demo-container">
   <p id="word"></p>
 </div>
 
+<h4>Word-by-word with probability animation</h4>
+
 <p>
   This animation indicates the probability of the generating word as it is added to the output stream.
-  It also reveals the words probabiliy on hover.
+  It also reveals the words probability on hover.
 </p>
+
+<div class="controls" id="controls-word-probability">
+  <label>
+    Steps: <span id="stepsValue-word-probability">20</span>
+    <input type="range" id="steps-word-probability" min="1" max="100" value="20" />
+  </label>
+  <br>
+  <label>
+    Delay (ms): <span id="delayValue-word-probability">20</span>
+    <input type="range" id="delay-word-probability" min="0" max="100" value="20" />
+  </label>
+  <br>
+  <button id="play-word-probability" class="control" aria-label="Play">
+    <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+  </button>
+
+  <button id="pause-word-probability" class="control" aria-label="Pause">
+    <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+  </button>
+
+  <button id="clear-word-probability" class="control" aria-label="Clear">
+    <span class="fa-solid fa-trash" aria-hidden="true"></span>
+  </button>
+</div>
+
 <div class="demo-container">
-  <p id="wordProbability" class="demo-text-probability-parent"></p>
+  <p id="wordWithProbability" class="demo-text-probability-parent"></p>
 </div>
 
 <h3>Building a mini promise engine</h3>
