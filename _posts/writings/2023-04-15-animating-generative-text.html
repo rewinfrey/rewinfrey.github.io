@@ -1,0 +1,334 @@
+---
+layout: writing
+group: writings
+title: "Animating Generative AI Text with Promises and the Y-Combinator"
+date: 2023-04-15 21:10:07
+summary: "Recursive promises, a Y-combinator, and an AI-generated poem walk into a browser—this post is what happens next."
+categories:
+- writings
+---
+
+<p>
+  The core concept was simple: take some AI-generated text, iterate over its characters or words, and animate each by fading it from fully transparent to fully opaque in the DOM.
+  To make things more interesting, I created an abstraction over JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise constructor</a>, using a series of combinators. The result is a sort of mini-promise engine for declarative chaining that uses the <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator#What_is_a_.22combinator.22.3F">Y-combinator</a> for recursion.
+  This has no practical purpose beyond satisfying my curiosity about JavaScript promises. (Note: this code is not intended for production use!)
+</p>
+
+<p>
+  For this experiment, I created three animations described below. Some technical details about the implementation follow after the animations.
+</p>
+
+<hr />
+
+<h3>Character-by-character animation</h3>
+
+<div class="demo-columns">
+  <div class="demo-description">
+    <p>
+      This animation uses a character-by-character iterator. The "Delay" slider controls the amount of delay (in milliseconds) between each iteration of the input string representing text produced by a generative AI system. In this case, the input string is a poem created by a LLM.
+    </p>
+
+    <p>
+      On each iteration a new character is added to a queue. The "Opacity steps" slider controls the number of "steps" a character's opacity is updated from 0 (transparent) to 100 (opaque). Each character’s opacity increases on every animation tick until it reaches 100%, at which point it’s committed to the DOM and removed from the queue. At that point the character is "set" in the DOM without any further updates and is dropped from the iterator's queue.
+    </p>
+
+    <p>
+      Feel free to experiment with different values of "Delay" and "Opacity steps". More delay means a longer pause before the next iteration, and provides the illusion of a slower overall animation of the input string. More opacity steps adjust a variable opacity value added to each character per iteration, and is equivalent to <code>character.opacity += steps / 100</code>, and provides the illusion of a slower "fade-in" of each character.
+    </p>
+  </div>
+  <div class="demo-block">
+    <div class="controls-wrapper">
+      <div id="controls-char">
+        <div class="slider-row">
+          <label class="slider-label" for="steps-char">Opacity steps</label>
+          <input type="range" id="steps-char" min="1" max="100" value="20" />
+          <span id="stepsValue-char" class="slider-value">20</span>
+        </div>
+
+        <div class="slider-row">
+          <label class="slider-label" for="delay-char">Delay</label>
+          <input type="range" id="delay-char" min="0" max="100" value="5" />
+          <span id="delayValue-char" class="slider-value">5</span>
+        </div>
+
+        <div class="controls">
+          <button id="play-char" class="control" aria-label="Play" title="Play">
+            <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+          </button>
+          <button id="pause-char" class="control" aria-label="Pause" title="Pause">
+            <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+          </button>
+          <button id="clear-char" class="control" aria-label="Clear" title="Clear">
+            <span class="fa-solid fa-trash" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-container">
+      <p id="char"></p>
+    </div>
+  </div>
+</div>
+
+<hr />
+
+<h3>Word-by-word animation</h3>
+
+<div class="demo-columns">
+  <div class="demo-description">
+    <p>
+      This animation works like the character-based one but iterates over words instead of individual characters.
+    </p>
+
+    <p>
+      In this animation, the "Delay" and "Opacity steps" sliders are more impactful compared with the character-by-character animation.
+    </p>
+
+    <p>
+      Also feel free to experiment with the different buttons. The animation plays by default, but you can pause and resume it at any time. This behavior is a byproduct of the underlying implementation, which uses anonymous recursive promises to chain the iteration and animation updates. The "Clear" button stops the animation and resets the animation state and clears the output stream.
+    </p>
+  </div>
+
+  <div class="demo-block">
+    <div class="controls-wrapper">
+      <div id="controls-word">
+        <div class="slider-row">
+          <label class="slider-label" for="steps-word">Opacity steps</label>
+          <input type="range" id="steps-word" min="1" max="100" value="20" />
+          <span id="stepsValue-word" class="slider-value">20</span>
+        </div>
+
+        <div class="slider-row">
+          <label class="slider-label" for="delay-word">Delay</label>
+          <input type="range" id="delay-word" min="0" max="100" value="20" />
+          <span id="delayValue-word" class="slider-value">20</span>
+        </div>
+
+        <div class="controls">
+          <button id="play-word" class="control" aria-label="Play" title="Play">
+            <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+          </button>
+          <button id="pause-word" class="control" aria-label="Pause" title="Pause">
+            <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+          </button>
+          <button id="clear-word" class="control" aria-label="Clear" title="Clear">
+            <span class="fa-solid fa-trash" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-container">
+      <p id="word"></p>
+    </div>
+  </div>
+</div>
+
+<hr />
+
+<h3>Word-by-word with probability animation</h3>
+
+<div class="demo-columns">
+  <div class="demo-description">
+    <p>
+      This animation indicates the probability of the generating word as it is added to the output stream.
+      It also reveals the word's probability on hover.
+    </p>
+  </div>
+
+  <div class="demo-block">
+    <div class="controls-wrapper">
+      <div id="controls-word-probability">
+        <div class="slider-row">
+          <label class="slider-label" for="steps-word-probability">Opacity steps</label>
+          <input type="range" id="steps-word-probability" min="1" max="100" value="20" />
+          <span id="stepsValue-word-probability" class="slider-value">20</span>
+        </div>
+
+        <div class="slider-row">
+          <label class="slider-label" for="delay-word-probability">Delay</label>
+          <input type="range" id="delay-word-probability" min="0" max="100" value="20" />
+          <span id="delayValue-word-probability" class="slider-value">20</span>
+        </div>
+
+        <div class="controls">
+          <button id="play-word-probability" class="control" aria-label="Play" title="Play">
+            <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+          </button>
+          <button id="pause-word-probability" class="control" aria-label="Pause" title="Pause">
+            <span class="fa-solid fa-circle-pause" aria-hidden="true"></span>
+          </button>
+          <button id="clear-word-probability" class="control" aria-label="Clear" title="Clear">
+            <span class="fa-solid fa-trash" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-container">
+      <p id="wordWithProbability" class="demo-text-probability-parent"></p>
+    </div>
+  </div>
+</div>
+
+<hr />
+
+<h3>Animating with promises</h3>
+
+<p>
+  This experiment started by creating a lightweight combinator abstracting over JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise constructor</a> (i.e. <code>new Promise((resolve, reject) => ...)</code>). My motivation was to both explore animating text streamed from an imaginary generative AI system, and learn about JavaScript promises. My goal for this collection of combinators was to provide a declarative combinator DSL, making it possible to separate the promise-based logic and management from the animation iteration.
+</p>
+
+<h3>Combinator building blocks</h3>
+
+<p>
+  At the heart of this experiment is a collection of combinators that abstract promise construction, and resolving promises:
+</p>
+
+{% highlight javascript linenos %}
+// Returns a promise that resolves after executing the given operation.
+function promise(op) {
+  return new Promise((resolve, reject) => op(resolve, reject))
+}
+
+// Returns a function that resolves a promise with the given operation.
+function resolveWith(op) {
+  return ((resolve) => op(resolve));
+}
+
+// Returns a function that resolves a promise with the given operation,
+// allowing the operation to be called recursively.
+function resolveWithFix(op) {
+  return ((resolve) => op(op, resolve));
+}
+{% endhighlight %}
+
+<p>
+  The <code>resolveWithFix</code> combinator is the key to enabling recursive operations, allowing the operation to call itself with the same parameters. This mirrors the idea behind fixed-point combinators like the <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator#Y_combinator">Y-combinator</a>, which allows for recursion without named functions. In this case, the fixed-point combinator enables recursion using anonymous promise-based operations instead of named functions. The <code>resolveWithFix</code> combinator allows recursive promise operations until the recurring operation fully resolves. In this context, the <code>op</code> is one of the three presented iterators. This fixed-point combinator enables stateful iteration without imperative loops.
+</p>
+
+<p>
+  The combinators alone are not sufficient to create the animations. We need to define how the operations will be executed and how they will interact with the DOM. There are many possible ways to implement this, but I've chosen to focus on recursive async iteration.
+</p>
+
+<h3>Recursive iterators for animation</h3>
+
+<p>
+I wanted to push promises all the way down the stack, and created iterators that use the above combinators to manage animation state and DOM updates in which every iteration is the resolution of a single promise. The simplest of the iterators is the <code>charIterator</code> which iterates over each character in a string, updating the opacity of each character over time. The <code>wordIterator</code> does the same for words, and the <code>wordWithProbabilityIterator</code> adds a probability value to each word, revealing it on hover. Below is the <code>charIterator</code> implementation:
+</p>
+
+{% highlight javascript linenos %}
+function charIterator(target, input, externalOpts = {}) {
+  // Initialize and close over the iterator state.
+  const opts = {
+    ...externalOpts,
+    index: 0,
+    input: input,
+    queue: [],
+    output: "",
+    outputWithOpacity: "",
+    initialOpacity: 0, // Initial opacity for characters.
+    steps: externalOpts.steps ?? 20, // Number of steps for the animation. Increasing this will make the animation appear "smoother" and its duration longer.
+    delay: externalOpts.delay ?? 20, // Delay applied to each recursive call in milliseconds. Increasing this will make the animation appear slower.
+    status: "running",
+  };
+  function reset() {
+    opts.index = 0;
+    opts.queue = [];
+    opts.outputWithOpacity = "";
+    opts.status = "paused";
+  }
+  var domCtx = document.getElementById(target);
+
+  const runner = function(op, next) {
+    promise(
+      resolveWith((next) => {
+        setTimeout(() => {
+          promise(
+            resolveWith((next) => {
+              opts.output = "";
+              if (opts.index < opts.input.length) {
+                const char = input[opts.index];
+                opts.queue.push({ char: char, opacity: opts.initialOpacity });
+              }
+              return next();
+            })
+          ).then(() => {
+            opts.queue = opts.queue.filter((current) => {
+              if (current.opacity >= 100) {
+                if (current.char === '\n') {
+                  opts.outputWithOpacity += `<br>`;
+                  return false;
+                }
+
+                opts.outputWithOpacity += `<span class="set" style="opacity: ${current.opacity}%">${current.char}</span>`;
+                return false;
+              }
+
+              current.opacity += (100 / opts.steps);
+              if (current.char === '\n') {
+                opts.output += `<br>`;
+              } else {
+                opts.output += `<span style="opacity: ${current.opacity}%">${current.char}</span>`;
+              }
+
+              return true;
+            });
+          })
+          return next();
+        }, opts.delay);
+      })
+    ).then(() =>
+      promise(
+          resolveWith((next) => {
+            domCtx.innerHTML = opts.outputWithOpacity + opts.output;
+            opts.index++;
+            return next();
+          })
+      )
+    ).then(() => {
+      // If the status is paused or canceled, we abort the recursion.
+      if (opts.status !== "running") return next();
+
+      // If the index exceeds the input string length and the queue is empty, we can abort the recursion,
+      // or we can reset the state of the iterator, and loop the animation endlessly.
+      if (opts.index >= opts.input.length && opts.queue.length == 0) {
+        //return next(); // This is where we would abort.
+        reset();
+        opts.status = "running";
+        domCtx.innerHTML = "";
+      }
+
+      // Otherwise, we use a Y-combinator to continue the recursion.
+      op(op, next, opts)
+    })
+  }
+
+  return { runner, opts, reset };
+}
+{% endhighlight %}
+
+<p>
+  The <code>charIterator</code> is invoked using one last combinator named <code>animate</code>:
+</p>
+
+{% highlight javascript linenos %}
+// Animate a target element using the provided iterator and input string.
+function animate(target, input, iterator, opts) {
+  return resolveWithFix(iterator(target, input, opts));
+}
+{% endhighlight %}
+
+<p>
+What I find interesting about this implementation is the side-effect of an iterator for which every iteration is an async operation. This asynchrony affords very precise control over the animation, and the promise chain used by the iterators allows decomposing the animation sequence into separate promise resolutions. The first promise resolution represents a single iteration, management of the work queue and its elements' states. The second promise resolution updates the iterator's index position, and updates the DOM. The third promise resolution applies the recursive step or aborts if the base cases are met. Although the iterator is essentially a sequential, imperative program, it is a good way to exercise asynchronous semantics and to separate concerns across distinct stages of the promise chain.
+</p>
+
+<h3>Why this matters</h3>
+
+<p>
+I'm a strong believer in curiosity-driven development and creative play. This experiment was both a challenging and fun dive into an unusual application of asynchronous programming, modeling iterator evaluation entirely through JavaScript promises. Surprisingly, the combinator-based approach to wrapping and resolving promises allowed for a declarative DSL for managing promises. Exploring the interplay between UI buttons as an asynchronous signal, and the interruption or resuming of a recursive iterator promise chain also revealed how asynchronous execution allows separating layers related to some computation into distinct stages or steps of an async workflow. I hope you found something here that sparked a new idea, or at least enjoyed playing with the animations.
+</p>
+
+<script type="module" src="/assets/javascripts/animating-generative-text-v2.js"></script>
+<script type="module" src="/assets/javascripts/animating-generative-text-v2.js"></script>

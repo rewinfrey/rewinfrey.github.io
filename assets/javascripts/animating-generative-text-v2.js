@@ -24,6 +24,7 @@ function resolveWithFix(op) {
   return ((resolve) => op(op, resolve));
 }
 
+// Animate a target element using the provided iterator and input string.
 function animate(target, input, iterator, opts) {
   return resolveWithFix(iterator(target, input, opts));
 }
@@ -40,7 +41,7 @@ function charIterator(target, input, externalOpts = {}) {
     initialOpacity: 0, // Initial opacity for characters.
     steps: externalOpts.steps ?? 20, // Number of steps for the animation. Increasing this will make the animation appear "smoother" and its duration longer.
     delay: externalOpts.delay ?? 20, // Delay applied to each recursive call in milliseconds. Increasing this will make the animation appear slower.
-    status: "paused",
+    status: "running",
   };
   function reset() {
     opts.index = 0;
@@ -58,28 +59,28 @@ function charIterator(target, input, externalOpts = {}) {
             resolveWith((next) => {
               opts.output = "";
               if (opts.index < opts.input.length) {
-                const element = input[opts.index];
-                opts.queue.push({ element: element, opacity: opts.initialOpacity });
+                const char = input[opts.index];
+                opts.queue.push({ char: char, opacity: opts.initialOpacity });
               }
               return next();
             })
           ).then(() => {
             opts.queue = opts.queue.filter((current) => {
               if (current.opacity >= 100) {
-                if (current.element === '\n') {
+                if (current.char === '\n') {
                   opts.outputWithOpacity += `<br>`;
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span style="opacity: ${current.opacity}%">${current.element}</span>`;
+                opts.outputWithOpacity += `<span class="set" style="opacity: ${current.opacity}%">${current.char}</span>`;
                 return false;
               }
 
               current.opacity += (100 / opts.steps);
-              if (current.element === '\n') {
+              if (current.char === '\n') {
                 opts.output += `<br>`;
               } else {
-                opts.output += `<span style="opacity: ${current.opacity}%">${current.element}</span>`;
+                opts.output += `<span style="opacity: ${current.opacity}%">${current.char}</span>`;
               }
 
               return true;
@@ -89,18 +90,24 @@ function charIterator(target, input, externalOpts = {}) {
         }, opts.delay);
       })
     ).then(() =>
-      promise(resolveWith((next) => {
-        domCtx.innerHTML = opts.outputWithOpacity + opts.output;
-        opts.index++;
-        return next();
-      }))
+      promise(
+          resolveWith((next) => {
+            domCtx.innerHTML = opts.outputWithOpacity + opts.output;
+            opts.index++;
+            return next();
+          })
+      )
     ).then(() => {
       // If the status is paused or canceled, we abort the recursion.
       if (opts.status !== "running") return next();
 
-      // If the index exceeds the input length and the queue is empty, we can abort the recursion.
-      if (opts.index > opts.input.length && opts.queue.length == 0) {
-        return next();
+      // If the index exceeds the input string length and the queue is empty, we can abort the recursion,
+      // or we can reset the state of the iterator, and loop the animation endlessly.
+      if (opts.index >= opts.input.length && opts.queue.length == 0) {
+        //return next(); // This is where we would abort.
+        reset();
+        opts.status = "running";
+        domCtx.innerHTML = "";
       }
 
       // Otherwise, we use a Y-combinator to continue the recursion.
@@ -125,7 +132,7 @@ function wordIterator(target, input, externalOpts = {}) {
     initialOpacity: 0, // Initial opacity for characters.
     steps: externalOpts.steps ?? 20, // Number of steps for the animation. Increasing this will make the animation appear "smoother" and its duration longer.
     delay: externalOpts.delay ?? 20, // Delay applied to each recursive call in milliseconds. Increasing this will make the animation appear slower.
-    status: "paused",
+    status: "running",
   };
   function reset() {
     opts.index = 0;
@@ -156,7 +163,7 @@ function wordIterator(target, input, externalOpts = {}) {
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.word}</span> `;
+                opts.outputWithOpacity += `<span class="set" style="opacity: ${element.opacity}%">${element.word}</span> `;
                 return false;
               }
 
@@ -186,10 +193,15 @@ function wordIterator(target, input, externalOpts = {}) {
         return next(); // skip iteration
       }
 
-      // If the index exceeds the input string length and the queue is empty, we can abort the recursion.
+      // If the index exceeds the input string length and the queue is empty, we can abort the recursion,
+      // or we can reset the state of the iterator, and loop the animation endlessly.
       if (opts.index >= opts.inputWords.length && opts.queue.length == 0) {
-        return next();
+        //return next(); // This is where we would abort.
+        reset();
+        opts.status = "running";
+        domCtx.innerHTML = "";
       }
+
 
       // Otherwise, we use a Y-combinator to continue the recursion.
       op(op, next, opts);
@@ -213,7 +225,7 @@ function wordWithProbabilityIterator(target, input, externalOpts = {}) {
     initialOpacity: 0, // Initial opacity for characters.
     steps: externalOpts.steps ?? 20, // Number of steps for the animation. Increasing this will make the animation appear "smoother" and its duration longer.
     delay: externalOpts.delay ?? 20, // Delay applied to each recursive call in milliseconds. Increasing this will make the animation appear slower.
-    status: "paused",
+    status: "running",
   };
   function reset() {
     opts.index = 0;
@@ -244,7 +256,7 @@ function wordWithProbabilityIterator(target, input, externalOpts = {}) {
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.word}</span> `;
+                opts.outputWithOpacity += `<span class="set" style="opacity: ${element.opacity}%">${element.word}</span> `;
                 return false;
               }
 
@@ -281,9 +293,13 @@ function wordWithProbabilityIterator(target, input, externalOpts = {}) {
         return next(); // skip iteration
       }
 
-      // If the index exceeds the input string length and the queue is empty, we can abort the recursion.
+      // If the index exceeds the input string length and the queue is empty, we can abort the recursion,
+      // or we can reset the state of the iterator, and loop the animation endlessly.
       if (opts.index >= opts.inputWords.length && opts.queue.length == 0) {
-        return next();
+        //return next(); // This is where we would abort.
+        reset();
+        opts.status = "running";
+        domCtx.innerHTML = "";
       }
 
       // Otherwise, we use a Y-combinator to continue the recursion.
@@ -325,20 +341,35 @@ sliders.forEach(({ key, fn, el }) => {
 
   const steps = parseInt(stepsSlider.value, 10);
   const delay = parseInt(delaySlider.value, 10);
+  const stepsVal = ((steps - stepsSlider.min) / (stepsSlider.max - stepsSlider.min)) * 100;
+  const delayVal = ((delay - delaySlider.min) / (delaySlider.max - delaySlider.min)) * 100;
+  stepsSlider.style.setProperty('--progress', `${stepsVal}%`);
+  delaySlider.style.setProperty('--progress', `${delayVal}%`);
+  stepsSlider.addEventListener("input", () => {
+    const steps = parseInt(stepsSlider.value, 10);
+    stepsValue.textContent = steps;
+    opts.steps = steps;
+
+    const val = ((steps - stepsSlider.min) / (stepsSlider.max - stepsSlider.min)) * 100;
+    stepsSlider.style.setProperty('--progress', `${val}%`);
+  });
+
+  delaySlider.addEventListener("input", () => {
+    const delay = parseInt(delaySlider.value, 10);
+    delayValue.textContent = delay;
+    opts.delay = delay;
+
+    const val = ((delay - delaySlider.min) / (delaySlider.max - delaySlider.min)) * 100;
+    delaySlider.style.setProperty('--progress', `${val}%`);
+  });
+
   const result = fn(el, input, { steps, delay });
   let runner = result.runner;
   let opts = result.opts;
   let reset = result.reset;
 
-  stepsSlider.addEventListener("input", () => {
-    stepsValue.textContent = stepsSlider.value;
-    opts.steps = parseInt(stepsSlider.value, 10);
-  });
-
-  delaySlider.addEventListener("input", () => {
-    delayValue.textContent = delaySlider.value;
-    opts.delay = parseInt(delaySlider.value, 10);
-  });
+  // Start the animation immediately.
+  promise(resolveWithFix(runner));
 
   playButton.addEventListener("click", () => {
     if (opts && (opts.status === "paused" || opts.status === "canceled")) {
