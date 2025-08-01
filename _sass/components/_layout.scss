@@ -42,9 +42,49 @@
   }
 }
 
+.set {
+  color: black;
+}
+
+/* Layout for sliders */
+.slider-label {
+  text-align: right;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.slider-row label {
+  flex: 0 0 115px;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  max-width: 200px;
+  accent-color: $secondary-color;;
+}
+
+.slider-value {
+  flex: 0 0 30px;
+  text-align: left;
+}
+
+/* Optional polish for control buttons */
 button.control {
   border: none;
-  background-color: inherit;
+  background: none;
+  font-size: 1.3em;
+  color: $secondary-color;
+  cursor: pointer;
+  margin-right: 0.25em;
+  transition: color 0.2s ease;
+}
+
+button.control:hover {
+  color: #5e1890;
 }
 
 table {
@@ -158,13 +198,45 @@ dt {
   }
 }
 
+.demo-columns {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.demo-description {
+  flex: 1;
+  padding: 1em;
+}
+
+.demo-block {
+  flex: 1;
+  padding: 1em;
+}
+
+.controls-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 1em;
+}
+
 .demo-container {
   max-width: $content-width;
   height: 450px;
-  width: 50%;
   overflow:  hidden;
-  border: 1px solid #b669e2;
-  margin: 1em;
+  border: 1px solid $secondary-color;
   padding: 0em 1em;
 
   @media #{$mobile} {
