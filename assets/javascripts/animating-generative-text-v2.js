@@ -72,7 +72,7 @@ function charIterator(target, input, externalOpts = {}) {
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span class="set" style="opacity: ${current.opacity}%">${current.char}</span>`;
+                opts.outputWithOpacity += `<span style="opacity: ${current.opacity}%">${current.char}</span>`;
                 return false;
               }
 
@@ -91,11 +91,11 @@ function charIterator(target, input, externalOpts = {}) {
       })
     ).then(() =>
       promise(
-          resolveWith((next) => {
-            domCtx.innerHTML = opts.outputWithOpacity + opts.output;
-            opts.index++;
-            return next();
-          })
+        resolveWith((next) => {
+          domCtx.innerHTML = opts.outputWithOpacity + opts.output;
+          opts.index++;
+          return next();
+        })
       )
     ).then(() => {
       // If the status is paused or canceled, we abort the recursion.
@@ -163,7 +163,7 @@ function wordIterator(target, input, externalOpts = {}) {
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span class="set" style="opacity: ${element.opacity}%">${element.word}</span> `;
+                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.word}</span> `;
                 return false;
               }
 
@@ -256,7 +256,7 @@ function wordWithProbabilityIterator(target, input, externalOpts = {}) {
                   return false;
                 }
 
-                opts.outputWithOpacity += `<span class="set" style="opacity: ${element.opacity}%">${element.word}</span> `;
+                opts.outputWithOpacity += `<span style="opacity: ${element.opacity}%">${element.word}</span> `;
                 return false;
               }
 
