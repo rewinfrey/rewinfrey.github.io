@@ -1,6 +1,8 @@
-<header>
+<header{% if page.url == "/" %} class="header-home"{% endif %}>
   <div class="container">
+    {% unless page.url == "/" %}
     <a href="/" class="home-mark">RW</a>
+    {% endunless %}
     <nav>
       {% for heading in site.headings %}
       <a href="{{ heading | downcase | prepend: '/' }}" {% if heading == page.group %}class="current"{% endif %}>{{ heading }}</a>
