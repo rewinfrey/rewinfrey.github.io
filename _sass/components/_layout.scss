@@ -324,60 +324,70 @@ dt {
 }
 
 header {
-  background: $header-color;
+  background: $background;
   overflow: hidden;
-
-  .site-title {
-    float: left;
-    padding: 1.3em 1.3em 1.3em 0;
-    @media #{$mobile} {
-      display: block;
-      float: none;
-      text-align: center;
-    }
-  }
-
-  a {
-    color: rgba(255,255,255,1);
-    display: inline-block;
-    font-weight: $regular;
-    margin: 0;
-    padding: 1.3em;
-    &:hover {
-      color: #fff;
-    }
-  }
 
   .container {
     max-width: $header-width;
     margin: 0 auto;
-  }
-
-  ul {
-    float: right;
-    display: inline-block;
-    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     @media #{$mobile} {
-      margin: 0 auto;
-      width: 100%;
+      flex-direction: column;
+      gap: 0;
     }
   }
 
-  li {
-    float: left;
-    transition: background-color 0.1s ease;
-    a { color: rgba(255,255,255,.8) };
-    a:hover { color: rgba(255,255,255,1); }
-    &:first-child { margin: 0; }
+  .home-mark {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: $base-color;
+    padding: 1.2em 0;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $secondary-color;
+    }
 
     @media #{$mobile} {
-      display: inline-block;
-      /*border-left: 1px solid rgba(255,255,255,0.2); */
-      margin: 0;
+      padding: 1em 0 0.5em;
+    }
+  }
 
-      &:first-child {
-        border-left: none;
+  nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  nav a {
+    color: $base-color;
+    display: inline-block;
+    font-weight: $regular;
+    font-size: 0.95rem;
+    margin: 0;
+    padding: 1.2em 1em;
+    transition: color 0.2s ease;
+    position: relative;
+
+    &:hover {
+      color: $secondary-color;
+    }
+
+    &.current {
+      color: $base-color;
+
+      &:after {
+        content: "";
+        position: absolute;
+        bottom: 0.8em;
+        left: 1em;
+        right: 1em;
+        height: 1px;
+        background: $secondary-color;
       }
     }
   }
@@ -540,24 +550,6 @@ article {
   margin: 1.5em auto 1em auto;
 }
 
-.current a {
-  color: rgba(255,255,255,1);
-  position: relative;
-  &:after {
-    bottom: -4px;
-    left: 50%;
-    border: solid transparent;
-    content: " ";
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
-    border-color: rgba(255, 255, 255, 0);
-    border-bottom-color: white;
-    border-width: 11px;
-    margin-left: -11px;
-  }
-}
 
 .read-more {
   display: block;

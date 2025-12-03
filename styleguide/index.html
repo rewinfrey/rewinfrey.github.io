@@ -1,0 +1,657 @@
+---
+layout: default
+title: Style Guide
+---
+
+<style>
+  .styleguide-section {
+    padding: 3rem 0;
+    border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  }
+
+  .styleguide-section:last-child {
+    border-bottom: none;
+  }
+
+  .styleguide-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .styleguide-description {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 2rem;
+  }
+
+  .font-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem 3rem;
+  }
+
+  @media (max-width: 42em) {
+    .font-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .font-sample {
+    margin-bottom: 1.5rem;
+  }
+
+  .font-label {
+    font-size: 0.8rem;
+    color: #8b7355;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .font-label .current {
+    background: #c45a3b;
+    color: #fff;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .font-display {
+    font-size: 2.8rem;
+    color: #3d3a36;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .font-body {
+    font-size: 1.1rem;
+    color: #3d3a36;
+    line-height: 1.7;
+  }
+
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .color-palette {
+    margin-bottom: 2.5rem;
+  }
+
+  .color-palette-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #3d3a36;
+  }
+
+  .color-swatch {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(61, 58, 54, 0.1);
+  }
+
+  .color-preview {
+    height: 100px;
+  }
+
+  .color-info {
+    padding: 0.75rem;
+    background: #fff;
+  }
+
+  .color-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #3d3a36;
+    margin-bottom: 0.25rem;
+  }
+
+  .color-hex {
+    font-size: 0.8rem;
+    color: #8b7355;
+    font-family: monospace;
+  }
+</style>
+
+<!-- Display Fonts Section -->
+<section class="styleguide-section">
+  <h1 class="styleguide-title">Display Fonts</h1>
+  <p class="styleguide-description">Serif options explored for headings and titles</p>
+
+  <div class="font-grid">
+    <div class="font-sample">
+      <p class="font-label">Libre Baskerville <span class="current">Current</span></p>
+      <p class="font-display" style="font-family: 'Libre Baskerville', serif; font-weight: 400;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Cormorant Garamond</p>
+      <p class="font-display" style="font-family: 'Cormorant Garamond', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Playfair Display</p>
+      <p class="font-display" style="font-family: 'Playfair Display', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Fraunces</p>
+      <p class="font-display" style="font-family: 'Fraunces', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Instrument Serif</p>
+      <p class="font-display" style="font-family: 'Instrument Serif', serif; font-weight: 400;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">DM Serif Display</p>
+      <p class="font-display" style="font-family: 'DM Serif Display', serif; font-weight: 400;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Crimson Pro</p>
+      <p class="font-display" style="font-family: 'Crimson Pro', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Bodoni Moda</p>
+      <p class="font-display" style="font-family: 'Bodoni Moda', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">EB Garamond</p>
+      <p class="font-display" style="font-family: 'EB Garamond', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Lora</p>
+      <p class="font-display" style="font-family: 'Lora', serif; font-weight: 500;">Rick Winfrey</p>
+    </div>
+  </div>
+</section>
+
+<!-- Body Fonts Section -->
+<section class="styleguide-section">
+  <h1 class="styleguide-title">Body Fonts</h1>
+  <p class="styleguide-description">Options explored for body text and paragraphs</p>
+
+  <div class="font-grid">
+    <div class="font-sample">
+      <p class="font-label">Source Serif 4 <span class="current">Current</span></p>
+      <p class="font-body" style="font-family: 'Source Serif 4', serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Source Sans Pro</p>
+      <p class="font-body" style="font-family: 'Source Sans Pro', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Work Sans</p>
+      <p class="font-body" style="font-family: 'Work Sans', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Lato</p>
+      <p class="font-body" style="font-family: 'Lato', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">IBM Plex Sans</p>
+      <p class="font-body" style="font-family: 'IBM Plex Sans', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">DM Sans</p>
+      <p class="font-body" style="font-family: 'DM Sans', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Karla</p>
+      <p class="font-body" style="font-family: 'Karla', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Outfit</p>
+      <p class="font-body" style="font-family: 'Outfit', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+
+    <div class="font-sample">
+      <p class="font-label">Nunito Sans</p>
+      <p class="font-body" style="font-family: 'Nunito Sans', sans-serif;">Designing systems where humans and AI collaborate effectively. Drawn to interaction design, complex orchestration, and building intelligent applications.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Color Palettes Section -->
+<section class="styleguide-section">
+  <h1 class="styleguide-title">Color Palettes</h1>
+  <p class="styleguide-description">Color schemes explored for the site</p>
+
+  <!-- Current: Warm & Grounded -->
+  <div class="color-palette">
+    <h2 class="color-palette-title">Warm & Grounded <span style="background: #c45a3b; color: #fff; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.65rem; margin-left: 0.5rem; vertical-align: middle; font-family: sans-serif;">Current</span></h2>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #faf9f7;"></div>
+        <div class="color-info">
+          <p class="color-name">Background</p>
+          <p class="color-hex">#faf9f7</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #3d3a36;"></div>
+        <div class="color-info">
+          <p class="color-name">Base Text</p>
+          <p class="color-hex">#3d3a36</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #2c2a27;"></div>
+        <div class="color-info">
+          <p class="color-name">Header</p>
+          <p class="color-hex">#2c2a27</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #c45a3b;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Terracotta)</p>
+          <p class="color-hex">#c45a3b</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #d4a574;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent Warm</p>
+          <p class="color-hex">#d4a574</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #8b7355;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent Muted</p>
+          <p class="color-hex">#8b7355</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original: Purple -->
+  <div class="color-palette">
+    <h2 class="color-palette-title">Original Purple</h2>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #fff;"></div>
+        <div class="color-info">
+          <p class="color-name">Background</p>
+          <p class="color-hex">#ffffff</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #505a66;"></div>
+        <div class="color-info">
+          <p class="color-name">Base Text</p>
+          <p class="color-hex">#505a66</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #4325c0;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Purple)</p>
+          <p class="color-hex">#4325c0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alternative: Cool & Modern -->
+  <div class="color-palette">
+    <h2 class="color-palette-title">Cool & Modern</h2>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #f8fafb;"></div>
+        <div class="color-info">
+          <p class="color-name">Background</p>
+          <p class="color-hex">#f8fafb</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #2d3748;"></div>
+        <div class="color-info">
+          <p class="color-name">Base Text</p>
+          <p class="color-hex">#2d3748</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #0d9488;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Teal)</p>
+          <p class="color-hex">#0d9488</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #64748b;"></div>
+        <div class="color-info">
+          <p class="color-name">Muted</p>
+          <p class="color-hex">#64748b</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alternative: Bold & Distinctive -->
+  <div class="color-palette">
+    <h2 class="color-palette-title">Bold & Distinctive</h2>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #fdfcfb;"></div>
+        <div class="color-info">
+          <p class="color-name">Background</p>
+          <p class="color-hex">#fdfcfb</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #1a1a2e;"></div>
+        <div class="color-info">
+          <p class="color-name">Base Text</p>
+          <p class="color-hex">#1a1a2e</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #065f46;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Emerald)</p>
+          <p class="color-hex">#065f46</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #7c2d12;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Burgundy)</p>
+          <p class="color-hex">#7c2d12</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alternative: Monochrome Refined -->
+  <div class="color-palette">
+    <h2 class="color-palette-title">Monochrome Refined</h2>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #fafafa;"></div>
+        <div class="color-info">
+          <p class="color-name">Background</p>
+          <p class="color-hex">#fafafa</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #171717;"></div>
+        <div class="color-info">
+          <p class="color-name">Base Text</p>
+          <p class="color-hex">#171717</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #525252;"></div>
+        <div class="color-info">
+          <p class="color-name">Secondary</p>
+          <p class="color-hex">#525252</p>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-preview" style="background: #dc2626;"></div>
+        <div class="color-info">
+          <p class="color-name">Accent (Red)</p>
+          <p class="color-hex">#dc2626</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Typography Examples by Color Scheme -->
+<section class="styleguide-section">
+  <h1 class="styleguide-title">Typography Examples by Color Scheme</h1>
+  <p class="styleguide-description">Interactive examples showing headings, body text, links, and hover states for each palette</p>
+
+  <style>
+    .typography-demo {
+      padding: 2rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .typography-demo h1 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .typography-demo h2 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .typography-demo h3 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .typography-demo h4 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .typography-demo p {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .typography-demo .link-examples {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .typography-demo .link-example {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .typography-demo .link-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+    }
+
+    .typography-demo a {
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .demo-title {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .demo-title .current {
+      background: #c45a3b;
+      color: #fff;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      font-family: sans-serif;
+    }
+  </style>
+
+  <!-- Warm & Grounded Demo -->
+  <p class="demo-title">Warm & Grounded <span class="current">Current</span></p>
+  <div class="typography-demo" style="background: #faf9f7; border: 1px solid rgba(61, 58, 54, 0.15);">
+    <h1 style="color: #3d3a36;">Heading One</h1>
+    <h2 style="color: #3d3a36;">Heading Two</h2>
+    <h3 style="color: #3d3a36;">Heading Three</h3>
+    <h4 style="color: #3d3a36;">Heading Four</h4>
+    <p style="color: #3d3a36;">
+      This is body text demonstrating the warm, grounded palette. The terracotta accent adds energy
+      while the warm neutrals create a comfortable, approachable feel. <a href="#" style="color: #c45a3b; border-bottom: 1px solid;" onmouseover="this.style.color='#9e4830'" onmouseout="this.style.color='#c45a3b'">This is a link with hover</a>.
+    </p>
+    <div class="link-examples">
+      <div class="link-example">
+        <span class="link-label" style="color: #8b7355;">Default link</span>
+        <a href="#" style="color: #c45a3b;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #8b7355;">Hover state</span>
+        <a href="#" style="color: #9e4830;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #8b7355;">Muted text</span>
+        <span style="color: #8b7355;">Secondary information</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original Purple Demo -->
+  <p class="demo-title">Original Purple</p>
+  <div class="typography-demo" style="background: #ffffff; border: 1px solid rgba(80, 90, 102, 0.15);">
+    <h1 style="color: #505a66;">Heading One</h1>
+    <h2 style="color: #505a66;">Heading Two</h2>
+    <h3 style="color: #505a66;">Heading Three</h3>
+    <h4 style="color: #505a66;">Heading Four</h4>
+    <p style="color: #505a66;">
+      This is body text demonstrating the original purple palette. The deep purple accent gives a creative,
+      distinctive feel while the cool gray base provides excellent readability. <a href="#" style="color: #4325c0; border-bottom: 1px solid;" onmouseover="this.style.color='#321c90'" onmouseout="this.style.color='#4325c0'">This is a link with hover</a>.
+    </p>
+    <div class="link-examples">
+      <div class="link-example">
+        <span class="link-label" style="color: #8090a0;">Default link</span>
+        <a href="#" style="color: #4325c0;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #8090a0;">Hover state</span>
+        <a href="#" style="color: #321c90;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #8090a0;">Muted text</span>
+        <span style="color: #8090a0;">Secondary information</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cool & Modern Demo -->
+  <p class="demo-title">Cool & Modern</p>
+  <div class="typography-demo" style="background: #f8fafb; border: 1px solid rgba(45, 55, 72, 0.15);">
+    <h1 style="color: #2d3748;">Heading One</h1>
+    <h2 style="color: #2d3748;">Heading Two</h2>
+    <h3 style="color: #2d3748;">Heading Three</h3>
+    <h4 style="color: #2d3748;">Heading Four</h4>
+    <p style="color: #2d3748;">
+      This is body text demonstrating the cool, modern palette. The teal accent provides freshness
+      and a tech-forward feel while maintaining professionalism. <a href="#" style="color: #0d9488; border-bottom: 1px solid;" onmouseover="this.style.color='#0a766c'" onmouseout="this.style.color='#0d9488'">This is a link with hover</a>.
+    </p>
+    <div class="link-examples">
+      <div class="link-example">
+        <span class="link-label" style="color: #64748b;">Default link</span>
+        <a href="#" style="color: #0d9488;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #64748b;">Hover state</span>
+        <a href="#" style="color: #0a766c;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #64748b;">Muted text</span>
+        <span style="color: #64748b;">Secondary information</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bold & Distinctive Demo -->
+  <p class="demo-title">Bold & Distinctive</p>
+  <div class="typography-demo" style="background: #fdfcfb; border: 1px solid rgba(26, 26, 46, 0.15);">
+    <h1 style="color: #1a1a2e;">Heading One</h1>
+    <h2 style="color: #1a1a2e;">Heading Two</h2>
+    <h3 style="color: #1a1a2e;">Heading Three</h3>
+    <h4 style="color: #1a1a2e;">Heading Four</h4>
+    <p style="color: #1a1a2e;">
+      This is body text demonstrating the bold, distinctive palette. The emerald and burgundy accents
+      create a sophisticated, high-contrast look. <a href="#" style="color: #065f46; border-bottom: 1px solid;" onmouseover="this.style.color='#044b37'" onmouseout="this.style.color='#065f46'">This is an emerald link</a> and
+      <a href="#" style="color: #7c2d12; border-bottom: 1px solid;" onmouseover="this.style.color='#5c210d'" onmouseout="this.style.color='#7c2d12'">this is a burgundy link</a>.
+    </p>
+    <div class="link-examples">
+      <div class="link-example">
+        <span class="link-label" style="color: #666;">Emerald link</span>
+        <a href="#" style="color: #065f46;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #666;">Emerald hover</span>
+        <a href="#" style="color: #044b37;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #666;">Burgundy link</span>
+        <a href="#" style="color: #7c2d12;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #666;">Burgundy hover</span>
+        <a href="#" style="color: #5c210d;">Example link text</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monochrome Refined Demo -->
+  <p class="demo-title">Monochrome Refined</p>
+  <div class="typography-demo" style="background: #fafafa; border: 1px solid rgba(23, 23, 23, 0.15);">
+    <h1 style="color: #171717;">Heading One</h1>
+    <h2 style="color: #171717;">Heading Two</h2>
+    <h3 style="color: #171717;">Heading Three</h3>
+    <h4 style="color: #171717;">Heading Four</h4>
+    <p style="color: #171717;">
+      This is body text demonstrating the monochrome refined palette. The stark contrast and single red accent
+      creates a minimalist, editorial feel. <a href="#" style="color: #dc2626; border-bottom: 1px solid;" onmouseover="this.style.color='#b91c1c'" onmouseout="this.style.color='#dc2626'">This is a link with hover</a>.
+    </p>
+    <div class="link-examples">
+      <div class="link-example">
+        <span class="link-label" style="color: #525252;">Default link</span>
+        <a href="#" style="color: #dc2626;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #525252;">Hover state</span>
+        <a href="#" style="color: #b91c1c;">Example link text</a>
+      </div>
+      <div class="link-example">
+        <span class="link-label" style="color: #525252;">Muted text</span>
+        <span style="color: #525252;">Secondary information</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Load all fonts for preview -->
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Cormorant+Garamond:wght@400;500&family=Crimson+Pro:wght@400;500&family=DM+Sans:wght@400;500&family=DM+Serif+Display&family=EB+Garamond:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;500&family=Instrument+Serif&family=Karla:wght@400;500&family=Lato:wght@400;700&family=Lora:wght@400;500&family=Nunito+Sans:wght@400;500&family=Outfit:wght@400;500&family=Playfair+Display:wght@400;500&family=Source+Sans+Pro:wght@400;600&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">

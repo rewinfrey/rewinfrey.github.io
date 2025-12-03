@@ -1,5 +1,5 @@
 body {
-  font-family: "europa",sans-serif;
+  font-family: "Source Serif 4", Georgia, serif;
   font-weight: $regular;
   font-style: normal;
   font-size: 1.1em !important;
@@ -15,8 +15,9 @@ code {
 }
 
 h1, h2, h3, h4  {
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-style: normal;
-  font-weight: $light;
+  font-weight: $regular;
   line-height: 1.2em;
   margin: 0;
 }
@@ -43,7 +44,7 @@ a {
   text-decoration: none;
   color: $link;
   &:hover {
-    color: lighten($link, 15%);
+    color: darken($link, 10%);
   }
 }
 

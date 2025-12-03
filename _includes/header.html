@@ -1,11 +1,10 @@
 <header>
   <div class="container">
-    <!-- <a class="site-title" href="/">Selfless<span class="haskell-logo"></span>Singleton</a> -->
-    <a class="site-title" href="/">Rick Winfrey</a>
-    <ul>
+    <a href="/" class="home-mark">RW</a>
+    <nav>
       {% for heading in site.headings %}
-      <li {% if heading == page.group %}class="current"{% endif %}><a href="{{ heading | downcase | prepend: '/' }}">{{ heading }}</a></li>
+      <a href="{{ heading | downcase | prepend: '/' }}" {% if heading == page.group %}class="current"{% endif %}>{{ heading }}</a>
       {% endfor %}
-    </ul>
+    </nav>
   </div>
 </header>

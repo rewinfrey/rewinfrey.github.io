@@ -1,0 +1,524 @@
+// Landing Page Styles
+// Editorial, refined aesthetic with generous whitespace
+
+// ===========================
+// Hero Section
+// ===========================
+
+.landing-hero {
+  padding: 6rem 0 5rem;
+  text-align: center;
+  position: relative;
+
+  @media #{$mobile} {
+    padding: 3rem 0 2.5rem;
+  }
+}
+
+.hero-content {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.hero-image {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background-image: url('/assets/images/profile.png');
+  background-size: cover;
+  background-position: center;
+  margin: 0 auto 2rem;
+  position: relative;
+  box-shadow: 0 4px 24px rgba($base-color, 0.12);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba($secondary-color, 0.06) 0%, transparent 60%);
+  }
+}
+
+.hero-name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 3.2rem;
+  font-weight: 400;
+  color: $base-color;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+
+  @media #{$mobile} {
+    font-size: 2.4rem;
+  }
+}
+
+.hero-tagline {
+  font-size: 1.15rem;
+  color: lighten($base-color, 15%);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto 1.75rem;
+
+  @media #{$mobile} {
+    font-size: 1rem;
+  }
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  color: lighten($base-color, 25%);
+  flex-wrap: wrap;
+
+  @media #{$mobile} {
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+.hero-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: $base-color;
+    background: rgba($base-color, 0.06);
+    transition: all 0.25s ease;
+
+    &:hover {
+      background: $secondary-color;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// ===========================
+// Section Base Styles
+// ===========================
+
+.landing-section {
+  padding: 4rem 0;
+  border-top: 1px solid rgba($base-color, 0.1);
+
+  @media #{$mobile} {
+    padding: 2.5rem 0;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  @media #{$mobile} {
+    margin-bottom: 1.75rem;
+  }
+}
+
+.section-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: $base-color;
+  letter-spacing: -0.01em;
+  margin: 0;
+
+  @media #{$mobile} {
+    font-size: 1.4rem;
+  }
+}
+
+.section-link {
+  font-size: 0.9rem;
+  color: $secondary-color;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: gap 0.2s ease;
+
+  &:hover {
+    gap: 0.6rem;
+    color: darken($secondary-color, 10%);
+  }
+}
+
+// ===========================
+// Writings Section
+// ===========================
+
+.writings-grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.writing-card {
+  display: block;
+  padding: 1.75rem 0;
+  border-bottom: 1px solid rgba($base-color, 0.08);
+  transition: all 0.25s ease;
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &:hover {
+    .writing-title {
+      color: $secondary-color;
+    }
+  }
+}
+
+
+.writing-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: lighten($base-color, 30%);
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.writing-date {
+  font-weight: 500;
+}
+
+.writing-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: lighten($base-color, 40%);
+}
+
+.writing-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: $base-color;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.writing-excerpt {
+  font-size: 1rem;
+  color: lighten($base-color, 15%);
+  line-height: 1.6;
+  margin: 0;
+}
+
+// ===========================
+// Projects Section
+// ===========================
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+
+  @media #{$mobile} {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.project-card {
+  display: block;
+  padding: 1.5rem;
+  background: rgba($base-color, 0.02);
+  border: 1px solid rgba($base-color, 0.08);
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  position: relative;
+
+  &:hover {
+    border-color: rgba($secondary-color, 0.3);
+    background: #fff;
+    box-shadow: 0 4px 20px rgba($base-color, 0.08);
+    transform: translateY(-2px);
+
+    .project-title {
+      color: $secondary-color;
+    }
+  }
+
+  &--private {
+    cursor: default;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: rgba($base-color, 0.08);
+      background: rgba($base-color, 0.02);
+
+      .project-title {
+        color: $base-color;
+      }
+    }
+  }
+}
+
+.private-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $accent-muted;
+  background: rgba($base-color, 0.06);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+}
+
+.project-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba($secondary-color, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+
+  i {
+    font-size: 1rem;
+    color: $secondary-color;
+  }
+}
+
+.project-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: $base-color;
+  margin-bottom: 0.4rem;
+  transition: color 0.2s ease;
+}
+
+.project-description {
+  font-size: 0.9rem;
+  color: lighten($base-color, 20%);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.tech-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba($secondary-color, 0.08);
+  color: $secondary-color;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+// ===========================
+// Experience Section
+// ===========================
+
+.experience-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.experience-card {
+  padding: 1.5rem;
+  border-left: 3px solid rgba($secondary-color, 0.3);
+  background: linear-gradient(90deg, rgba($secondary-color, 0.02) 0%, transparent 100%);
+}
+
+.experience-period {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $secondary-color;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.experience-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: $base-color;
+  margin-bottom: 0.25rem;
+}
+
+.experience-company {
+  font-size: 0.95rem;
+  color: lighten($base-color, 20%);
+  margin-bottom: 0.75rem;
+
+  a {
+    color: $secondary-color;
+    &:hover {
+      color: darken($secondary-color, 10%);
+    }
+  }
+}
+
+.experience-description {
+  font-size: 0.9rem;
+  color: lighten($base-color, 15%);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.experience-list {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+
+  li {
+    font-size: 0.9rem;
+    color: lighten($base-color, 15%);
+    line-height: 1.6;
+    list-style: disc;
+    padding: 0.25rem 0;
+  }
+}
+
+.module-list {
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  columns: 2;
+  column-gap: 2rem;
+
+  @media #{$mobile} {
+    columns: 1;
+  }
+
+  li {
+    font-size: 0.9rem;
+    color: lighten($base-color, 15%);
+    list-style: disc;
+    padding: 0.15rem 0;
+    break-inside: avoid;
+  }
+}
+
+// ===========================
+// Landing Footer
+// ===========================
+
+.landing-footer {
+  padding: 3rem 0;
+  border-top: 1px solid rgba($base-color, 0.1);
+  text-align: center;
+}
+
+.personal-note {
+  font-size: 1.05rem;
+  color: lighten($base-color, 10%);
+  line-height: 1.7;
+}
+
+.footer-message {
+  font-size: 1.05rem;
+  color: lighten($base-color, 15%);
+  margin-bottom: 1.5rem;
+}
+
+.footer-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: $secondary-color;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid rgba($secondary-color, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $secondary-color;
+    color: #fff;
+    border-color: $secondary-color;
+  }
+}
+
+.footer-copyright {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: lighten($base-color, 35%);
+}
+
+// ===========================
+// Animations
+// ===========================
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.landing-hero { animation-delay: 0s; }
+.landing-section:nth-child(2) { animation-delay: 0.1s; }
+.landing-section:nth-child(3) { animation-delay: 0.2s; }
+.landing-section:nth-child(4) { animation-delay: 0.3s; }
+.landing-footer { animation-delay: 0.4s; }
+
+// Stagger children within sections
+.writings-grid .writing-card,
+.projects-grid .project-card,
+.experience-grid .experience-card {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+
+  @for $i from 1 through 6 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{0.1 + ($i * 0.08)}s;
+    }
+  }
+}
