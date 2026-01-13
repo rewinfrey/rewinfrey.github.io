@@ -2,17 +2,17 @@
 ---
 
 // Variables and mixins
-@import "variables";
+@use "variables" as *;
 
 // Reset
-@import "components/normalize";
+@use "components/normalize";
 
 // Components
-@import "components/layout";
-@import "components/typography";
-@import "components/code";
-@import "components/input";
-@import "components/landing";
+@use "components/layout";
+@use "components/typography";
+@use "components/code";
+@use "components/input";
+@use "components/landing";
 
 // Utilities
-@import "components/utilities";
+@use "components/utilities";

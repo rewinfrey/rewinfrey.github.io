@@ -1,3 +1,6 @@
+@use "sass:color";
+@use "../variables" as *;
+
 // Landing Page Styles
 // Editorial, refined aesthetic with generous whitespace
 
@@ -56,7 +59,7 @@
 
 .hero-tagline {
   font-size: 1.15rem;
-  color: lighten($base-color, 15%);
+  color: color.adjust($base-color, $lightness: 15%);
   font-weight: 400;
   line-height: 1.6;
   max-width: 520px;
@@ -73,7 +76,7 @@
   justify-content: center;
   gap: 1.5rem;
   font-size: 0.9rem;
-  color: lighten($base-color, 25%);
+  color: color.adjust($base-color, $lightness: 25%);
   flex-wrap: wrap;
 
   @media #{$mobile} {
@@ -166,7 +169,7 @@
 
   &:hover {
     gap: 0.6rem;
-    color: darken($secondary-color, 10%);
+    color: color.adjust($secondary-color, $lightness: -10%);
   }
 }
 
@@ -207,7 +210,7 @@
   align-items: center;
   gap: 0.75rem;
   font-size: 0.85rem;
-  color: lighten($base-color, 30%);
+  color: color.adjust($base-color, $lightness: 30%);
   margin-bottom: 0.6rem;
   flex-wrap: wrap;
 }
@@ -220,7 +223,7 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: lighten($base-color, 40%);
+  background: color.adjust($base-color, $lightness: 40%);
 }
 
 .writing-title {
@@ -235,7 +238,7 @@
 
 .writing-excerpt {
   font-size: 1rem;
-  color: lighten($base-color, 15%);
+  color: color.adjust($base-color, $lightness: 15%);
   line-height: 1.6;
   margin: 0;
 }
@@ -331,7 +334,7 @@
 
 .project-description {
   font-size: 0.9rem;
-  color: lighten($base-color, 20%);
+  color: color.adjust($base-color, $lightness: 20%);
   line-height: 1.55;
   margin: 0;
 }
@@ -387,20 +390,20 @@
 
 .experience-company {
   font-size: 0.95rem;
-  color: lighten($base-color, 20%);
+  color: color.adjust($base-color, $lightness: 20%);
   margin-bottom: 0.75rem;
 
   a {
     color: $secondary-color;
     &:hover {
-      color: darken($secondary-color, 10%);
+      color: color.adjust($secondary-color, $lightness: -10%);
     }
   }
 }
 
 .experience-description {
   font-size: 0.9rem;
-  color: lighten($base-color, 15%);
+  color: color.adjust($base-color, $lightness: 15%);
   line-height: 1.6;
   margin: 0;
 }
@@ -411,7 +414,7 @@
 
   li {
     font-size: 0.9rem;
-    color: lighten($base-color, 15%);
+    color: color.adjust($base-color, $lightness: 15%);
     line-height: 1.6;
     list-style: disc;
     padding: 0.25rem 0;
@@ -430,7 +433,7 @@
 
   li {
     font-size: 0.9rem;
-    color: lighten($base-color, 15%);
+    color: color.adjust($base-color, $lightness: 15%);
     list-style: disc;
     padding: 0.15rem 0;
     break-inside: avoid;
@@ -449,13 +452,13 @@
 
 .personal-note {
   font-size: 1.05rem;
-  color: lighten($base-color, 10%);
+  color: color.adjust($base-color, $lightness: 10%);
   line-height: 1.7;
 }
 
 .footer-message {
   font-size: 1.05rem;
-  color: lighten($base-color, 15%);
+  color: color.adjust($base-color, $lightness: 15%);
   margin-bottom: 1.5rem;
 }
 
@@ -480,7 +483,7 @@
 .footer-copyright {
   margin-top: 2rem;
   font-size: 0.85rem;
-  color: lighten($base-color, 35%);
+  color: color.adjust($base-color, $lightness: 35%);
 }
 
 // ===========================
