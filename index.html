@@ -3,6 +3,404 @@ layout: default
 title: Rick Winfrey
 ---
 
+<!-- Animated Pattern Background -->
+<div class="pattern-background" id="pattern-background">
+  <svg class="pattern-layer pattern-layer-a" id="pattern-layer-a" width="100%" height="100%">
+    <defs></defs>
+    <rect class="pattern-bg" width="100%" height="100%" fill="#faf9f7"/>
+    <rect class="pattern-fill" width="100%" height="100%"/>
+  </svg>
+  <svg class="pattern-layer pattern-layer-b" id="pattern-layer-b" width="100%" height="100%">
+    <defs></defs>
+    <rect class="pattern-bg" width="100%" height="100%" fill="#faf9f7"/>
+    <rect class="pattern-fill" width="100%" height="100%"/>
+  </svg>
+</div>
+
+<style>
+  .pattern-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .pattern-layer {
+    position: absolute;
+    top: -150%;
+    left: -150%;
+    width: 400%;
+    height: 400%;
+    transition: opacity 12s ease-in-out;
+    transform-origin: center center;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .pattern-layer-a {
+    opacity: 1;
+  }
+
+  .pattern-layer-b {
+    opacity: 0;
+  }
+
+  .pattern-layer.fade-out {
+    opacity: 0;
+  }
+
+  .pattern-layer.fade-in {
+    opacity: 1;
+  }
+</style>
+
+<script>
+(function() {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // Animation state
+  let animationId = null;
+  let isPaused = false;
+  let startTime = null;
+
+  // Shared breathing phase - drives both scale and rotation direction
+  const breathingConfig = {
+    phase: Math.random() * Math.PI * 2,
+    freq: 0.00012  // one full breath cycle ~8.7 seconds
+  };
+
+  // Rotation config
+  const rotationConfig = {
+    maxSpeed: 0.0015  // max degrees per ms
+  };
+
+  // Translation oscillators - different frequencies create diagonal paths
+  const translateConfig = {
+    x1: { phase: Math.random() * Math.PI * 2, freq: 0.00006, amp: 180 },
+    x2: { phase: Math.random() * Math.PI * 2, freq: 0.000025, amp: 100 },
+    y1: { phase: Math.random() * Math.PI * 2, freq: 0.00004, amp: 150 },
+    y2: { phase: Math.random() * Math.PI * 2, freq: 0.00002, amp: 80 }
+  };
+
+  // Scale config - uses breathing phase
+  const scaleConfig = {
+    base: 1,
+    amp: 0.35
+  };
+
+  let accumulatedRotation = 0;
+  let lastTimestamp = null;
+
+  function animatePatterns(timestamp) {
+    if (isPaused) {
+      lastTimestamp = null;
+      animationId = requestAnimationFrame(animatePatterns);
+      return;
+    }
+
+    if (!startTime) startTime = timestamp;
+    if (!lastTimestamp) lastTimestamp = timestamp;
+
+    const elapsed = timestamp - startTime;
+    const delta = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+
+    // Shared breathing wave - sin for scale, cos for rotation direction
+    // This creates: scale up = clockwise, scale down = counter-clockwise
+    const breathPhase = elapsed * breathingConfig.freq + breathingConfig.phase;
+
+    // Scale follows sin wave (0 to peak to 0 to trough to 0)
+    const scale = scaleConfig.base + Math.sin(breathPhase) * scaleConfig.amp;
+
+    // Rotation direction follows cos wave (derivative of sin)
+    // When scale is increasing (sin rising), cos is positive = clockwise
+    // When scale is decreasing (sin falling), cos is negative = counter-clockwise
+    const rotationDirection = Math.cos(breathPhase);
+    const currentSpeed = rotationConfig.maxSpeed * rotationDirection;
+    accumulatedRotation += currentSpeed * delta;
+
+    // Translation - combining X and Y waves creates diagonal movement
+    const translateX =
+      Math.sin(elapsed * translateConfig.x1.freq + translateConfig.x1.phase) * translateConfig.x1.amp +
+      Math.sin(elapsed * translateConfig.x2.freq + translateConfig.x2.phase) * translateConfig.x2.amp;
+
+    const translateY =
+      Math.sin(elapsed * translateConfig.y1.freq + translateConfig.y1.phase) * translateConfig.y1.amp +
+      Math.sin(elapsed * translateConfig.y2.freq + translateConfig.y2.phase) * translateConfig.y2.amp;
+
+    // Apply transform to both layers
+    const transform = `translate(${translateX}px, ${translateY}px) rotate(${accumulatedRotation}deg) scale(${scale})`;
+
+    const layerA = document.getElementById('pattern-layer-a');
+    const layerB = document.getElementById('pattern-layer-b');
+
+    if (layerA) layerA.style.transform = transform;
+    if (layerB) layerB.style.transform = transform;
+
+    animationId = requestAnimationFrame(animatePatterns);
+  }
+
+  // Pattern definitions - the 10 specified Japanese/Kumiko patterns
+  const patterns = {
+    seigaiha: { width: 60, height: 30 },
+    asanoha: { width: 48, height: 48 },
+    shippo: { width: 40, height: 40 },
+    sashiko: { width: 60, height: 20 },
+    hishi: { width: 40, height: 40 },
+    goma: { width: 20, height: 20 },
+    kikko: { width: 52, height: 30 },
+    izutsu: { width: 40, height: 40 },
+    masu: { width: 30, height: 30 },
+    yae: { width: 60, height: 60 }
+  };
+
+  // Color palettes - barely perceptible, ghostly tones
+  const colorPalettes = [
+    { stroke: 'rgba(61, 58, 54, 0.04)', bg: '#faf9f7' },
+    { stroke: 'rgba(196, 90, 59, 0.035)', bg: '#faf9f7' },
+    { stroke: 'rgba(139, 115, 85, 0.04)', bg: '#faf9f7' },
+    { stroke: 'rgba(212, 165, 116, 0.05)', bg: '#faf9f7' },
+    { stroke: 'rgba(44, 42, 39, 0.035)', bg: '#faf9f7' },
+    { stroke: 'rgba(196, 90, 59, 0.03)', bg: '#faf9f7' },
+    { stroke: 'rgba(61, 58, 54, 0.04)', bg: '#faf9f7' },
+    { stroke: 'rgba(139, 115, 85, 0.035)', bg: '#faf9f7' }
+  ];
+
+  const patternNames = Object.keys(patterns);
+  let currentPatternIndex = 0;
+  let currentColorIndex = 0;
+  let activeLayer = 'a';
+
+  // Build pattern paths using DOM methods
+  function buildPatternContent(patternName, group, strokeColor) {
+    // Clear existing content
+    while (group.firstChild) {
+      group.removeChild(group.firstChild);
+    }
+
+    group.setAttribute('fill', 'none');
+    group.setAttribute('stroke', strokeColor);
+    group.setAttribute('stroke-width', '1');
+
+    const pathData = getPatternPaths(patternName);
+    pathData.forEach(function(d) {
+      if (d.type === 'path') {
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', d.d);
+        if (d.strokeWidth) path.setAttribute('stroke-width', d.strokeWidth);
+        if (d.strokeDasharray) path.setAttribute('stroke-dasharray', d.strokeDasharray);
+        group.appendChild(path);
+      } else if (d.type === 'circle') {
+        const circle = document.createElementNS(SVG_NS, 'circle');
+        circle.setAttribute('cx', d.cx);
+        circle.setAttribute('cy', d.cy);
+        circle.setAttribute('r', d.r);
+        group.appendChild(circle);
+      } else if (d.type === 'rect') {
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', d.x);
+        rect.setAttribute('y', d.y);
+        rect.setAttribute('width', d.width);
+        rect.setAttribute('height', d.height);
+        group.appendChild(rect);
+      } else if (d.type === 'line') {
+        const line = document.createElementNS(SVG_NS, 'line');
+        line.setAttribute('x1', d.x1);
+        line.setAttribute('y1', d.y1);
+        line.setAttribute('x2', d.x2);
+        line.setAttribute('y2', d.y2);
+        group.appendChild(line);
+      }
+    });
+  }
+
+  function getPatternPaths(name) {
+    const p = {
+      seigaiha: [
+        {type:'path',d:'M0,30 Q15,0 30,30'},{type:'path',d:'M0,30 Q15,5 30,30'},{type:'path',d:'M0,30 Q15,10 30,30'},
+        {type:'path',d:'M0,30 Q15,15 30,30'},{type:'path',d:'M0,30 Q15,20 30,30'},
+        {type:'path',d:'M30,30 Q45,0 60,30'},{type:'path',d:'M30,30 Q45,5 60,30'},{type:'path',d:'M30,30 Q45,10 60,30'},
+        {type:'path',d:'M30,30 Q45,15 60,30'},{type:'path',d:'M30,30 Q45,20 60,30'},
+        {type:'path',d:'M-15,0 Q0,-30 15,0'},{type:'path',d:'M-15,0 Q0,-25 15,0'},{type:'path',d:'M-15,0 Q0,-20 15,0'},
+        {type:'path',d:'M-15,0 Q0,-15 15,0'},{type:'path',d:'M-15,0 Q0,-10 15,0'},
+        {type:'path',d:'M15,0 Q30,-30 45,0'},{type:'path',d:'M15,0 Q30,-25 45,0'},{type:'path',d:'M15,0 Q30,-20 45,0'},
+        {type:'path',d:'M15,0 Q30,-15 45,0'},{type:'path',d:'M15,0 Q30,-10 45,0'},
+        {type:'path',d:'M45,0 Q60,-30 75,0'},{type:'path',d:'M45,0 Q60,-25 75,0'},{type:'path',d:'M45,0 Q60,-20 75,0'},
+        {type:'path',d:'M45,0 Q60,-15 75,0'},{type:'path',d:'M45,0 Q60,-10 75,0'}
+      ],
+      asanoha: [
+        {type:'path',d:'M24,0 L24,24'},{type:'path',d:'M24,24 L24,48'},
+        {type:'path',d:'M0,12 L24,24'},{type:'path',d:'M24,24 L48,12'},
+        {type:'path',d:'M0,36 L24,24'},{type:'path',d:'M24,24 L48,36'},
+        {type:'path',d:'M24,0 L12,12 L24,24 L36,12 Z'},{type:'path',d:'M24,48 L12,36 L24,24 L36,36 Z'},
+        {type:'path',d:'M0,12 L12,12'},{type:'path',d:'M0,36 L12,36'},{type:'path',d:'M12,12 L12,36'},
+        {type:'path',d:'M48,12 L36,12'},{type:'path',d:'M48,36 L36,36'},{type:'path',d:'M36,12 L36,36'},
+        {type:'path',d:'M12,12 L24,0'},{type:'path',d:'M36,12 L24,0'},
+        {type:'path',d:'M12,36 L24,48'},{type:'path',d:'M36,36 L24,48'}
+      ],
+      shippo: [
+        {type:'circle',cx:0,cy:0,r:20},{type:'circle',cx:40,cy:0,r:20},
+        {type:'circle',cx:0,cy:40,r:20},{type:'circle',cx:40,cy:40,r:20},
+        {type:'circle',cx:20,cy:20,r:20}
+      ],
+      sashiko: [
+        {type:'path',d:'M0,10 Q15,0 30,10 Q45,20 60,10',strokeWidth:'1.5',strokeDasharray:'4,3'},
+        {type:'path',d:'M0,20 Q15,10 30,20',strokeWidth:'1.5',strokeDasharray:'4,3'},
+        {type:'path',d:'M30,0 Q45,10 60,0',strokeWidth:'1.5',strokeDasharray:'4,3'}
+      ],
+      hishi: [
+        {type:'path',d:'M20,0 L40,20 L20,40 L0,20 Z'},{type:'path',d:'M20,8 L32,20 L20,32 L8,20 Z'},
+        {type:'path',d:'M20,0 L20,8'},{type:'path',d:'M20,32 L20,40'},
+        {type:'path',d:'M0,20 L8,20'},{type:'path',d:'M32,20 L40,20'},
+        {type:'path',d:'M20,0 L8,20 L20,8 Z'},{type:'path',d:'M20,0 L32,20 L20,8 Z'},
+        {type:'path',d:'M20,40 L8,20 L20,32 Z'},{type:'path',d:'M20,40 L32,20 L20,32 Z'}
+      ],
+      goma: [
+        {type:'path',d:'M10,0 L20,10 L10,20 L0,10 Z'},{type:'path',d:'M10,5 L15,10 L10,15 L5,10 Z'},
+        {type:'line',x1:10,y1:0,x2:10,y2:5},{type:'line',x1:10,y1:15,x2:10,y2:20},
+        {type:'line',x1:0,y1:10,x2:5,y2:10},{type:'line',x1:15,y1:10,x2:20,y2:10}
+      ],
+      kikko: [
+        {type:'path',d:'M13,0 L26,0 L39,15 L26,30 L13,30 L0,15 Z'},
+        {type:'path',d:'M39,0 L52,0 L65,15 L52,30 L39,30 L26,15 Z'},
+        {type:'path',d:'M-13,0 L0,0 L13,15 L0,30 L-13,30 L-26,15 Z'}
+      ],
+      izutsu: [
+        {type:'rect',x:5,y:5,width:15,height:15},{type:'rect',x:20,y:5,width:15,height:15},
+        {type:'rect',x:5,y:20,width:15,height:15},{type:'rect',x:20,y:20,width:15,height:15},
+        {type:'rect',x:10,y:10,width:20,height:20}
+      ],
+      masu: [
+        {type:'rect',x:0,y:0,width:30,height:30},{type:'rect',x:5,y:5,width:20,height:20},
+        {type:'rect',x:10,y:10,width:10,height:10},
+        {type:'line',x1:0,y1:0,x2:5,y2:5},{type:'line',x1:30,y1:0,x2:25,y2:5},
+        {type:'line',x1:0,y1:30,x2:5,y2:25},{type:'line',x1:30,y1:30,x2:25,y2:25}
+      ],
+      yae: [
+        {type:'path',d:'M30,0 L30,30'},{type:'path',d:'M30,30 L30,60'},
+        {type:'path',d:'M0,15 L30,30'},{type:'path',d:'M30,30 L60,15'},
+        {type:'path',d:'M0,45 L30,30'},{type:'path',d:'M30,30 L60,45'},
+        {type:'path',d:'M30,10 L30,30'},{type:'path',d:'M30,30 L30,50'},
+        {type:'path',d:'M12,20 L30,30'},{type:'path',d:'M30,30 L48,20'},
+        {type:'path',d:'M12,40 L30,30'},{type:'path',d:'M30,30 L48,40'},
+        {type:'path',d:'M30,0 L60,30 L30,60 L0,30 Z'},{type:'path',d:'M30,10 L50,30 L30,50 L10,30 Z'}
+      ]
+    };
+    return p[name] || [];
+  }
+
+  function updateLayer(layerId, patternName, colors) {
+    var svg = document.getElementById('pattern-layer-' + layerId);
+    if (!svg) return;
+
+    var defs = svg.querySelector('defs');
+    var bgRect = svg.querySelector('.pattern-bg');
+    var patternRect = svg.querySelector('.pattern-fill');
+    var patternId = 'pattern-' + layerId;
+    var p = patterns[patternName];
+
+    // Remove old pattern
+    var oldPattern = defs.querySelector('pattern');
+    if (oldPattern) defs.removeChild(oldPattern);
+
+    // Create new pattern element
+    var pattern = document.createElementNS(SVG_NS, 'pattern');
+    pattern.setAttribute('id', patternId);
+    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+    pattern.setAttribute('width', p.width);
+    pattern.setAttribute('height', p.height);
+
+    var group = document.createElementNS(SVG_NS, 'g');
+    buildPatternContent(patternName, group, colors.stroke);
+    pattern.appendChild(group);
+    defs.appendChild(pattern);
+
+    bgRect.setAttribute('fill', colors.bg);
+    patternRect.setAttribute('fill', 'url(#' + patternId + ')');
+  }
+
+  function getNextPattern() {
+    var next;
+    do {
+      next = Math.floor(Math.random() * patternNames.length);
+    } while (next === currentPatternIndex && patternNames.length > 1);
+    currentPatternIndex = next;
+    return patternNames[next];
+  }
+
+  function getNextColors() {
+    var next;
+    do {
+      next = Math.floor(Math.random() * colorPalettes.length);
+    } while (next === currentColorIndex && colorPalettes.length > 1);
+    currentColorIndex = next;
+    return colorPalettes[next];
+  }
+
+  function morphPattern() {
+    var nextPattern = getNextPattern();
+    var nextColors = getNextColors();
+    var nextLayer = activeLayer === 'a' ? 'b' : 'a';
+
+    updateLayer(nextLayer, nextPattern, nextColors);
+
+    var currentLayerEl = document.getElementById('pattern-layer-' + activeLayer);
+    var nextLayerEl = document.getElementById('pattern-layer-' + nextLayer);
+
+    currentLayerEl.classList.add('fade-out');
+    currentLayerEl.classList.remove('fade-in');
+    nextLayerEl.classList.add('fade-in');
+    nextLayerEl.classList.remove('fade-out');
+
+    activeLayer = nextLayer;
+  }
+
+  function init() {
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var isMobile = window.matchMedia('(max-width: 42em)').matches;
+
+    // Pause animation when page not visible
+    document.addEventListener('visibilitychange', function() {
+      isPaused = document.hidden;
+      if (!document.hidden && !startTime) {
+        startTime = performance.now();
+      }
+    });
+
+    // Initialize first pattern
+    currentPatternIndex = Math.floor(Math.random() * patternNames.length);
+    currentColorIndex = Math.floor(Math.random() * colorPalettes.length);
+    var initialPattern = patternNames[currentPatternIndex];
+    var initialColors = colorPalettes[currentColorIndex];
+    updateLayer('a', initialPattern, initialColors);
+
+    // Prepare second layer
+    var nextPattern = getNextPattern();
+    var nextColors = getNextColors();
+    updateLayer('b', nextPattern, nextColors);
+
+    // Start morphing between patterns
+    var interval = (prefersReducedMotion || isMobile) ? 45000 : 30000;
+    setInterval(morphPattern, interval);
+
+    // Start the oscillating animation (skip if reduced motion preferred)
+    if (!prefersReducedMotion) {
+      animationId = requestAnimationFrame(animatePatterns);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
 <!-- Hero Section -->
 <section class="landing-hero animate-on-scroll">
   <div class="hero-content">
