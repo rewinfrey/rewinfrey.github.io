@@ -368,16 +368,8 @@ sliders.forEach(({ key, fn, el }) => {
   let opts = result.opts;
   let reset = result.reset;
 
-  // Check if we're on mobile (viewport width <= 768px)
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-  // Start the animation immediately only on desktop.
-  if (!isMobile) {
-    promise(resolveWithFix(runner));
-  } else {
-    // On mobile, start in paused state
-    opts.status = "paused";
-  }
+  // Start the animation immediately.
+  promise(resolveWithFix(runner));
 
   playButton.addEventListener("click", () => {
     if (opts && (opts.status === "paused" || opts.status === "canceled")) {
