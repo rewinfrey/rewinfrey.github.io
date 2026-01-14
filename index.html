@@ -34,8 +34,8 @@ title: Rick Winfrey
 
   // Parameters tuned for subtle background effect
   const params = {
-    spacing: 5,
-    width: 0.6,
+    spacing: 7,
+    width: 0.7,
     // Primary wind
     wind: 4.0,
     windDirection: Math.PI / 2,  // W direction
@@ -43,16 +43,17 @@ title: Rick Winfrey
     wind2: 3.0,
     wind2Direction: -Math.PI * 3 / 4,  // NE direction (opposite of SW)
     // Shared wind properties
-    windSize: 96,
-    jitter: 3,
-    jitterDiameter: 27,
+    windDensity: 6,  // 0-100: higher = more wind centers/patterns
+    windSize: 99,     // 0-100: higher = broader influence per wind center
+    jitter: 1,
+    jitterDiameter: 22,
     // Appearance
-    color: '#bfbab1',
-    opacity: 0.8,
+    color: '#d8d4cb',
+    opacity: 0.9,
     lineOrientation: -Math.PI * 3 / 4,  // vertical lines
     // Depth effect: line opacity varies with displacement amplitude
     // 0 = no depth effect, 1 = full effect (opacity doubles at max displacement)
-    opacityDepthFactor: 0.4
+    opacityDepthFactor: 0.1
   };
 
   // Pre-computed values (updated when params change)
@@ -70,13 +71,16 @@ title: Rick Winfrey
     colorB = parseInt(hex.slice(5, 7), 16);
     strokeStyle = 'rgba(' + colorR + ',' + colorG + ',' + colorB + ',' + params.opacity + ')';
 
-    // Wind size controls noise frequency: lower scale = broader patterns
-    // At windSize 100: scales are ~1.5x smaller than original for moderately broader waves
-    const sizeScale = 0.0007 + 0.0193 * (1 - params.windSize / 100);
-    noiseScale1 = sizeScale;
-    noiseScale2 = sizeScale * 1.8;
-    noiseScale3 = sizeScale * 0.4;
-    waveScale = 0.0033 + 0.0267 * (1 - params.windSize / 100);
+    // Wind density controls noise frequency: higher density = more wind centers
+    // At density 0: very sparse (1-2 patterns visible), at 100: many dense patterns
+    const densityScale = 0.0003 + 0.02 * (params.windDensity / 100);
+    noiseScale1 = densityScale;
+    noiseScale2 = densityScale * 1.8;
+    noiseScale3 = densityScale * 0.4;
+
+    // Wind size controls wave broadness: higher size = broader wave influence
+    // At size 100: very broad smooth waves, at 0: tight narrow waves
+    waveScale = 0.03 * (1 - params.windSize / 100) + 0.001;
   }
 
   // Optimized Simplex noise with pre-computed constants

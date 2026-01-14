@@ -9,9 +9,8 @@
   padding: 3rem 2rem 4rem;
   text-align: center;
   position: relative;
-  background: $background;
+  background: transparent;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba($base-color, 0.04);
   margin-bottom: 1.5rem;
 
   @media #{$mobile} {
@@ -127,9 +126,8 @@
 
 .landing-section {
   padding: 2.5rem 2rem;
-  background: $background;
+  background: transparent;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba($base-color, 0.04);
   margin-bottom: 1.5rem;
 
   @media #{$mobile} {
@@ -265,7 +263,7 @@
 .project-card {
   display: block;
   padding: 1.5rem;
-  background: rgba($base-color, 0.02);
+  background: transparent;
   border: 1px solid rgba($base-color, 0.08);
   border-radius: 6px;
   transition: all 0.25s ease;
@@ -273,7 +271,7 @@
 
   &:hover {
     border-color: rgba($secondary-color, 0.3);
-    background: #fff;
+    background: rgba($background, 0.7);
     box-shadow: 0 4px 20px rgba($base-color, 0.08);
     transform: translateY(-2px);
 
@@ -289,7 +287,7 @@
       transform: none;
       box-shadow: none;
       border-color: rgba($base-color, 0.08);
-      background: rgba($base-color, 0.02);
+      background: transparent;
 
       .project-title {
         color: $base-color;
@@ -372,7 +370,7 @@
 .experience-card {
   padding: 1.5rem;
   border-left: 3px solid rgba($secondary-color, 0.3);
-  background: linear-gradient(90deg, rgba($secondary-color, 0.02) 0%, transparent 100%);
+  background: transparent;
 }
 
 .experience-period {
@@ -450,9 +448,8 @@
 
 .landing-footer {
   padding: 3rem 2rem;
-  background: $background;
+  background: transparent;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba($base-color, 0.04);
   text-align: center;
 
   @media #{$mobile} {
