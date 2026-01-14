@@ -3,393 +3,291 @@ layout: default
 title: Rick Winfrey
 ---
 
-<!-- Animated Pattern Background -->
-<div class="pattern-background" id="pattern-background">
-  <svg class="pattern-layer pattern-layer-a" id="pattern-layer-a" width="100%" height="100%">
-    <defs></defs>
-    <rect class="pattern-bg" width="100%" height="100%" fill="#faf9f7"/>
-    <rect class="pattern-fill" width="100%" height="100%"/>
-  </svg>
-  <svg class="pattern-layer pattern-layer-b" id="pattern-layer-b" width="100%" height="100%">
-    <defs></defs>
-    <rect class="pattern-bg" width="100%" height="100%" fill="#faf9f7"/>
-    <rect class="pattern-fill" width="100%" height="100%"/>
-  </svg>
-</div>
+<!-- Line Field Background Animation -->
+<canvas id="lineFieldBackground"></canvas>
 
 <style>
-  .pattern-background {
+  #lineFieldBackground {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
-    overflow: hidden;
-  }
-
-  .pattern-layer {
-    position: absolute;
-    top: -150%;
-    left: -150%;
-    width: 400%;
-    height: 400%;
-    transition: opacity 12s ease-in-out;
-    transform-origin: center center;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-
-  .pattern-layer-a {
-    opacity: 1;
-  }
-
-  .pattern-layer-b {
-    opacity: 0;
-  }
-
-  .pattern-layer.fade-out {
-    opacity: 0;
-  }
-
-  .pattern-layer.fade-in {
-    opacity: 1;
   }
 </style>
 
 <script>
 (function() {
-  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const canvas = document.getElementById('lineFieldBackground');
+  const ctx = canvas.getContext('2d', { alpha: false });
 
-  // Animation state
   let animationId = null;
+  let time = 0;
   let isPaused = false;
-  let startTime = null;
+  let lastFrameTime = 0;
 
-  // Shared breathing phase - drives both scale and rotation direction
-  const breathingConfig = {
-    phase: Math.random() * Math.PI * 2,
-    freq: 0.00012  // one full breath cycle ~8.7 seconds
+  // Cached dimensions (updated on resize)
+  let viewWidth = 0;
+  let viewHeight = 0;
+  let dpr = 1;
+
+  // Parameters tuned for subtle background effect
+  const params = {
+    spacing: 10,
+    width: 1.0,
+    wind: 2.5,
+    windSize: 97,
+    jitter: 5,
+    jitterDiameter: 100,
+    color: '#bfbab1',
+    opacity: 0.1,
+    windDirection: 0,
+    lineOrientation: -Math.PI / 2
   };
 
-  // Rotation config
-  const rotationConfig = {
-    maxSpeed: 0.0015  // max degrees per ms
-  };
+  // Pre-computed values (updated when params change)
+  let strokeStyle = '';
+  let noiseScale1 = 0;
+  let noiseScale2 = 0;
+  let noiseScale3 = 0;
+  let waveScale = 0;
 
-  // Translation oscillators - different frequencies create diagonal paths
-  const translateConfig = {
-    x1: { phase: Math.random() * Math.PI * 2, freq: 0.00006, amp: 180 },
-    x2: { phase: Math.random() * Math.PI * 2, freq: 0.000025, amp: 100 },
-    y1: { phase: Math.random() * Math.PI * 2, freq: 0.00004, amp: 150 },
-    y2: { phase: Math.random() * Math.PI * 2, freq: 0.00002, amp: 80 }
-  };
+  function updateDerivedParams() {
+    const hex = params.color;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + params.opacity + ')';
 
-  // Scale config - uses breathing phase
-  const scaleConfig = {
-    base: 1,
-    amp: 0.35
-  };
+    const sizeScale = 0.001 + 0.019 * (1 - params.windSize / 100);
+    noiseScale1 = sizeScale;
+    noiseScale2 = sizeScale * 1.8;
+    noiseScale3 = sizeScale * 0.4;
+    waveScale = 0.005 + 0.025 * (1 - params.windSize / 100);
+  }
 
-  let accumulatedRotation = 0;
-  let lastTimestamp = null;
+  // Optimized Simplex noise with pre-computed constants
+  const SimplexNoise = (function() {
+    const F2 = 0.5 * (Math.sqrt(3) - 1);
+    const G2 = (3 - Math.sqrt(3)) / 6;
+    const G2x2 = G2 * 2;
 
-  function animatePatterns(timestamp) {
+    // Flatten grad3 for faster access
+    const grad3x = [1,-1,1,-1,1,-1,1,-1,0,0,0,0];
+    const grad3y = [1,1,-1,-1,0,0,0,0,1,-1,1,-1];
+
+    const perm = new Uint8Array(512);
+    const permMod12 = new Uint8Array(512);
+    for (let i = 0; i < 256; i++) {
+      const v = Math.floor(Math.random() * 256);
+      perm[i] = perm[i + 256] = v;
+      permMod12[i] = permMod12[i + 256] = v % 12;
+    }
+
+    return {
+      noise2D: function(xin, yin) {
+        const s = (xin + yin) * F2;
+        const i = Math.floor(xin + s);
+        const j = Math.floor(yin + s);
+        const t = (i + j) * G2;
+        const x0 = xin - i + t;
+        const y0 = yin - j + t;
+
+        const i1 = x0 > y0 ? 1 : 0;
+        const j1 = 1 - i1;
+
+        const x1 = x0 - i1 + G2;
+        const y1 = y0 - j1 + G2;
+        const x2 = x0 - 1 + G2x2;
+        const y2 = y0 - 1 + G2x2;
+
+        const ii = i & 255;
+        const jj = j & 255;
+        const gi0 = permMod12[ii + perm[jj]];
+        const gi1 = permMod12[ii + i1 + perm[jj + j1]];
+        const gi2 = permMod12[ii + 1 + perm[jj + 1]];
+
+        let n0 = 0, n1 = 0, n2 = 0;
+
+        let t0 = 0.5 - x0 * x0 - y0 * y0;
+        if (t0 > 0) {
+          t0 *= t0;
+          n0 = t0 * t0 * (grad3x[gi0] * x0 + grad3y[gi0] * y0);
+        }
+
+        let t1 = 0.5 - x1 * x1 - y1 * y1;
+        if (t1 > 0) {
+          t1 *= t1;
+          n1 = t1 * t1 * (grad3x[gi1] * x1 + grad3y[gi1] * y1);
+        }
+
+        let t2 = 0.5 - x2 * x2 - y2 * y2;
+        if (t2 > 0) {
+          t2 *= t2;
+          n2 = t2 * t2 * (grad3x[gi2] * x2 + grad3y[gi2] * y2);
+        }
+
+        return 70 * (n0 + n1 + n2);
+      }
+    };
+  })();
+
+  // Pre-compute line phase offsets (max 500 lines should be enough)
+  const linePhases = new Float32Array(500);
+  for (let i = 0; i < 500; i++) {
+    const seed = i * 127.1 + 311.7;
+    const sinSeed = Math.sin(seed) * 43758.5453;
+    linePhases[i] = (sinSeed - Math.floor(sinSeed)) * Math.PI * 2;
+  }
+
+  // Reusable points array to avoid allocations
+  const maxPoints = 2000;
+  const pointsX = new Float32Array(maxPoints);
+  const pointsY = new Float32Array(maxPoints);
+
+  function resizeCanvas() {
+    dpr = window.devicePixelRatio || 1;
+    viewWidth = window.innerWidth;
+    viewHeight = window.innerHeight;
+
+    canvas.width = viewWidth * dpr;
+    canvas.height = viewHeight * dpr;
+
+    // Reset transform before scaling to prevent accumulation
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function render(timestamp) {
     if (isPaused) {
-      lastTimestamp = null;
-      animationId = requestAnimationFrame(animatePatterns);
+      animationId = requestAnimationFrame(render);
       return;
     }
 
-    if (!startTime) startTime = timestamp;
-    if (!lastTimestamp) lastTimestamp = timestamp;
+    // Delta time for consistent animation speed (capped to prevent jumps)
+    const deltaTime = Math.min(timestamp - lastFrameTime, 50) / 1000;
+    lastFrameTime = timestamp;
 
-    const elapsed = timestamp - startTime;
-    const delta = timestamp - lastTimestamp;
-    lastTimestamp = timestamp;
+    // Update time based on delta (normalized to ~60fps feel)
+    time += deltaTime * 0.6 * (params.wind + 0.5);
 
-    // Shared breathing wave - sin for scale, cos for rotation direction
-    // This creates: scale up = clockwise, scale down = counter-clockwise
-    const breathPhase = elapsed * breathingConfig.freq + breathingConfig.phase;
+    // Clear canvas
+    ctx.fillStyle = '#faf9f7';
+    ctx.fillRect(0, 0, viewWidth, viewHeight);
 
-    // Scale follows sin wave (0 to peak to 0 to trough to 0)
-    const scale = scaleConfig.base + Math.sin(breathPhase) * scaleConfig.amp;
+    const windSpeed = params.wind;
+    const spacing = Math.max(1, params.spacing);
+    const jitterAmount = params.jitter / 100;
+    const jitterDiameter = params.jitterDiameter;
 
-    // Rotation direction follows cos wave (derivative of sin)
-    // When scale is increasing (sin rising), cos is positive = clockwise
-    // When scale is decreasing (sin falling), cos is negative = counter-clockwise
-    const rotationDirection = Math.cos(breathPhase);
-    const currentSpeed = rotationConfig.maxSpeed * rotationDirection;
-    accumulatedRotation += currentSpeed * delta;
+    const windX = Math.cos(params.windDirection);
+    const windY = Math.sin(params.windDirection);
 
-    // Translation - combining X and Y waves creates diagonal movement
-    const translateX =
-      Math.sin(elapsed * translateConfig.x1.freq + translateConfig.x1.phase) * translateConfig.x1.amp +
-      Math.sin(elapsed * translateConfig.x2.freq + translateConfig.x2.phase) * translateConfig.x2.amp;
+    const lineAngle = params.lineOrientation;
+    const lineX = Math.cos(lineAngle);
+    const lineY = Math.sin(lineAngle);
+    const perpAngle = lineAngle + Math.PI * 0.5;
+    const perpX = Math.cos(perpAngle);
+    const perpY = Math.sin(perpAngle);
 
-    const translateY =
-      Math.sin(elapsed * translateConfig.y1.freq + translateConfig.y1.phase) * translateConfig.y1.amp +
-      Math.sin(elapsed * translateConfig.y2.freq + translateConfig.y2.phase) * translateConfig.y2.amp;
+    const diagonal = Math.sqrt(viewWidth * viewWidth + viewHeight * viewHeight);
+    const numLines = Math.min(Math.ceil(diagonal / spacing) + 4, linePhases.length);
+    const startOffset = -diagonal * 0.5;
 
-    // Apply transform to both layers
-    const transform = `translate(${translateX}px, ${translateY}px) rotate(${accumulatedRotation}deg) scale(${scale})`;
+    const centerX = viewWidth * 0.5;
+    const centerY = viewHeight * 0.5;
 
-    const layerA = document.getElementById('pattern-layer-a');
-    const layerB = document.getElementById('pattern-layer-b');
+    const segmentLength = 6; // Slightly larger segments for performance
+    const lineLength = diagonal * 1.5;
+    const numSegments = Math.ceil(lineLength / segmentLength);
+    const segmentFactor = lineLength / numSegments;
 
-    if (layerA) layerA.style.transform = transform;
-    if (layerB) layerB.style.transform = transform;
+    // Pre-compute time-based noise offsets
+    const timeOffset1x = time * windSpeed * 0.1;
+    const timeOffset1y = time * 0.05;
+    const timeOffset2x = time * 0.12;
+    const timeOffset2y = -time * 0.08;
+    const timeOffset3x = -time * 0.03;
+    const timeOffset3y = time * 0.02;
+    const waveTimeOffset = time * windSpeed * 0.3;
+    const displacementMultiplier = windSpeed * 0.15 * jitterDiameter;
 
-    animationId = requestAnimationFrame(animatePatterns);
-  }
+    // Set stroke style once
+    ctx.lineWidth = params.width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = strokeStyle;
 
-  // Pattern definitions - the 10 specified Japanese/Kumiko patterns
-  const patterns = {
-    seigaiha: { width: 60, height: 30 },
-    asanoha: { width: 48, height: 48 },
-    shippo: { width: 40, height: 40 },
-    sashiko: { width: 60, height: 20 },
-    hishi: { width: 40, height: 40 },
-    goma: { width: 20, height: 20 },
-    kikko: { width: 52, height: 30 },
-    izutsu: { width: 40, height: 40 },
-    masu: { width: 30, height: 30 },
-    yae: { width: 60, height: 60 }
-  };
+    // Draw all lines
+    for (let i = 0; i < numLines; i++) {
+      const lineOffset = startOffset + i * spacing;
+      const baseX = centerX + perpX * lineOffset;
+      const baseY = centerY + perpY * lineOffset;
+      const linePhase = linePhases[i];
 
-  // Color palettes - barely perceptible, ghostly tones
-  const colorPalettes = [
-    { stroke: 'rgba(61, 58, 54, 0.04)', bg: '#faf9f7' },
-    { stroke: 'rgba(196, 90, 59, 0.035)', bg: '#faf9f7' },
-    { stroke: 'rgba(139, 115, 85, 0.04)', bg: '#faf9f7' },
-    { stroke: 'rgba(212, 165, 116, 0.05)', bg: '#faf9f7' },
-    { stroke: 'rgba(44, 42, 39, 0.035)', bg: '#faf9f7' },
-    { stroke: 'rgba(196, 90, 59, 0.03)', bg: '#faf9f7' },
-    { stroke: 'rgba(61, 58, 54, 0.04)', bg: '#faf9f7' },
-    { stroke: 'rgba(139, 115, 85, 0.035)', bg: '#faf9f7' }
-  ];
+      // Calculate points for this line
+      for (let j = 0; j <= numSegments; j++) {
+        const t = (j / numSegments - 0.5) * lineLength;
+        const px = baseX + lineX * t;
+        const py = baseY + lineY * t;
 
-  const patternNames = Object.keys(patterns);
-  let currentPatternIndex = 0;
-  let currentColorIndex = 0;
-  let activeLayer = 'a';
+        const noise1 = SimplexNoise.noise2D(
+          px * noiseScale1 + timeOffset1x,
+          py * noiseScale1 + timeOffset1y
+        );
+        const noise2 = SimplexNoise.noise2D(
+          px * noiseScale2 + timeOffset2x,
+          py * noiseScale2 + timeOffset2y
+        );
+        const noise3 = SimplexNoise.noise2D(
+          px * noiseScale3 + timeOffset3x,
+          py * noiseScale3 + timeOffset3y
+        );
 
-  // Build pattern paths using DOM methods
-  function buildPatternContent(patternName, group, strokeColor) {
-    // Clear existing content
-    while (group.firstChild) {
-      group.removeChild(group.firstChild);
+        const wavePos = (px * windX + py * windY) * waveScale;
+        const wave = Math.sin(wavePos + waveTimeOffset + linePhase * jitterAmount);
+
+        const baseDisplacement = noise1 * 0.4 + noise2 * 0.35 + noise3 * 0.25;
+        const combined = (baseDisplacement + wave * 0.5 * jitterAmount) * displacementMultiplier;
+
+        pointsX[j] = px + perpX * combined;
+        pointsY[j] = py + perpY * combined;
+      }
+
+      // Draw line using pre-computed points
+      ctx.beginPath();
+      ctx.moveTo(pointsX[0], pointsY[0]);
+      for (let j = 1; j <= numSegments; j++) {
+        ctx.lineTo(pointsX[j], pointsY[j]);
+      }
+      ctx.stroke();
     }
 
-    group.setAttribute('fill', 'none');
-    group.setAttribute('stroke', strokeColor);
-    group.setAttribute('stroke-width', '1');
-
-    const pathData = getPatternPaths(patternName);
-    pathData.forEach(function(d) {
-      if (d.type === 'path') {
-        const path = document.createElementNS(SVG_NS, 'path');
-        path.setAttribute('d', d.d);
-        if (d.strokeWidth) path.setAttribute('stroke-width', d.strokeWidth);
-        if (d.strokeDasharray) path.setAttribute('stroke-dasharray', d.strokeDasharray);
-        group.appendChild(path);
-      } else if (d.type === 'circle') {
-        const circle = document.createElementNS(SVG_NS, 'circle');
-        circle.setAttribute('cx', d.cx);
-        circle.setAttribute('cy', d.cy);
-        circle.setAttribute('r', d.r);
-        group.appendChild(circle);
-      } else if (d.type === 'rect') {
-        const rect = document.createElementNS(SVG_NS, 'rect');
-        rect.setAttribute('x', d.x);
-        rect.setAttribute('y', d.y);
-        rect.setAttribute('width', d.width);
-        rect.setAttribute('height', d.height);
-        group.appendChild(rect);
-      } else if (d.type === 'line') {
-        const line = document.createElementNS(SVG_NS, 'line');
-        line.setAttribute('x1', d.x1);
-        line.setAttribute('y1', d.y1);
-        line.setAttribute('x2', d.x2);
-        line.setAttribute('y2', d.y2);
-        group.appendChild(line);
-      }
-    });
-  }
-
-  function getPatternPaths(name) {
-    const p = {
-      seigaiha: [
-        {type:'path',d:'M0,30 Q15,0 30,30'},{type:'path',d:'M0,30 Q15,5 30,30'},{type:'path',d:'M0,30 Q15,10 30,30'},
-        {type:'path',d:'M0,30 Q15,15 30,30'},{type:'path',d:'M0,30 Q15,20 30,30'},
-        {type:'path',d:'M30,30 Q45,0 60,30'},{type:'path',d:'M30,30 Q45,5 60,30'},{type:'path',d:'M30,30 Q45,10 60,30'},
-        {type:'path',d:'M30,30 Q45,15 60,30'},{type:'path',d:'M30,30 Q45,20 60,30'},
-        {type:'path',d:'M-15,0 Q0,-30 15,0'},{type:'path',d:'M-15,0 Q0,-25 15,0'},{type:'path',d:'M-15,0 Q0,-20 15,0'},
-        {type:'path',d:'M-15,0 Q0,-15 15,0'},{type:'path',d:'M-15,0 Q0,-10 15,0'},
-        {type:'path',d:'M15,0 Q30,-30 45,0'},{type:'path',d:'M15,0 Q30,-25 45,0'},{type:'path',d:'M15,0 Q30,-20 45,0'},
-        {type:'path',d:'M15,0 Q30,-15 45,0'},{type:'path',d:'M15,0 Q30,-10 45,0'},
-        {type:'path',d:'M45,0 Q60,-30 75,0'},{type:'path',d:'M45,0 Q60,-25 75,0'},{type:'path',d:'M45,0 Q60,-20 75,0'},
-        {type:'path',d:'M45,0 Q60,-15 75,0'},{type:'path',d:'M45,0 Q60,-10 75,0'}
-      ],
-      asanoha: [
-        {type:'path',d:'M24,0 L24,24'},{type:'path',d:'M24,24 L24,48'},
-        {type:'path',d:'M0,12 L24,24'},{type:'path',d:'M24,24 L48,12'},
-        {type:'path',d:'M0,36 L24,24'},{type:'path',d:'M24,24 L48,36'},
-        {type:'path',d:'M24,0 L12,12 L24,24 L36,12 Z'},{type:'path',d:'M24,48 L12,36 L24,24 L36,36 Z'},
-        {type:'path',d:'M0,12 L12,12'},{type:'path',d:'M0,36 L12,36'},{type:'path',d:'M12,12 L12,36'},
-        {type:'path',d:'M48,12 L36,12'},{type:'path',d:'M48,36 L36,36'},{type:'path',d:'M36,12 L36,36'},
-        {type:'path',d:'M12,12 L24,0'},{type:'path',d:'M36,12 L24,0'},
-        {type:'path',d:'M12,36 L24,48'},{type:'path',d:'M36,36 L24,48'}
-      ],
-      shippo: [
-        {type:'circle',cx:0,cy:0,r:20},{type:'circle',cx:40,cy:0,r:20},
-        {type:'circle',cx:0,cy:40,r:20},{type:'circle',cx:40,cy:40,r:20},
-        {type:'circle',cx:20,cy:20,r:20}
-      ],
-      sashiko: [
-        {type:'path',d:'M0,10 Q15,0 30,10 Q45,20 60,10',strokeWidth:'1.5',strokeDasharray:'4,3'},
-        {type:'path',d:'M0,20 Q15,10 30,20',strokeWidth:'1.5',strokeDasharray:'4,3'},
-        {type:'path',d:'M30,0 Q45,10 60,0',strokeWidth:'1.5',strokeDasharray:'4,3'}
-      ],
-      hishi: [
-        {type:'path',d:'M20,0 L40,20 L20,40 L0,20 Z'},{type:'path',d:'M20,8 L32,20 L20,32 L8,20 Z'},
-        {type:'path',d:'M20,0 L20,8'},{type:'path',d:'M20,32 L20,40'},
-        {type:'path',d:'M0,20 L8,20'},{type:'path',d:'M32,20 L40,20'},
-        {type:'path',d:'M20,0 L8,20 L20,8 Z'},{type:'path',d:'M20,0 L32,20 L20,8 Z'},
-        {type:'path',d:'M20,40 L8,20 L20,32 Z'},{type:'path',d:'M20,40 L32,20 L20,32 Z'}
-      ],
-      goma: [
-        {type:'path',d:'M10,0 L20,10 L10,20 L0,10 Z'},{type:'path',d:'M10,5 L15,10 L10,15 L5,10 Z'},
-        {type:'line',x1:10,y1:0,x2:10,y2:5},{type:'line',x1:10,y1:15,x2:10,y2:20},
-        {type:'line',x1:0,y1:10,x2:5,y2:10},{type:'line',x1:15,y1:10,x2:20,y2:10}
-      ],
-      kikko: [
-        {type:'path',d:'M13,0 L26,0 L39,15 L26,30 L13,30 L0,15 Z'},
-        {type:'path',d:'M39,0 L52,0 L65,15 L52,30 L39,30 L26,15 Z'},
-        {type:'path',d:'M-13,0 L0,0 L13,15 L0,30 L-13,30 L-26,15 Z'}
-      ],
-      izutsu: [
-        {type:'rect',x:5,y:5,width:15,height:15},{type:'rect',x:20,y:5,width:15,height:15},
-        {type:'rect',x:5,y:20,width:15,height:15},{type:'rect',x:20,y:20,width:15,height:15},
-        {type:'rect',x:10,y:10,width:20,height:20}
-      ],
-      masu: [
-        {type:'rect',x:0,y:0,width:30,height:30},{type:'rect',x:5,y:5,width:20,height:20},
-        {type:'rect',x:10,y:10,width:10,height:10},
-        {type:'line',x1:0,y1:0,x2:5,y2:5},{type:'line',x1:30,y1:0,x2:25,y2:5},
-        {type:'line',x1:0,y1:30,x2:5,y2:25},{type:'line',x1:30,y1:30,x2:25,y2:25}
-      ],
-      yae: [
-        {type:'path',d:'M30,0 L30,30'},{type:'path',d:'M30,30 L30,60'},
-        {type:'path',d:'M0,15 L30,30'},{type:'path',d:'M30,30 L60,15'},
-        {type:'path',d:'M0,45 L30,30'},{type:'path',d:'M30,30 L60,45'},
-        {type:'path',d:'M30,10 L30,30'},{type:'path',d:'M30,30 L30,50'},
-        {type:'path',d:'M12,20 L30,30'},{type:'path',d:'M30,30 L48,20'},
-        {type:'path',d:'M12,40 L30,30'},{type:'path',d:'M30,30 L48,40'},
-        {type:'path',d:'M30,0 L60,30 L30,60 L0,30 Z'},{type:'path',d:'M30,10 L50,30 L30,50 L10,30 Z'}
-      ]
-    };
-    return p[name] || [];
-  }
-
-  function updateLayer(layerId, patternName, colors) {
-    var svg = document.getElementById('pattern-layer-' + layerId);
-    if (!svg) return;
-
-    var defs = svg.querySelector('defs');
-    var bgRect = svg.querySelector('.pattern-bg');
-    var patternRect = svg.querySelector('.pattern-fill');
-    var patternId = 'pattern-' + layerId;
-    var p = patterns[patternName];
-
-    // Remove old pattern
-    var oldPattern = defs.querySelector('pattern');
-    if (oldPattern) defs.removeChild(oldPattern);
-
-    // Create new pattern element
-    var pattern = document.createElementNS(SVG_NS, 'pattern');
-    pattern.setAttribute('id', patternId);
-    pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-    pattern.setAttribute('width', p.width);
-    pattern.setAttribute('height', p.height);
-
-    var group = document.createElementNS(SVG_NS, 'g');
-    buildPatternContent(patternName, group, colors.stroke);
-    pattern.appendChild(group);
-    defs.appendChild(pattern);
-
-    bgRect.setAttribute('fill', colors.bg);
-    patternRect.setAttribute('fill', 'url(#' + patternId + ')');
-  }
-
-  function getNextPattern() {
-    var next;
-    do {
-      next = Math.floor(Math.random() * patternNames.length);
-    } while (next === currentPatternIndex && patternNames.length > 1);
-    currentPatternIndex = next;
-    return patternNames[next];
-  }
-
-  function getNextColors() {
-    var next;
-    do {
-      next = Math.floor(Math.random() * colorPalettes.length);
-    } while (next === currentColorIndex && colorPalettes.length > 1);
-    currentColorIndex = next;
-    return colorPalettes[next];
-  }
-
-  function morphPattern() {
-    var nextPattern = getNextPattern();
-    var nextColors = getNextColors();
-    var nextLayer = activeLayer === 'a' ? 'b' : 'a';
-
-    updateLayer(nextLayer, nextPattern, nextColors);
-
-    var currentLayerEl = document.getElementById('pattern-layer-' + activeLayer);
-    var nextLayerEl = document.getElementById('pattern-layer-' + nextLayer);
-
-    currentLayerEl.classList.add('fade-out');
-    currentLayerEl.classList.remove('fade-in');
-    nextLayerEl.classList.add('fade-in');
-    nextLayerEl.classList.remove('fade-out');
-
-    activeLayer = nextLayer;
+    animationId = requestAnimationFrame(render);
   }
 
   function init() {
-    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var isMobile = window.matchMedia('(max-width: 42em)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Pause animation when page not visible
     document.addEventListener('visibilitychange', function() {
       isPaused = document.hidden;
-      if (!document.hidden && !startTime) {
-        startTime = performance.now();
+      if (!document.hidden) {
+        lastFrameTime = performance.now();
       }
     });
 
-    // Initialize first pattern
-    currentPatternIndex = Math.floor(Math.random() * patternNames.length);
-    currentColorIndex = Math.floor(Math.random() * colorPalettes.length);
-    var initialPattern = patternNames[currentPatternIndex];
-    var initialColors = colorPalettes[currentColorIndex];
-    updateLayer('a', initialPattern, initialColors);
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    updateDerivedParams();
 
-    // Prepare second layer
-    var nextPattern = getNextPattern();
-    var nextColors = getNextColors();
-    updateLayer('b', nextPattern, nextColors);
-
-    // Start morphing between patterns
-    var interval = (prefersReducedMotion || isMobile) ? 45000 : 30000;
-    setInterval(morphPattern, interval);
-
-    // Start the oscillating animation (skip if reduced motion preferred)
     if (!prefersReducedMotion) {
-      animationId = requestAnimationFrame(animatePatterns);
+      lastFrameTime = performance.now();
+      animationId = requestAnimationFrame(render);
+    } else {
+      // Render one static frame for reduced motion
+      lastFrameTime = performance.now();
+      render(lastFrameTime);
+      cancelAnimationFrame(animationId);
     }
   }
 
