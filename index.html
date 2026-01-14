@@ -15,6 +15,13 @@ title: Rick Winfrey
     height: 120%;
     z-index: -1;
   }
+
+  /* Disable animation on mobile for performance/battery */
+  @media (max-width: 768px) {
+    #lineFieldBackground {
+      display: none;
+    }
+  }
 </style>
 
 <script>
@@ -326,6 +333,13 @@ title: Rick Winfrey
   }
 
   function init() {
+    // Skip animation entirely on mobile for performance/battery
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      canvas.style.display = 'none';
+      return;
+    }
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     document.addEventListener('visibilitychange', function() {
