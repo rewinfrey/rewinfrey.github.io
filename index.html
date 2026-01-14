@@ -34,22 +34,22 @@ title: Rick Winfrey
 
   // Parameters tuned for subtle background effect
   const params = {
-    spacing: 10,
-    width: 1,
+    spacing: 8,
+    width: 0.5,
     // Primary wind
-    wind: 2.2,
+    wind: 3.5,
     windDirection: Math.PI * 3 / 4,  // SW direction
     // Secondary wind
-    wind2: 2.2,
+    wind2: 3.5,
     wind2Direction: -Math.PI / 4,  // NE direction (opposite of SW)
     // Shared wind properties
-    windSize: 98,
-    jitter: 2,
-    jitterDiameter: 90,
+    windSize: 99,
+    jitter: 3,
+    jitterDiameter: 60,
     // Appearance
     color: '#bfbab1',
     opacity: 0.9,
-    lineOrientation: -Math.PI / 4  // 45 degrees (NE-SW diagonal)
+    lineOrientation: -Math.PI / 2  // 45 degrees (NE-SW diagonal)
   };
 
   // Pre-computed values (updated when params change)
