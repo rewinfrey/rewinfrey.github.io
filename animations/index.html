@@ -682,9 +682,32 @@ title: Animations
     colorHex.textContent = e.target.value;
   });
 
+  // Initialize controls from params
+  function initializeControls() {
+    // Sync sliders with params
+    densitySlider.value = params.density;
+    densityValue.textContent = params.density;
+    windSlider.value = params.wind;
+    windValue.textContent = params.wind;
+    pointSizeSlider.value = params.pointSize;
+    pointSizeValue.textContent = params.pointSize;
+    jitterSlider.value = params.jitter;
+    jitterValue.textContent = params.jitter;
+    jitterDiameterSlider.value = params.jitterDiameter;
+    jitterDiameterValue.textContent = params.jitterDiameter;
+    colorPicker.value = params.color;
+    colorHex.textContent = params.color;
+
+    // Set compass needle to initial position
+    const needleDegrees = params.direction * (180 / Math.PI) + 90;
+    compassNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${needleDegrees}deg)`;
+    directionValue.textContent = getDirectionName(params.direction);
+  }
+
   // Initialize
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+  initializeControls();
   render();
 })();
 </script>
@@ -1242,9 +1265,38 @@ title: Animations
     lineColorHex.textContent = e.target.value;
   });
 
+  // Initialize compass needles and display values from params
+  function initializeControls() {
+    // Set compass needles to initial positions
+    const windNeedleDegrees = params.windDirection * (180 / Math.PI) + 90;
+    lineWindCompassNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${windNeedleDegrees}deg)`;
+    lineWindDirectionValue.textContent = getDirectionName(params.windDirection);
+
+    const orientNeedleDegrees = params.lineOrientation * (180 / Math.PI) + 90;
+    lineOrientationCompassNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${orientNeedleDegrees}deg)`;
+    lineOrientationValue.textContent = getOrientationName(params.lineOrientation);
+
+    // Sync slider values with params
+    lineSpacingSlider.value = params.spacing;
+    lineSpacingValue.textContent = params.spacing;
+    lineWidthSlider.value = params.width;
+    lineWidthValue.textContent = params.width;
+    lineWindSlider.value = params.wind;
+    lineWindValue.textContent = params.wind;
+    lineWindSizeSlider.value = params.windSize;
+    lineWindSizeValue.textContent = params.windSize;
+    lineJitterSlider.value = params.jitter;
+    lineJitterValue.textContent = params.jitter;
+    lineJitterDiameterSlider.value = params.jitterDiameter;
+    lineJitterDiameterValue.textContent = params.jitterDiameter;
+    lineColorPicker.value = params.color;
+    lineColorHex.textContent = params.color;
+  }
+
   // Initialize
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+  initializeControls();
   render();
 })();
 </script>
@@ -1654,7 +1706,8 @@ title: Animations
         const wave = (wave1 * windSpeed + wave2 * wind2Speed) * invTotalWind;
 
         const baseDisplacement = noise1 * 0.55 + noise2 * 0.45;
-        const combined = (baseDisplacement + wave * 0.5 * jitterAmount) * displacementMultiplier;
+        // Wave contributes independently; jitter only affects per-line phase offset
+        const combined = (baseDisplacement + wave * 0.3) * displacementMultiplier;
 
         pointsX[j] = px + perpX * combined;
         pointsY[j] = py + perpY * combined;
@@ -1862,10 +1915,51 @@ title: Animations
     dragging.wind = dragging.wind2 = dragging.orient = false;
   });
 
+  // Initialize all controls from params
+  function initializeControls() {
+    // Sync sliders with params
+    controls.spacing.value = params.spacing;
+    displays.spacing.textContent = params.spacing;
+    controls.width.value = params.width;
+    displays.width.textContent = params.width;
+    controls.wind.value = params.wind;
+    displays.wind.textContent = params.wind;
+    controls.wind2.value = params.wind2;
+    displays.wind2.textContent = params.wind2;
+    controls.windDensity.value = params.windDensity;
+    displays.windDensity.textContent = params.windDensity;
+    controls.windSize.value = params.windSize;
+    displays.windSize.textContent = params.windSize;
+    controls.jitter.value = params.jitter;
+    displays.jitter.textContent = params.jitter;
+    controls.jitterDiameter.value = params.jitterDiameter;
+    displays.jitterDiameter.textContent = params.jitterDiameter;
+    controls.opacity.value = params.opacity;
+    displays.opacity.textContent = params.opacity;
+    controls.depth.value = params.opacityDepthFactor;
+    displays.depth.textContent = params.opacityDepthFactor;
+    controls.color.value = params.color;
+    displays.colorHex.textContent = params.color;
+
+    // Set compass needles to initial positions
+    const windDeg = params.windDirection * 180 / Math.PI + 90;
+    compasses.windNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${windDeg}deg)`;
+    displays.windDir.textContent = getDirectionName(params.windDirection);
+
+    const wind2Deg = params.wind2Direction * 180 / Math.PI + 90;
+    compasses.wind2Needle.style.transform = `translateX(-50%) translateY(-100%) rotate(${wind2Deg}deg)`;
+    displays.wind2Dir.textContent = getDirectionName(params.wind2Direction);
+
+    const orientDeg = params.lineOrientation * 180 / Math.PI + 90;
+    compasses.orientNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${orientDeg}deg)`;
+    displays.orient.textContent = getOrientationName(params.lineOrientation);
+  }
+
   // Initialize
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
   updateDerivedParams();
+  initializeControls();
   lastFrameTime = performance.now();
   animationId = requestAnimationFrame(render);
 })();
