@@ -37,11 +37,11 @@ title: Rick Winfrey
     spacing: 10,
     width: 1.0,
     wind: 2.5,
-    windSize: 97,
+    windSize: 100,
     jitter: 5,
     jitterDiameter: 100,
     color: '#bfbab1',
-    opacity: 0.1,
+    opacity: 0.9,
     windDirection: 0,
     lineOrientation: -Math.PI / 2
   };
@@ -60,11 +60,13 @@ title: Rick Winfrey
     const b = parseInt(hex.slice(5, 7), 16);
     strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + params.opacity + ')';
 
-    const sizeScale = 0.001 + 0.019 * (1 - params.windSize / 100);
+    // Wind size controls noise frequency: lower scale = broader patterns
+    // At windSize 100: scales are ~1.5x smaller than original for moderately broader waves
+    const sizeScale = 0.0007 + 0.0193 * (1 - params.windSize / 100);
     noiseScale1 = sizeScale;
     noiseScale2 = sizeScale * 1.8;
     noiseScale3 = sizeScale * 0.4;
-    waveScale = 0.005 + 0.025 * (1 - params.windSize / 100);
+    waveScale = 0.0033 + 0.0267 * (1 - params.windSize / 100);
   }
 
   // Optimized Simplex noise with pre-computed constants
