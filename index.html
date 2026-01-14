@@ -10,8 +10,8 @@ title: Rick Winfrey
   #lineFieldBackground {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: -5%;
+    width: 110%;
     height: 100%;
     z-index: -1;
   }
@@ -35,15 +35,15 @@ title: Rick Winfrey
   // Parameters tuned for subtle background effect
   const params = {
     spacing: 10,
-    width: 1.0,
-    wind: 2.5,
-    windSize: 100,
-    jitter: 5,
-    jitterDiameter: 100,
+    width: 1,
+    wind: 2.2,
+    windSize: 98,
+    jitter: 2,
+    jitterDiameter: 90,
     color: '#bfbab1',
     opacity: 0.9,
     windDirection: 0,
-    lineOrientation: -Math.PI / 2
+    lineOrientation: -Math.PI / 4  // 45 degrees (NE-SW diagonal)
   };
 
   // Pre-computed values (updated when params change)
@@ -150,7 +150,8 @@ title: Rick Winfrey
 
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
-    viewWidth = window.innerWidth;
+    // Canvas extends 5% beyond viewport on each side (110% total width)
+    viewWidth = window.innerWidth * 1.1;
     viewHeight = window.innerHeight;
 
     canvas.width = viewWidth * dpr;
@@ -180,7 +181,7 @@ title: Rick Winfrey
     const windSpeed = params.wind;
     const spacing = Math.max(1, params.spacing);
     const jitterAmount = params.jitter / 100;
-    const jitterDiameter = params.jitterDiameter;
+    const jitterDiameter = params.jitterDiameter * 10; // 4x baseline for more overlap
 
     const windX = Math.cos(params.windDirection);
     const windY = Math.sin(params.windDirection);
