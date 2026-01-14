@@ -42,7 +42,7 @@ title: Rick Winfrey
     jitterDiameter: 90,
     color: '#bfbab1',
     opacity: 0.9,
-    windDirection: 0,
+    windDirection: Math.PI * 3 / 4,  // SW direction
     lineOrientation: -Math.PI / 4  // 45 degrees (NE-SW diagonal)
   };
 
@@ -183,8 +183,12 @@ title: Rick Winfrey
     const jitterAmount = params.jitter / 100;
     const jitterDiameter = params.jitterDiameter * 10; // 4x baseline for more overlap
 
+    // Primary wind direction (SW)
     const windX = Math.cos(params.windDirection);
     const windY = Math.sin(params.windDirection);
+    // Secondary wind direction (E)
+    const wind2X = 1;  // cos(0) = 1
+    const wind2Y = 0;  // sin(0) = 0
 
     const lineAngle = params.lineOrientation;
     const lineX = Math.cos(lineAngle);
@@ -213,6 +217,7 @@ title: Rick Winfrey
     const timeOffset3x = -time * 0.03;
     const timeOffset3y = time * 0.02;
     const waveTimeOffset = time * windSpeed * 0.3;
+    const wave2TimeOffset = time * windSpeed * 0.3; // Same speed as primary
     const displacementMultiplier = windSpeed * 0.15 * jitterDiameter;
 
     // Set stroke style once
@@ -247,8 +252,16 @@ title: Rick Winfrey
           py * noiseScale3 + timeOffset3y
         );
 
-        const wavePos = (px * windX + py * windY) * waveScale;
-        const wave = Math.sin(wavePos + waveTimeOffset + linePhase * jitterAmount);
+        // Primary wave from wind direction
+        const wavePos1 = (px * windX + py * windY) * waveScale;
+        const wave1 = Math.sin(wavePos1 + waveTimeOffset + linePhase * jitterAmount);
+
+        // Perpendicular wave from NW direction
+        const wavePos2 = (px * wind2X + py * wind2Y) * waveScale;
+        const wave2 = Math.sin(wavePos2 + wave2TimeOffset + linePhase * jitterAmount);
+
+        // Combine waves equally (creates crosshatch interference pattern)
+        const wave = (wave1 + wave2) * 0.5;
 
         const baseDisplacement = noise1 * 0.4 + noise2 * 0.35 + noise3 * 0.25;
         const combined = (baseDisplacement + wave * 0.5 * jitterAmount) * displacementMultiplier;
