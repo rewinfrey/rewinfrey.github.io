@@ -36,13 +36,19 @@ title: Rick Winfrey
   const params = {
     spacing: 10,
     width: 1,
+    // Primary wind
     wind: 2.2,
+    windDirection: Math.PI * 3 / 4,  // SW direction
+    // Secondary wind
+    wind2: 2.2,
+    wind2Direction: -Math.PI / 4,  // NE direction (opposite of SW)
+    // Shared wind properties
     windSize: 98,
     jitter: 2,
     jitterDiameter: 90,
+    // Appearance
     color: '#bfbab1',
     opacity: 0.9,
-    windDirection: Math.PI * 3 / 4,  // SW direction
     lineOrientation: -Math.PI / 4  // 45 degrees (NE-SW diagonal)
   };
 
@@ -172,7 +178,9 @@ title: Rick Winfrey
     lastFrameTime = timestamp;
 
     // Update time based on delta (normalized to ~60fps feel)
-    time += deltaTime * 0.6 * (params.wind + 0.5);
+    // Use combined wind speed for overall animation progression
+    const avgWind = (params.wind + params.wind2) * 0.5;
+    time += deltaTime * 0.6 * (avgWind + 0.5);
 
     // Clear canvas
     ctx.fillStyle = '#faf9f7';
@@ -183,12 +191,12 @@ title: Rick Winfrey
     const jitterAmount = params.jitter / 100;
     const jitterDiameter = params.jitterDiameter * 10; // 4x baseline for more overlap
 
-    // Primary wind direction (SW)
+    // Primary wind direction
     const windX = Math.cos(params.windDirection);
     const windY = Math.sin(params.windDirection);
-    // Secondary wind direction (E)
-    const wind2X = 1;  // cos(0) = 1
-    const wind2Y = 0;  // sin(0) = 0
+    // Secondary wind direction
+    const wind2X = Math.cos(params.wind2Direction);
+    const wind2Y = Math.sin(params.wind2Direction);
 
     const lineAngle = params.lineOrientation;
     const lineX = Math.cos(lineAngle);
@@ -209,16 +217,22 @@ title: Rick Winfrey
     const numSegments = Math.ceil(lineLength / segmentLength);
     const segmentFactor = lineLength / numSegments;
 
-    // Pre-compute time-based noise offsets
-    const timeOffset1x = time * windSpeed * 0.1;
-    const timeOffset1y = time * 0.05;
-    const timeOffset2x = time * 0.12;
-    const timeOffset2y = -time * 0.08;
-    const timeOffset3x = -time * 0.03;
-    const timeOffset3y = time * 0.02;
+    const wind2Speed = params.wind2;
+
+    // Pre-compute time-based noise offsets (blend both wind directions)
+    const windBlendX = (windX * windSpeed + wind2X * wind2Speed) / (windSpeed + wind2Speed + 0.01);
+    const windBlendY = (windY * windSpeed + wind2Y * wind2Speed) / (windSpeed + wind2Speed + 0.01);
+    const timeOffset1x = time * windBlendX * 0.15;
+    const timeOffset1y = time * windBlendY * 0.15;
+    const timeOffset2x = time * windBlendX * 0.12 + time * 0.05;
+    const timeOffset2y = time * windBlendY * 0.12 - time * 0.03;
+    const timeOffset3x = time * windBlendX * 0.08 - time * 0.02;
+    const timeOffset3y = time * windBlendY * 0.08 + time * 0.02;
     const waveTimeOffset = time * windSpeed * 0.3;
-    const wave2TimeOffset = time * windSpeed * 0.3; // Same speed as primary
-    const displacementMultiplier = windSpeed * 0.15 * jitterDiameter;
+    const wave2TimeOffset = time * wind2Speed * 0.3;
+    // Combined wind strength for displacement
+    const combinedWindSpeed = (windSpeed + wind2Speed) * 0.5;
+    const displacementMultiplier = combinedWindSpeed * 0.15 * jitterDiameter;
 
     // Set stroke style once
     ctx.lineWidth = params.width;
@@ -256,12 +270,15 @@ title: Rick Winfrey
         const wavePos1 = (px * windX + py * windY) * waveScale;
         const wave1 = Math.sin(wavePos1 + waveTimeOffset + linePhase * jitterAmount);
 
-        // Perpendicular wave from NW direction
+        // Secondary wave
         const wavePos2 = (px * wind2X + py * wind2Y) * waveScale;
         const wave2 = Math.sin(wavePos2 + wave2TimeOffset + linePhase * jitterAmount);
 
-        // Combine waves equally (creates crosshatch interference pattern)
-        const wave = (wave1 + wave2) * 0.5;
+        // Combine waves weighted by their wind speeds
+        const totalWind = windSpeed + wind2Speed;
+        const wave = totalWind > 0
+          ? (wave1 * windSpeed + wave2 * wind2Speed) / totalWind
+          : 0;
 
         const baseDisplacement = noise1 * 0.4 + noise2 * 0.35 + noise3 * 0.25;
         const combined = (baseDisplacement + wave * 0.5 * jitterAmount) * displacementMultiplier;
