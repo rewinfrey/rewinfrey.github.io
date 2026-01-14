@@ -3,6 +3,7 @@ name: Rick Winfrey
 email: rick.winfrey@gmail.com
 title: "Rick Winfrey"
 description: "Rick Winfrey"
+url: "https://rickwinfrey.com"
 baseurl: "/"
 
 markdown: kramdown

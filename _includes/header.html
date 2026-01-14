@@ -7,6 +7,7 @@
       {% for heading in site.headings %}
       <a href="{{ heading | downcase | prepend: '/' }}" {% if heading == page.group %}class="current"{% endif %}>{{ heading }}</a>
       {% endfor %}
+      <a href="/feed.xml" class="rss-link" title="RSS Feed"><i class="fa-solid fa-rss"></i></a>
     </nav>
   </div>
 </header>
