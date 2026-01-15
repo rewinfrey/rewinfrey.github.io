@@ -275,6 +275,12 @@ The LLM (opus 4-5) provided this initial skeleton including a canvas element, a 
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo1"></canvas>
+    <div class="demo-paused-overlay paused" id="demo1-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="control-group">
@@ -332,7 +338,11 @@ const animation = new LineFieldAnimation(canvas, {
   }
 });
 
-// Render after layout is complete
+// Mobile overlay handling
+const isMobile = window.matchMedia('(max-width: 42em)').matches;
+const overlay = document.getElementById('demo1-overlay');
+const playBtn = overlay.querySelector('.play-btn');
+
 function initRender() {
   requestAnimationFrame(() => {
     animation.resize();
@@ -340,10 +350,20 @@ function initRender() {
   });
 }
 
-if (document.readyState === 'complete') {
-  initRender();
+if (isMobile) {
+  // Mobile: wait for user to tap play
+  playBtn.addEventListener('click', () => {
+    overlay.classList.remove('paused');
+    initRender();
+  });
 } else {
-  window.addEventListener('load', initRender);
+  // Desktop: render immediately and hide overlay
+  overlay.classList.remove('paused');
+  if (document.readyState === 'complete') {
+    initRender();
+  } else {
+    window.addEventListener('load', initRender);
+  }
 }
 
 // Compass interaction
