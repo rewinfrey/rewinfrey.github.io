@@ -189,42 +189,51 @@ categories:
 }
 
 /* Play/pause controls - mobile only */
-.demo-play-pause {
-  display: none;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(61, 58, 54, 0.2);
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: #3d3a36;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-.demo-play-pause:hover {
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.demo-play-pause.playing .play-icon { display: none; }
-.demo-play-pause.playing .pause-icon { display: block; }
-.demo-play-pause:not(.playing) .play-icon { display: block; }
-.demo-play-pause:not(.playing) .pause-icon { display: none; }
-
 .demo-canvas-wrapper {
   position: relative;
 }
 
+.demo-paused-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(250, 249, 247, 0.85);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.demo-paused-overlay .paused-message {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  color: #3d3a36;
+  text-align: center;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+.demo-paused-overlay .play-btn {
+  border: none;
+  background: none;
+  font-size: 2.5rem;
+  color: #c45a3b;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.demo-paused-overlay .play-btn:hover {
+  color: #a04830;
+  transform: scale(1.1);
+}
+
 @media (max-width: 42em) {
-  .demo-play-pause {
+  .demo-paused-overlay.paused {
     display: flex;
   }
 }
@@ -314,7 +323,9 @@ The LLM (opus 4-5) provided this initial skeleton including a canvas element, a 
 - **Line Color** — The color of the lines
 
 <div class="demo-box">
-  <canvas id="demo1"></canvas>
+  <div class="demo-canvas-wrapper">
+    <canvas id="demo1"></canvas>
+  </div>
   <div class="demo-controls">
     <div class="control-group">
       <label class="control-label">Line Direction</label>
@@ -370,7 +381,11 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-animation.renderOnce();
+// Ensure canvas is properly sized before first render
+requestAnimationFrame(() => {
+  animation.handleResize();
+  animation.renderOnce();
+});
 
 // Compass interaction
 const orientCompass = document.getElementById('demo1-orient-compass');
@@ -415,26 +430,28 @@ document.getElementById('demo1-color').addEventListener('input', (e) => {
 
 <script type="module">
 // Shared animation controller for mobile/desktop behavior
-window.setupAnimatedDemo = function(animation, canvasId, toggleId) {
+window.setupAnimatedDemo = function(animation, canvasId, overlayId) {
   const isMobile = window.matchMedia('(max-width: 42em)').matches;
   const canvas = document.getElementById(canvasId);
-  const toggle = document.getElementById(toggleId);
+  const overlay = document.getElementById(overlayId);
+  const playBtn = overlay.querySelector('.play-btn');
   let isPlaying = false;
   let isVisible = false;
+  let userStarted = false;
 
-  function updateToggleState() {
-    if (isPlaying) {
-      toggle.classList.add('playing');
-    } else {
-      toggle.classList.remove('playing');
-    }
+  function hideOverlay() {
+    overlay.classList.remove('paused');
+  }
+
+  function showOverlay() {
+    overlay.classList.add('paused');
   }
 
   function play() {
     if (!isPlaying) {
       isPlaying = true;
       animation.start();
-      updateToggleState();
+      hideOverlay();
     }
   }
 
@@ -443,7 +460,10 @@ window.setupAnimatedDemo = function(animation, canvasId, toggleId) {
       isPlaying = false;
       animation.stop();
       animation.renderOnce();
-      updateToggleState();
+      // Only show overlay on mobile if user hasn't started yet
+      if (isMobile && !userStarted) {
+        showOverlay();
+      }
     }
   }
 
@@ -454,7 +474,7 @@ window.setupAnimatedDemo = function(animation, canvasId, toggleId) {
       if (isVisible) {
         // On mobile: only play if user has explicitly started it
         // On desktop: auto-play when visible
-        if (!isMobile || toggle.classList.contains('user-started')) {
+        if (!isMobile || userStarted) {
           play();
         }
       } else {
@@ -465,23 +485,19 @@ window.setupAnimatedDemo = function(animation, canvasId, toggleId) {
 
   observer.observe(canvas);
 
-  // Play/pause button handler
-  toggle.addEventListener('click', () => {
-    toggle.classList.add('user-started');
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
-    }
+  // Play button handler (mobile overlay)
+  playBtn.addEventListener('click', () => {
+    userStarted = true;
+    play();
   });
 
   // Initial state
   if (isMobile) {
-    // Mobile: start paused, render once for preview
+    // Mobile: start paused with overlay, render once for preview
     animation.renderOnce();
-    updateToggleState();
   } else {
-    // Desktop: will auto-play when visible via Intersection Observer
+    // Desktop: hide overlay, will auto-play when visible via Intersection Observer
+    hideOverlay();
     animation.renderOnce();
   }
 
@@ -507,10 +523,12 @@ Wind is modeled as a **sine wave traveling in a direction** causing displacement
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo2"></canvas>
-    <button class="demo-play-pause" id="demo2-toggle" aria-label="Play/Pause">
-      <span class="play-icon">▶</span>
-      <span class="pause-icon">❚❚</span>
-    </button>
+    <div class="demo-paused-overlay paused" id="demo2-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="demo-controls-featured">
@@ -609,7 +627,7 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-setupAnimatedDemo(animation, 'demo2', 'demo2-toggle');
+setupAnimatedDemo(animation, 'demo2', 'demo2-overlay');
 
 // Wind compass
 const windCompass = document.getElementById('demo2-wind-compass');
@@ -690,10 +708,12 @@ Adding a second wind with independent direction and speed created **interference
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo3"></canvas>
-    <button class="demo-play-pause" id="demo3-toggle" aria-label="Play/Pause">
-      <span class="play-icon">▶</span>
-      <span class="pause-icon">❚❚</span>
-    </button>
+    <div class="demo-paused-overlay paused" id="demo3-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="demo-controls-featured">
@@ -822,7 +842,7 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-setupAnimatedDemo(animation, 'demo3', 'demo3-toggle');
+setupAnimatedDemo(animation, 'demo3', 'demo3-overlay');
 
 // Wind 2 compass (featured)
 const wind2Compass = document.getElementById('demo3-wind2-compass');
@@ -927,10 +947,12 @@ Using the noise displacement value to **modulate opacity**: points that displace
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo4"></canvas>
-    <button class="demo-play-pause" id="demo4-toggle" aria-label="Play/Pause">
-      <span class="play-icon">▶</span>
-      <span class="pause-icon">❚❚</span>
-    </button>
+    <div class="demo-paused-overlay paused" id="demo4-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="demo-controls-featured">
@@ -1059,7 +1081,7 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-setupAnimatedDemo(animation, 'demo4', 'demo4-toggle');
+setupAnimatedDemo(animation, 'demo4', 'demo4-overlay');
 
 // Wind 1 compass
 const wind1Compass5 = document.getElementById('demo4-wind1-compass');
@@ -1160,10 +1182,12 @@ Whisp as a control works well with jitter, but they are distinct controls. Jitte
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo5"></canvas>
-    <button class="demo-play-pause" id="demo5-toggle" aria-label="Play/Pause">
-      <span class="play-icon">▶</span>
-      <span class="pause-icon">❚❚</span>
-    </button>
+    <div class="demo-paused-overlay paused" id="demo5-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="demo-controls-featured">
@@ -1299,7 +1323,7 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-setupAnimatedDemo(animation, 'demo5', 'demo5-toggle');
+setupAnimatedDemo(animation, 'demo5', 'demo5-overlay');
 
 // Wind 1 compass
 const wind1Compass6 = document.getElementById('demo5-wind1-compass');
@@ -1403,10 +1427,12 @@ Slow-moving spatial noise modulates each wind's intensity. At low gust values, y
 <div class="demo-box">
   <div class="demo-canvas-wrapper">
     <canvas id="demo6"></canvas>
-    <button class="demo-play-pause" id="demo6-toggle" aria-label="Play/Pause">
-      <span class="play-icon">▶</span>
-      <span class="pause-icon">❚❚</span>
-    </button>
+    <div class="demo-paused-overlay paused" id="demo6-overlay">
+      <button class="play-btn" aria-label="Play">
+        <span class="fa-solid fa-circle-play" aria-hidden="true"></span>
+      </button>
+      <span class="paused-message">Animation paused on mobile. Tap play to start.</span>
+    </div>
   </div>
   <div class="demo-controls">
     <div class="demo-controls-featured">
@@ -1556,7 +1582,7 @@ const animation = new LineFieldAnimation(canvas, {
     color: '#b4afa5'
   }
 });
-setupAnimatedDemo(animation, 'demo6', 'demo6-toggle');
+setupAnimatedDemo(animation, 'demo6', 'demo6-overlay');
 
 // Wind 1 compass
 const wind1Compass7 = document.getElementById('demo6-wind1-compass');
