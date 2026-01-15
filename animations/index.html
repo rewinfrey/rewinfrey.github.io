@@ -47,6 +47,29 @@ title: Animations
     border: 1px solid rgba(61, 58, 54, 0.1);
   }
 
+  .controls-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+  }
+
+  .controls-row + .controls-row {
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(61, 58, 54, 0.08);
+  }
+
+  .controls-row-label {
+    grid-column: 1 / -1;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.85rem;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
   .control-group {
     display: flex;
     flex-direction: column;
@@ -725,172 +748,208 @@ title: Animations
   </div>
 
   <div class="controls-panel">
-    <!-- Row 1: Line Spacing, Line Width, Line Color -->
-    <div class="control-group">
-      <label class="control-label">
-        Line Spacing
-        <span class="control-value" id="v2SpacingValue">7</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Spacing" min="2" max="20" value="7">
+    <!-- Row 1: Gust Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Gust Controls</span>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Gust
+          <span class="control-value" id="v2WindOscValue">10</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindOsc" min="1" max="10" value="10">
+        </div>
+        <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+          1 = rare gusts, 10 = constant
+        </p>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Gust
+          <span class="control-value" id="v2Wind2OscValue">10</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind2Osc" min="1" max="10" value="10">
+        </div>
+        <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+          1 = rare gusts, 10 = constant
+        </p>
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label">
-        Line Width
-        <span class="control-value" id="v2WidthValue">0.7</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Width" min="0.1" max="3" value="0.7" step="0.1">
+    <!-- Row 2: Effect Sliders -->
+    <div class="controls-row">
+      <span class="controls-row-label">Effects</span>
+      <div class="control-group">
+        <label class="control-label">
+          Whisp
+          <span class="control-value" id="v2WhispValue">0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Whisp" min="0" max="100" value="0">
+        </div>
       </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">Line Color</label>
-      <div class="color-picker-row">
-        <input type="color" id="v2Color" value="#d8d4cb">
-        <span class="color-hex" id="v2ColorHex">#d8d4cb</span>
+      <div class="control-group">
+        <label class="control-label">
+          Depth Effect
+          <span class="control-value" id="v2DepthValue">0.6</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Depth" min="0" max="1" value="0.6" step="0.1">
+        </div>
       </div>
-    </div>
-
-    <!-- Row 2: Jitter, Jitter Diameter, Depth Effect -->
-    <div class="control-group">
-      <label class="control-label">
-        Jitter
-        <span class="control-value" id="v2JitterValue">1</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Jitter" min="0" max="100" value="1">
+      <div class="control-group">
+        <label class="control-label">
+          Wind Density
+          <span class="control-value" id="v2WindDensityValue">7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindDensity" min="0" max="100" value="7">
+        </div>
       </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">
-        Jitter Diameter
-        <span class="control-value" id="v2JitterDiameterValue">22</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2JitterDiameter" min="1" max="60" value="22">
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">
-        Depth Effect
-        <span class="control-value" id="v2DepthValue">0.6</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Depth" min="0" max="1" value="0.6" step="0.1">
-      </div>
-    </div>
-
-    <!-- Row 3: Wind Density, Wind Size, Opacity -->
-    <div class="control-group">
-      <label class="control-label">
-        Wind Density
-        <span class="control-value" id="v2WindDensityValue">7</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2WindDensity" min="0" max="100" value="7">
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">
-        Wind Size
-        <span class="control-value" id="v2WindSizeValue">99</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2WindSize" min="0" max="100" value="99">
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">
-        Opacity
-        <span class="control-value" id="v2OpacityValue">0.9</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Opacity" min="0.1" max="1" value="0.9" step="0.1">
-      </div>
-    </div>
-
-    <!-- Row 4: Primary Wind Speed, Primary Wind Direction -->
-    <div class="control-group">
-      <label class="control-label">
-        Primary Wind Speed
-        <span class="control-value" id="v2WindValue">4.0</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Wind" min="0" max="10" value="4.0" step="0.5">
-      </div>
-    </div>
-
-    <!-- Row 5: Secondary Wind Speed, Secondary Wind Direction -->
-    <div class="control-group">
-      <label class="control-label">
-        Secondary Wind Speed
-        <span class="control-value" id="v2Wind2Value">3.0</span>
-      </label>
-      <div class="slider-container">
-        <input type="range" id="v2Wind2" min="0" max="10" value="3.0" step="0.5">
-      </div>
-    </div>
-
-    <br />
-
-    <div class="control-group">
-      <label class="control-label">
-        Primary Wind Direction
-        <span class="control-value" id="v2WindDirValue">W</span>
-      </label>
-      <div class="compass-container">
-        <div class="compass" id="v2WindCompass">
-          <div class="compass-ring"></div>
-          <span class="compass-direction compass-n">N</span>
-          <span class="compass-direction compass-s">S</span>
-          <span class="compass-direction compass-e">E</span>
-          <span class="compass-direction compass-w">W</span>
-          <div class="compass-needle" id="v2WindNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(180deg);"></div>
-          <div class="compass-center"></div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind Size
+          <span class="control-value" id="v2WindSizeValue">99</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindSize" min="0" max="100" value="99">
         </div>
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label">
-        Secondary Wind Direction
-        <span class="control-value" id="v2Wind2DirValue">NW</span>
-      </label>
-      <div class="compass-container">
-        <div class="compass" id="v2Wind2Compass">
-          <div class="compass-ring"></div>
-          <span class="compass-direction compass-n">N</span>
-          <span class="compass-direction compass-s">S</span>
-          <span class="compass-direction compass-e">E</span>
-          <span class="compass-direction compass-w">W</span>
-          <div class="compass-needle" id="v2Wind2Needle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
-          <div class="compass-center"></div>
+    <!-- Row 3: Wind Direction and Speed -->
+    <div class="controls-row">
+      <span class="controls-row-label">Wind Sources</span>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Direction
+          <span class="control-value" id="v2WindDirValue">W</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2WindCompass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2WindNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(180deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Speed
+          <span class="control-value" id="v2WindValue">4.0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind" min="0" max="10" value="4.0" step="0.5">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Direction
+          <span class="control-value" id="v2Wind2DirValue">NW</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2Wind2Compass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2Wind2Needle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Speed
+          <span class="control-value" id="v2Wind2Value">3.0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind2" min="0" max="10" value="3.0" step="0.5">
         </div>
       </div>
     </div>
 
-    <!-- Row 6: Line Orientation -->
-    <div class="control-group">
-      <label class="control-label">
-        Line Orientation
-        <span class="control-value" id="v2OrientValue">NW-SE</span>
-      </label>
-      <div class="compass-container">
-        <div class="compass" id="v2OrientCompass">
-          <div class="compass-ring"></div>
-          <span class="compass-direction compass-n">N</span>
-          <span class="compass-direction compass-s">S</span>
-          <span class="compass-direction compass-e">E</span>
-          <span class="compass-direction compass-w">W</span>
-          <div class="compass-needle" id="v2OrientNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
-          <div class="compass-center"></div>
+    <!-- Row 4: Jitter Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Jitter</span>
+      <div class="control-group">
+        <label class="control-label">
+          Jitter Amount
+          <span class="control-value" id="v2JitterValue">1</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Jitter" min="0" max="100" value="1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Jitter Diameter
+          <span class="control-value" id="v2JitterDiameterValue">22</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2JitterDiameter" min="1" max="60" value="22">
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5: Line Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Line Appearance</span>
+      <div class="control-group">
+        <label class="control-label">
+          Line Direction
+          <span class="control-value" id="v2OrientValue">NW-SE</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2OrientCompass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2OrientNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Line Spacing
+          <span class="control-value" id="v2SpacingValue">7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Spacing" min="2" max="20" value="7">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Line Width
+          <span class="control-value" id="v2WidthValue">0.7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Width" min="0.1" max="3" value="0.7" step="0.1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Opacity
+          <span class="control-value" id="v2OpacityValue">0.9</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Opacity" min="0.1" max="1" value="0.9" step="0.1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Line Color</label>
+        <div class="color-picker-row">
+          <input type="color" id="v2Color" value="#d8d4cb">
+          <span class="color-hex" id="v2ColorHex">#d8d4cb</span>
         </div>
       </div>
     </div>
@@ -929,6 +988,9 @@ const controls = {
   width: document.getElementById('v2Width'),
   wind: document.getElementById('v2Wind'),
   wind2: document.getElementById('v2Wind2'),
+  windOsc: document.getElementById('v2WindOsc'),
+  wind2Osc: document.getElementById('v2Wind2Osc'),
+  whisp: document.getElementById('v2Whisp'),
   windDensity: document.getElementById('v2WindDensity'),
   windSize: document.getElementById('v2WindSize'),
   jitter: document.getElementById('v2Jitter'),
@@ -943,6 +1005,9 @@ const displays = {
   width: document.getElementById('v2WidthValue'),
   wind: document.getElementById('v2WindValue'),
   wind2: document.getElementById('v2Wind2Value'),
+  windOsc: document.getElementById('v2WindOscValue'),
+  wind2Osc: document.getElementById('v2Wind2OscValue'),
+  whisp: document.getElementById('v2WhispValue'),
   windDensity: document.getElementById('v2WindDensityValue'),
   windSize: document.getElementById('v2WindSizeValue'),
   jitter: document.getElementById('v2JitterValue'),
@@ -987,6 +1052,24 @@ controls.wind2.addEventListener('input', (e) => {
   const value = parseFloat(e.target.value);
   animation.setParams({ wind2: value });
   displays.wind2.textContent = value;
+});
+
+controls.windOsc.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ windOscillation: value });
+  displays.windOsc.textContent = value;
+});
+
+controls.wind2Osc.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ wind2Oscillation: value });
+  displays.wind2Osc.textContent = value;
+});
+
+controls.whisp.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ whisp: value });
+  displays.whisp.textContent = value;
 });
 
 controls.windDensity.addEventListener('input', (e) => {
@@ -1097,6 +1180,12 @@ controls.wind.value = params.wind;
 displays.wind.textContent = params.wind;
 controls.wind2.value = params.wind2;
 displays.wind2.textContent = params.wind2;
+controls.windOsc.value = params.windOscillation;
+displays.windOsc.textContent = params.windOscillation;
+controls.wind2Osc.value = params.wind2Oscillation;
+displays.wind2Osc.textContent = params.wind2Oscillation;
+controls.whisp.value = params.whisp;
+displays.whisp.textContent = params.whisp;
 controls.windDensity.value = params.windDensity;
 displays.windDensity.textContent = params.windDensity;
 controls.windSize.value = params.windSize;
