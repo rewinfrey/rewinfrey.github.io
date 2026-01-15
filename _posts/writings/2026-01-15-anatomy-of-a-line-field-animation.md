@@ -342,27 +342,37 @@ const animation = new LineFieldAnimation(canvas, {
 const isMobile = window.matchMedia('(max-width: 42em)').matches;
 const overlay = document.getElementById('demo1-overlay');
 const playBtn = overlay.querySelector('.play-btn');
+let hasRendered = false;
 
-function initRender() {
+function render() {
   requestAnimationFrame(() => {
     animation.resize();
     animation.renderOnce();
   });
 }
 
+// Re-render on resize since Stage 1 is static (no animation loop)
+window.addEventListener('resize', () => {
+  if (hasRendered) {
+    render();
+  }
+});
+
 if (isMobile) {
   // Mobile: wait for user to tap play
   playBtn.addEventListener('click', () => {
     overlay.classList.remove('paused');
-    initRender();
+    hasRendered = true;
+    render();
   });
 } else {
   // Desktop: render immediately and hide overlay
   overlay.classList.remove('paused');
+  hasRendered = true;
   if (document.readyState === 'complete') {
-    initRender();
+    render();
   } else {
-    window.addEventListener('load', initRender);
+    window.addEventListener('load', render);
   }
 }
 
