@@ -9,7 +9,7 @@
   padding: 3rem 2rem 4rem;
   text-align: center;
   position: relative;
-  background: transparent;
+  background: rgba($background, 0.7);
   border-radius: 8px;
   margin-bottom: 1.5rem;
 
@@ -126,7 +126,7 @@
 
 .landing-section {
   padding: 2.5rem 2rem;
-  background: transparent;
+  background: rgba($background, 0.7);
   border-radius: 8px;
   margin-bottom: 1.5rem;
 
@@ -448,7 +448,7 @@
 
 .landing-footer {
   padding: 3rem 2rem;
-  background: transparent;
+  background: rgba($background, 0.7);
   border-radius: 8px;
   text-align: center;
 

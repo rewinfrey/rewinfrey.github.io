@@ -116,6 +116,10 @@ td:last-child {
 }
 
 body {
+  background: transparent;
+}
+
+html {
   background: $background;
 }
 
@@ -340,8 +344,10 @@ dt {
 }
 
 header {
-  background: $background;
+  background: rgba($background, 0.7);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 
   .container {
     max-width: $header-width;

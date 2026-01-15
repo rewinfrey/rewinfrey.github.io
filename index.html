@@ -13,7 +13,15 @@ title: Rick Winfrey
     left: -10%;
     width: 120%;
     height: 120%;
-    z-index: -1;
+    z-index: 0;
+  }
+
+  /* Content needs to sit above the canvas */
+  .landing-hero,
+  .landing-section,
+  .landing-footer {
+    position: relative;
+    z-index: 1;
   }
 
   /* Disable animation on mobile for performance/battery */
