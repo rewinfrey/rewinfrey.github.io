@@ -2,7 +2,7 @@
 layout: writing
 group: Writings
 title: "Anatomy of a Line Field Animation"
-summary: "How a simple grid of lines evolved into an organic, wind-driven canvas animation through iterative prompting with Claude."
+summary: "How a simple grid of lines evolved into an organic, wind-driven canvas animation through iterative prompting."
 date: 2026-01-15 12:00:00
 categories:
 - writings
@@ -1670,7 +1670,7 @@ A few patterns that worked well:
 
 ## The Sandbox: Playing with Parameters
 
-I find the general recipe of **build a sandbox first, then refine through iteration** works surprisingly well across a broad range of problems, not just for creative coding and play like this animation exercise. The underlying principle, which echoes themes from REPL-driven development, is the faster your feedback loop, the more you can explore and find ideal solutions.
+I find the general recipe of **build a sandbox first, then refine through iteration** works surprisingly well across a broad range of problems, not just for creative coding and play like this animation exercise. The underlying principle, which echoes themes from REPL-driven development, is the faster your feedback loop, the more you can explore and sample from the solution space to find an ideal solution.
 
 If you want to play with the sandbox I used to create this animation yourself, visit the [animations sandbox](/animations) and experiment. And if you build something interesting, I'd love to see it.
 
