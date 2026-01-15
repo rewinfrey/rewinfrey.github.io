@@ -129,12 +129,15 @@ const DEFAULT_PARAMS = {
   width: 0.7,
   wind: 4.0,
   windDirection: Math.PI / 2,
+  windOscillation: 10,  // 1-10: 10 = constant wind, 1 = minimal with rare gusts
   wind2: 3.0,
   wind2Direction: -Math.PI * 3 / 4,
+  wind2Oscillation: 10,
   windDensity: 7,
   windSize: 99,
   jitter: 1,
   jitterDiameter: 22,
+  whisp: 0,  // 0-100: per-line variation in wind response
   color: '#d8d4cb',
   opacity: 0.9,
   lineOrientation: -Math.PI * 3 / 4,
@@ -339,6 +342,13 @@ export class LineFieldAnimation {
     const jitterAmount = this.params.jitter / 100;
     const jitterDiameter = this.params.jitterDiameter * 10;
 
+    // Oscillation: convert 1-10 scale to floor value (1 -> 0, 10 -> 1)
+    const osc1Floor = (this.params.windOscillation - 1) / 9;
+    const osc2Floor = (this.params.wind2Oscillation - 1) / 9;
+
+    // Whisp: per-line wind response variation (0-100 -> 0-1)
+    const whispAmount = this.params.whisp / 100;
+
     // Pre-compute trig values
     const windX = Math.cos(this.params.windDirection);
     const windY = Math.sin(this.params.windDirection);
@@ -351,8 +361,9 @@ export class LineFieldAnimation {
     const perpY = Math.sin(perpAngle);
 
     const diagonal = Math.sqrt(viewWidth * viewWidth + viewHeight * viewHeight);
-    const numLines = Math.min(Math.ceil(diagonal / spacing) + 4, MAX_LINES);
-    const startOffset = -diagonal * 0.5;
+    const span = diagonal * 2.5; // generous span to cover canvas with displacement buffer
+    const numLines = Math.min(Math.ceil(span / spacing), MAX_LINES);
+    const startOffset = -span / 2; // center lines around canvas center
     const centerX = viewWidth * 0.5;
     const centerY = viewHeight * 0.5;
 
@@ -412,6 +423,34 @@ export class LineFieldAnimation {
 
       const linePhaseJitter = linePhases[i] * jitterAmount;
 
+      // Per-line oscillation envelopes (slow-moving spatial noise)
+      let osc1Envelope = 1.0;
+      let osc2Envelope = 1.0;
+      if (osc1Floor < 1.0) {
+        const oscNoise1 = SimplexNoise.noise2D(
+          baseX * 0.002 + this.time * 0.08,
+          baseY * 0.002 + 100
+        );
+        osc1Envelope = osc1Floor + ((oscNoise1 + 1) * 0.5) * (1 - osc1Floor);
+      }
+      if (osc2Floor < 1.0) {
+        const oscNoise2 = SimplexNoise.noise2D(
+          baseX * 0.002 + this.time * 0.06,
+          baseY * 0.002 + 200
+        );
+        osc2Envelope = osc2Floor + ((oscNoise2 + 1) * 0.5) * (1 - osc2Floor);
+      }
+
+      // Per-line whisp factor (determines how much this line catches the wind)
+      let whispFactor = 1.0;
+      if (whispAmount > 0) {
+        const whispNoise = SimplexNoise.noise2D(
+          baseX * 0.005 + this.time * 0.02,
+          baseY * 0.005 + 300
+        );
+        whispFactor = 1 - whispAmount + ((whispNoise + 1) * 0.5) * whispAmount;
+      }
+
       // Calculate points
       for (let j = 0; j <= numSegments; j++) {
         const t = (j * invNumSegments - 0.5) * lineLength;
@@ -431,7 +470,8 @@ export class LineFieldAnimation {
         const wave1 = Math.sin(wavePos1 + waveTimeOffset + linePhaseJitter);
         const wavePos2 = (px * wind2X + py * wind2Y) * this.waveScale;
         const wave2 = Math.sin(wavePos2 + wave2TimeOffset + linePhaseJitter);
-        const wave = (wave1 * windSpeed + wave2 * wind2Speed) * invTotalWind;
+        // Apply oscillation envelopes and whisp to wave calculation
+        const wave = (wave1 * windSpeed * osc1Envelope + wave2 * wind2Speed * osc2Envelope) * invTotalWind * whispFactor;
 
         const baseDisplacement = noise1 * 0.55 + noise2 * 0.45;
         const combined = (baseDisplacement + wave * 0.5 * jitterAmount) * displacementMultiplier;
