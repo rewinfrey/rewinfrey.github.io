@@ -371,23 +371,50 @@ sliders.forEach(({ key, fn, el }) => {
   // Check if we're on mobile (viewport width <= 768px)
   const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
+  // Mobile overlay elements
+  const overlay = document.getElementById(`overlay-${key}`);
+  const overlayPlayBtn = overlay ? overlay.querySelector('.play-btn') : null;
+
+  function hideOverlay() {
+    if (overlay) overlay.classList.remove('paused');
+  }
+  function showOverlay() {
+    if (overlay) overlay.classList.add('paused');
+  }
+
   // Start the animation immediately only on desktop.
   if (!isMobile) {
+    hideOverlay();
     promise(resolveWithFix(runner));
   } else {
-    // On mobile, start in paused state
+    // On mobile, start in paused state with overlay visible
     opts.status = "paused";
   }
 
   playButton.addEventListener("click", () => {
     if (opts && (opts.status === "paused" || opts.status === "canceled")) {
       opts.status = "running";
+      hideOverlay();
       promise(resolveWithFix(runner));
     }
   });
 
+  // Overlay play button (mobile)
+  if (overlayPlayBtn) {
+    overlayPlayBtn.addEventListener("click", () => {
+      if (opts && (opts.status === "paused" || opts.status === "canceled")) {
+        opts.status = "running";
+        hideOverlay();
+        promise(resolveWithFix(runner));
+      }
+    });
+  }
+
   pauseButton.addEventListener("click", () => {
-    if (opts && opts.status === "running") opts.status = "paused";
+    if (opts && opts.status === "running") {
+      opts.status = "paused";
+      if (isMobile) showOverlay();
+    }
   });
 
   clearButton.addEventListener("click", () => {
@@ -395,7 +422,8 @@ sliders.forEach(({ key, fn, el }) => {
       opts.status = "canceled";
       promise(resolveWithFix(runner)).then(() => {
         reset();
-        htmlTarget.innerHTML = "";
+        htmlTarget.textContent = "";
+        if (isMobile) showOverlay();
       });
     }
   });
