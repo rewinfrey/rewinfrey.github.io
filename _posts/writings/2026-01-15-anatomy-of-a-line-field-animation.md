@@ -332,15 +332,18 @@ const animation = new LineFieldAnimation(canvas, {
   }
 });
 
-// Render after page fully loads to ensure canvas has proper dimensions
-if (document.readyState === 'complete') {
-  animation.handleResize();
-  animation.renderOnce();
-} else {
-  window.addEventListener('load', () => {
-    animation.handleResize();
+// Render after layout is complete
+function initRender() {
+  requestAnimationFrame(() => {
+    animation.resize();
     animation.renderOnce();
   });
+}
+
+if (document.readyState === 'complete') {
+  initRender();
+} else {
+  window.addEventListener('load', initRender);
 }
 
 // Compass interaction
