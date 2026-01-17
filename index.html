@@ -118,7 +118,7 @@ if (isMobile) {
     </a>
   </div>
   <div class="writings-grid">
-    {% for post in site.categories['writings'] limit:3 %}
+    {% for post in site.categories['writings'] limit:5 %}
       <a href="{{ post.url }}" class="writing-card">
         <div class="writing-meta">
           <span class="writing-date">{{ post.date | date: "%B %Y" }}</span>
