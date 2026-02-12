@@ -1,23 +1,140 @@
 ---
-layout: sandbox
+layout: default
 group: Sandbox
 title: Sandbox
 ---
 
-<ul class="posts article">
-  <li>
-    <div class="title-container">
-      <h1 class="title">
-        <a href="{{ BASE_PATH }}d3/">d3</a>
-      </h1>
-    </div>
-  </li>
+<style>
+  .sandbox-header {
+    padding: 2rem 0 1rem;
+  }
 
-  <li>
-    <div class="title-container">
-      <h1 class="title">
-        <a href="{{ BASE_PATH }}react/">react</a>
-      </h1>
+  .sandbox-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .sandbox-subtitle {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 2rem;
+  }
+
+  .sandbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  @media (max-width: 42em) {
+    .sandbox-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .sandbox-card {
+    padding: 1.5rem;
+    border: 1px solid rgba(61, 58, 54, 0.08);
+    border-radius: 6px;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    display: block;
+  }
+
+  .sandbox-card:hover {
+    border-color: rgba(196, 90, 59, 0.3);
+    background: rgba(250, 249, 247, 0.7);
+    box-shadow: 0 4px 20px rgba(61, 58, 54, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .sandbox-card:hover .sandbox-card-title {
+    color: #c45a3b;
+  }
+
+  .sandbox-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(196, 90, 59, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #c45a3b;
+  }
+
+  .sandbox-card-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+    transition: color 0.25s ease;
+  }
+
+  .sandbox-card-description {
+    font-size: 0.9rem;
+    color: #8b7355;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .sandbox-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .sandbox-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(196, 90, 59, 0.08);
+    color: #c45a3b;
+    border-radius: 3px;
+  }
+</style>
+
+<div class="sandbox-header">
+  <h1 class="sandbox-title">Sandbox</h1>
+  <p class="sandbox-subtitle">Experiments, animations, and interactive demos.</p>
+</div>
+
+<div class="sandbox-grid">
+  <a href="/sandbox/line-field/" class="sandbox-card">
+    <div class="sandbox-card-icon">
+      <span class="fa-solid fa-wind"></span>
     </div>
-  </li>
-</ul>
+    <div class="sandbox-card-title">Line Field</div>
+    <p class="sandbox-card-description">
+      Point and line field animations with wind simulation, simplex noise, and configurable controls.
+    </p>
+    <div class="sandbox-card-tags">
+      <span class="sandbox-tag">Canvas</span>
+      <span class="sandbox-tag">Animation</span>
+      <span class="sandbox-tag">Simplex Noise</span>
+    </div>
+  </a>
+
+  <a href="/sandbox/cdc/" class="sandbox-card">
+    <div class="sandbox-card-icon">
+      <span class="fa-solid fa-scissors"></span>
+    </div>
+    <div class="sandbox-card-title">CDC Animations</div>
+    <p class="sandbox-card-description">
+      Content-Defined Chunking visualizations: GEAR hash rolling window, chunk boundary detection, and deduplication demos.
+    </p>
+    <div class="sandbox-card-tags">
+      <span class="sandbox-tag">CDC</span>
+      <span class="sandbox-tag">Algorithm</span>
+      <span class="sandbox-tag">Visualization</span>
+    </div>
+  </a>
+
+</div>

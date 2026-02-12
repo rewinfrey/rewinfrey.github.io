@@ -1,0 +1,1216 @@
+---
+layout: default
+title: Line Field Sandbox
+---
+
+<style>
+  .animation-section {
+    padding: 2rem 0;
+  }
+
+  .animation-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .animation-description {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 2rem;
+  }
+
+  .canvas-container {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(61, 58, 54, 0.15);
+    background: #faf9f7;
+    margin-bottom: 2rem;
+  }
+
+  #pointField {
+    display: block;
+    width: 100%;
+    height: 500px;
+  }
+
+  .controls-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(61, 58, 54, 0.1);
+  }
+
+  .controls-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+  }
+
+  .controls-row + .controls-row {
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(61, 58, 54, 0.08);
+  }
+
+  .controls-row-label {
+    grid-column: 1 / -1;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.85rem;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .control-label {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1rem;
+    color: #3d3a36;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .control-value {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #8b7355;
+    background: #faf9f7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #d4a574, #c45a3b);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #c45a3b;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #c45a3b;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  input[type="color"] {
+    width: 50px;
+    height: 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+  }
+
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border: 2px solid rgba(61, 58, 54, 0.2);
+    border-radius: 4px;
+  }
+
+  .color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .color-hex {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #8b7355;
+  }
+
+  /* Compass styles */
+  .compass-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .compass {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #faf9f7;
+    border: 2px solid rgba(61, 58, 54, 0.2);
+    position: relative;
+    cursor: pointer;
+  }
+
+  .compass-direction {
+    position: absolute;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #8b7355;
+  }
+
+  .compass-n { top: 8px; left: 50%; transform: translateX(-50%); }
+  .compass-s { bottom: 8px; left: 50%; transform: translateX(-50%); }
+  .compass-e { right: 8px; top: 50%; transform: translateY(-50%); }
+  .compass-w { left: 8px; top: 50%; transform: translateY(-50%); }
+
+  .compass-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 45px;
+    background: linear-gradient(to top, #c45a3b 50%, #3d3a36 50%);
+    transform-origin: center bottom;
+    transform: translateX(-50%) translateY(-100%);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .compass-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: #c45a3b;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .compass-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 80%;
+    border: 1px dashed rgba(61, 58, 54, 0.15);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  @media (max-width: 42em) {
+    .controls-panel {
+      grid-template-columns: 1fr;
+    }
+
+    #pointField {
+      height: 350px;
+    }
+  }
+</style>
+
+<section class="animation-section">
+  <h1 class="animation-title">Point Field Animation</h1>
+  <p class="animation-description">
+    A field of points animated like a sheet blowing in the wind. Adjust density to control point spacing,
+    wind to control animation intensity, and use the compass to set wind direction.
+  </p>
+
+  <div class="canvas-container">
+    <canvas id="pointField"></canvas>
+  </div>
+
+  <div class="controls-panel">
+    <div class="control-group">
+      <label class="control-label">
+        Density
+        <span class="control-value" id="densityValue">50</span>
+      </label>
+      <div class="slider-container">
+        <input type="range" id="density" min="0" max="100" value="50">
+      </div>
+      <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+        0 = no points, 100 = maximum density
+      </p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">
+        Wind Speed
+        <span class="control-value" id="windValue">5</span>
+      </label>
+      <div class="slider-container">
+        <input type="range" id="wind" min="0" max="10" value="5" step="0.5">
+      </div>
+      <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+        0 = still, 10 = aggressive wind
+      </p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">
+        Point Size
+        <span class="control-value" id="pointSizeValue">3</span>
+      </label>
+      <div class="slider-container">
+        <input type="range" id="pointSize" min="1" max="10" value="3" step="0.5">
+      </div>
+      <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+        1 = tiny dots, 10 = large circles
+      </p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">
+        Jitter
+        <span class="control-value" id="jitterValue">0</span>
+      </label>
+      <div class="slider-container">
+        <input type="range" id="jitter" min="0" max="100" value="0">
+      </div>
+      <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+        0 = uniform waves, 100 = random directions
+      </p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">
+        Jitter Diameter
+        <span class="control-value" id="jitterDiameterValue">5</span>
+      </label>
+      <div class="slider-container">
+        <input type="range" id="jitterDiameter" min="1" max="10" value="5" step="0.5">
+      </div>
+      <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+        Size of each point's movement circle
+      </p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Point Color</label>
+      <div class="color-picker-row">
+        <input type="color" id="pointColor" value="#c45a3b">
+        <span class="color-hex" id="colorHex">#c45a3b</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">
+        Wind Direction
+        <span class="control-value" id="directionValue">E</span>
+      </label>
+      <div class="compass-container">
+        <div class="compass" id="compass">
+          <div class="compass-ring"></div>
+          <span class="compass-direction compass-n">N</span>
+          <span class="compass-direction compass-s">S</span>
+          <span class="compass-direction compass-e">E</span>
+          <span class="compass-direction compass-w">W</span>
+          <div class="compass-needle" id="compassNeedle"></div>
+          <div class="compass-center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  // Canvas setup
+  const canvas = document.getElementById('pointField');
+  const ctx = canvas.getContext('2d');
+
+  // Controls
+  const densitySlider = document.getElementById('density');
+  const windSlider = document.getElementById('wind');
+  const pointSizeSlider = document.getElementById('pointSize');
+  const jitterSlider = document.getElementById('jitter');
+  const jitterDiameterSlider = document.getElementById('jitterDiameter');
+  const colorPicker = document.getElementById('pointColor');
+  const compass = document.getElementById('compass');
+  const compassNeedle = document.getElementById('compassNeedle');
+
+  // Display values
+  const densityValue = document.getElementById('densityValue');
+  const windValue = document.getElementById('windValue');
+  const pointSizeValue = document.getElementById('pointSizeValue');
+  const jitterValue = document.getElementById('jitterValue');
+  const jitterDiameterValue = document.getElementById('jitterDiameterValue');
+  const colorHex = document.getElementById('colorHex');
+  const directionValue = document.getElementById('directionValue');
+
+  // Animation state
+  let animationId = null;
+  let time = 0;
+  let startTime = performance.now() / 1000;
+
+  // Parameters
+  let params = {
+    density: 50,
+    wind: 5,
+    pointSize: 3,
+    jitter: 0,
+    jitterDiameter: 5,
+    color: '#c45a3b',
+    direction: 0  // Radians, 0 = East, PI/2 = South, etc.
+  };
+
+  // Simplex noise implementation for smooth, natural movement
+  const SimplexNoise = (function() {
+    const grad3 = [
+      [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
+      [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
+      [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
+    ];
+
+    const p = [];
+    for (let i = 0; i < 256; i++) {
+      p[i] = Math.floor(Math.random() * 256);
+    }
+
+    const perm = [];
+    for (let i = 0; i < 512; i++) {
+      perm[i] = p[i & 255];
+    }
+
+    function dot(g, x, y) {
+      return g[0] * x + g[1] * y;
+    }
+
+    return {
+      noise2D: function(xin, yin) {
+        const F2 = 0.5 * (Math.sqrt(3) - 1);
+        const G2 = (3 - Math.sqrt(3)) / 6;
+
+        let n0, n1, n2;
+        const s = (xin + yin) * F2;
+        const i = Math.floor(xin + s);
+        const j = Math.floor(yin + s);
+        const t = (i + j) * G2;
+        const X0 = i - t;
+        const Y0 = j - t;
+        const x0 = xin - X0;
+        const y0 = yin - Y0;
+
+        let i1, j1;
+        if (x0 > y0) { i1 = 1; j1 = 0; }
+        else { i1 = 0; j1 = 1; }
+
+        const x1 = x0 - i1 + G2;
+        const y1 = y0 - j1 + G2;
+        const x2 = x0 - 1 + 2 * G2;
+        const y2 = y0 - 1 + 2 * G2;
+
+        const ii = i & 255;
+        const jj = j & 255;
+        const gi0 = perm[ii + perm[jj]] % 12;
+        const gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
+        const gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
+
+        let t0 = 0.5 - x0 * x0 - y0 * y0;
+        if (t0 < 0) n0 = 0;
+        else {
+          t0 *= t0;
+          n0 = t0 * t0 * dot(grad3[gi0], x0, y0);
+        }
+
+        let t1 = 0.5 - x1 * x1 - y1 * y1;
+        if (t1 < 0) n1 = 0;
+        else {
+          t1 *= t1;
+          n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
+        }
+
+        let t2 = 0.5 - x2 * x2 - y2 * y2;
+        if (t2 < 0) n2 = 0;
+        else {
+          t2 *= t2;
+          n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
+        }
+
+        return 70 * (n0 + n1 + n2);
+      }
+    };
+  })();
+
+  // Seeded random for consistent per-point random angles
+  function seededRandom(x, y, timeBucket) {
+    const seed = x * 12.9898 + y * 78.233 + timeBucket * 43.2891;
+    const sinSeed = Math.sin(seed) * 43758.5453;
+    return sinSeed - Math.floor(sinSeed);
+  }
+
+  // Jitter angle refresh period (seconds)
+  const JITTER_REFRESH_PERIOD = 3;
+
+  // Get smoothly transitioning random angle for a point
+  function getPointRandomAngle(x, y, currentTime) {
+    // Calculate which time bucket we're in and progress through it
+    const timeBucket = Math.floor(currentTime / JITTER_REFRESH_PERIOD);
+    const progress = (currentTime % JITTER_REFRESH_PERIOD) / JITTER_REFRESH_PERIOD;
+
+    // Get angles for current and next time bucket
+    const currentAngle = seededRandom(x, y, timeBucket) * Math.PI * 2;
+    const nextAngle = seededRandom(x, y, timeBucket + 1) * Math.PI * 2;
+
+    // Smoothly interpolate between angles using eased progress
+    // Use smoothstep for natural-feeling transitions
+    const easedProgress = progress * progress * (3 - 2 * progress);
+
+    // Handle angle wraparound (take shortest path around the circle)
+    let angleDiff = nextAngle - currentAngle;
+    if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+    return currentAngle + angleDiff * easedProgress;
+  }
+
+  // Resize canvas to match container
+  function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  // Calculate grid spacing from density
+  function getSpacing() {
+    if (params.density === 0) return Infinity;
+    // Density 100 = 4px spacing (very dense)
+    // Density 1 = 100px spacing (very sparse)
+    const minSpacing = 4;
+    const maxSpacing = 100;
+    return maxSpacing - ((params.density / 100) * (maxSpacing - minSpacing));
+  }
+
+  // Get direction name from angle
+  function getDirectionName(angle) {
+    // Normalize angle to 0-2PI
+    const normalized = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const degrees = normalized * (180 / Math.PI);
+
+    if (degrees >= 337.5 || degrees < 22.5) return 'E';
+    if (degrees >= 22.5 && degrees < 67.5) return 'SE';
+    if (degrees >= 67.5 && degrees < 112.5) return 'S';
+    if (degrees >= 112.5 && degrees < 157.5) return 'SW';
+    if (degrees >= 157.5 && degrees < 202.5) return 'W';
+    if (degrees >= 202.5 && degrees < 247.5) return 'NW';
+    if (degrees >= 247.5 && degrees < 292.5) return 'N';
+    if (degrees >= 292.5 && degrees < 337.5) return 'NE';
+    return 'E';
+  }
+
+  // Main render function
+  function render() {
+    const width = canvas.offsetWidth;
+    const height = canvas.offsetHeight;
+
+    // Clear canvas
+    ctx.fillStyle = '#faf9f7';
+    ctx.fillRect(0, 0, width, height);
+
+    if (params.density === 0) {
+      animationId = requestAnimationFrame(render);
+      return;
+    }
+
+    const spacing = getSpacing();
+    const windSpeed = params.wind;
+
+    // Wind direction components
+    const windX = Math.cos(params.direction);
+    const windY = Math.sin(params.direction);
+
+    // Time progression based on wind speed
+    time += 0.01 * (windSpeed + 0.5);
+
+    // Real elapsed time for jitter angle transitions
+    const realTime = performance.now() / 1000 - startTime;
+
+    // Draw points
+    for (let x = spacing / 2; x < width; x += spacing) {
+      for (let y = spacing / 2; y < height; y += spacing) {
+        // Calculate wave influence based on position and wind direction
+        const wavePos = (x * windX + y * windY) * 0.01;
+
+        // Multiple layers of noise for natural look
+        const noise1 = SimplexNoise.noise2D(x * 0.005 + time * windSpeed * 0.1, y * 0.005 + time * 0.05);
+        const noise2 = SimplexNoise.noise2D(x * 0.01 + time * 0.15, y * 0.01 - time * 0.1);
+        const noise3 = SimplexNoise.noise2D(x * 0.002 - time * 0.02, y * 0.002 + time * 0.03);
+
+        // Combine noises with wave
+        const wave = Math.sin(wavePos + time * windSpeed * 0.5) * 0.5;
+        const combined = (noise1 * 0.4 + noise2 * 0.3 + noise3 * 0.3 + wave) * windSpeed * 0.1;
+
+        // Z-displacement affects size and opacity (simulating 3D depth)
+        const zDisplacement = combined;
+        const size = params.pointSize * (1 + zDisplacement * 0.5);
+
+        // Calculate displacement with jitter
+        // jitter=0: move along wind direction, jitter=100: move in random direction
+        const jitterAmount = params.jitter / 100;
+        const randomAngle = getPointRandomAngle(x, y, realTime);
+
+        // Wind-based direction (current behavior)
+        const windDirX = windX;
+        const windDirY = windY;
+
+        // Random direction for this point
+        const randomDirX = Math.cos(randomAngle);
+        const randomDirY = Math.sin(randomAngle);
+
+        // Blend between wind direction and random direction based on jitter
+        const blendedDirX = windDirX * (1 - jitterAmount) + randomDirX * jitterAmount;
+        const blendedDirY = windDirY * (1 - jitterAmount) + randomDirY * jitterAmount;
+
+        // Apply displacement magnitude (combined from noise) scaled by jitter diameter
+        const displacementMagnitude = combined * params.jitterDiameter;
+        const xOffset = displacementMagnitude * blendedDirX;
+        const yOffset = displacementMagnitude * blendedDirY;
+
+        // Opacity based on z-position (closer = more opaque)
+        const opacity = Math.max(0.2, Math.min(1, 0.6 + zDisplacement * 0.4));
+
+        // Parse color and apply opacity
+        const hex = params.color;
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        ctx.beginPath();
+        ctx.arc(x + xOffset, y + yOffset, Math.max(0.5, size), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        ctx.fill();
+      }
+    }
+
+    animationId = requestAnimationFrame(render);
+  }
+
+  // Compass interaction
+  function updateCompassAngle(e) {
+    const rect = compass.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+    params.direction = angle;
+
+    // Update needle rotation (adjust for CSS transform origin)
+    const needleDegrees = angle * (180 / Math.PI) + 90;
+    compassNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${needleDegrees}deg)`;
+
+    directionValue.textContent = getDirectionName(angle);
+  }
+
+  let isDraggingCompass = false;
+
+  compass.addEventListener('mousedown', (e) => {
+    isDraggingCompass = true;
+    updateCompassAngle(e);
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDraggingCompass) {
+      updateCompassAngle(e);
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDraggingCompass = false;
+  });
+
+  // Touch support for compass
+  compass.addEventListener('touchstart', (e) => {
+    isDraggingCompass = true;
+    updateCompassAngle(e.touches[0]);
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (isDraggingCompass) {
+      updateCompassAngle(e.touches[0]);
+    }
+  });
+
+  document.addEventListener('touchend', () => {
+    isDraggingCompass = false;
+  });
+
+  // Control event listeners
+  densitySlider.addEventListener('input', (e) => {
+    params.density = parseInt(e.target.value);
+    densityValue.textContent = params.density;
+  });
+
+  windSlider.addEventListener('input', (e) => {
+    params.wind = parseFloat(e.target.value);
+    windValue.textContent = params.wind;
+  });
+
+  pointSizeSlider.addEventListener('input', (e) => {
+    params.pointSize = parseFloat(e.target.value);
+    pointSizeValue.textContent = params.pointSize;
+  });
+
+  jitterSlider.addEventListener('input', (e) => {
+    params.jitter = parseInt(e.target.value);
+    jitterValue.textContent = params.jitter;
+  });
+
+  jitterDiameterSlider.addEventListener('input', (e) => {
+    params.jitterDiameter = parseFloat(e.target.value);
+    jitterDiameterValue.textContent = params.jitterDiameter;
+  });
+
+  colorPicker.addEventListener('input', (e) => {
+    params.color = e.target.value;
+    colorHex.textContent = e.target.value;
+  });
+
+  // Initialize controls from params
+  function initializeControls() {
+    // Sync sliders with params
+    densitySlider.value = params.density;
+    densityValue.textContent = params.density;
+    windSlider.value = params.wind;
+    windValue.textContent = params.wind;
+    pointSizeSlider.value = params.pointSize;
+    pointSizeValue.textContent = params.pointSize;
+    jitterSlider.value = params.jitter;
+    jitterValue.textContent = params.jitter;
+    jitterDiameterSlider.value = params.jitterDiameter;
+    jitterDiameterValue.textContent = params.jitterDiameter;
+    colorPicker.value = params.color;
+    colorHex.textContent = params.color;
+
+    // Set compass needle to initial position
+    const needleDegrees = params.direction * (180 / Math.PI) + 90;
+    compassNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${needleDegrees}deg)`;
+    directionValue.textContent = getDirectionName(params.direction);
+  }
+
+  // Initialize
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initializeControls();
+  render();
+})();
+</script>
+
+<!-- Line Field Animation -->
+<section class="animation-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid rgba(61, 58, 54, 0.1);">
+  <h1 class="animation-title">Line Field Animation</h1>
+  <p class="animation-description">
+    A field of lines with dual wind sources, depth-based opacity, and configurable parameters.
+    Lines wave and ripple like cloth in the wind.
+  </p>
+
+  <div class="canvas-container">
+    <canvas id="lineFieldV2" style="display: block; width: 100%; height: 500px;"></canvas>
+  </div>
+
+  <div class="controls-panel">
+    <!-- Row 1: Gust Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Gust Controls</span>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Gust
+          <span class="control-value" id="v2WindOscValue">10</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindOsc" min="1" max="10" value="10">
+        </div>
+        <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+          1 = rare gusts, 10 = constant
+        </p>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Gust
+          <span class="control-value" id="v2Wind2OscValue">10</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind2Osc" min="1" max="10" value="10">
+        </div>
+        <p style="font-size: 0.8rem; color: #8b7355; margin: 0;">
+          1 = rare gusts, 10 = constant
+        </p>
+      </div>
+    </div>
+
+    <!-- Row 2: Effect Sliders -->
+    <div class="controls-row">
+      <span class="controls-row-label">Effects</span>
+      <div class="control-group">
+        <label class="control-label">
+          Whisp
+          <span class="control-value" id="v2WhispValue">0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Whisp" min="0" max="100" value="0">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Depth Effect
+          <span class="control-value" id="v2DepthValue">0.6</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Depth" min="0" max="1" value="0.6" step="0.1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind Density
+          <span class="control-value" id="v2WindDensityValue">7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindDensity" min="0" max="100" value="7">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind Size
+          <span class="control-value" id="v2WindSizeValue">99</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2WindSize" min="0" max="100" value="99">
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Wind Direction and Speed -->
+    <div class="controls-row">
+      <span class="controls-row-label">Wind Sources</span>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Direction
+          <span class="control-value" id="v2WindDirValue">W</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2WindCompass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2WindNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(180deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 1 Speed
+          <span class="control-value" id="v2WindValue">4.0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind" min="0" max="10" value="4.0" step="0.5">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Direction
+          <span class="control-value" id="v2Wind2DirValue">NW</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2Wind2Compass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2Wind2Needle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Wind 2 Speed
+          <span class="control-value" id="v2Wind2Value">3.0</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Wind2" min="0" max="10" value="3.0" step="0.5">
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: Jitter Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Jitter</span>
+      <div class="control-group">
+        <label class="control-label">
+          Jitter Amount
+          <span class="control-value" id="v2JitterValue">1</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Jitter" min="0" max="100" value="1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Jitter Diameter
+          <span class="control-value" id="v2JitterDiameterValue">22</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2JitterDiameter" min="1" max="60" value="22">
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5: Line Controls -->
+    <div class="controls-row">
+      <span class="controls-row-label">Line Appearance</span>
+      <div class="control-group">
+        <label class="control-label">
+          Line Direction
+          <span class="control-value" id="v2OrientValue">NW-SE</span>
+        </label>
+        <div class="compass-container">
+          <div class="compass" id="v2OrientCompass">
+            <div class="compass-ring"></div>
+            <span class="compass-direction compass-n">N</span>
+            <span class="compass-direction compass-s">S</span>
+            <span class="compass-direction compass-e">E</span>
+            <span class="compass-direction compass-w">W</span>
+            <div class="compass-needle" id="v2OrientNeedle" style="transform: translateX(-50%) translateY(-100%) rotate(-45deg);"></div>
+            <div class="compass-center"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Line Spacing
+          <span class="control-value" id="v2SpacingValue">7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Spacing" min="2" max="20" value="7">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Line Width
+          <span class="control-value" id="v2WidthValue">0.7</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Width" min="0.1" max="3" value="0.7" step="0.1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">
+          Opacity
+          <span class="control-value" id="v2OpacityValue">0.9</span>
+        </label>
+        <div class="slider-container">
+          <input type="range" id="v2Opacity" min="0.1" max="1" value="0.9" step="0.1">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Line Color</label>
+        <div class="color-picker-row">
+          <input type="color" id="v2Color" value="#d8d4cb">
+          <span class="color-hex" id="v2ColorHex">#d8d4cb</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+import { LineFieldAnimation, getDirectionName, getOrientationName } from '/assets/js/line-field.js';
+
+const canvas = document.getElementById('lineFieldV2');
+const animation = new LineFieldAnimation(canvas, {
+  mode: 'container',
+  params: {
+    spacing: 7,
+    width: 0.7,
+    wind: 4.0,
+    windDirection: Math.PI / 2,
+    wind2: 3.0,
+    wind2Direction: -Math.PI * 3 / 4,
+    windDensity: 7,
+    windSize: 99,
+    jitter: 1,
+    jitterDiameter: 22,
+    color: '#d8d4cb',
+    opacity: 0.9,
+    lineOrientation: -Math.PI * 3 / 4,
+    opacityDepthFactor: 0.6
+  }
+});
+
+animation.start();
+
+// Controls
+const controls = {
+  spacing: document.getElementById('v2Spacing'),
+  width: document.getElementById('v2Width'),
+  wind: document.getElementById('v2Wind'),
+  wind2: document.getElementById('v2Wind2'),
+  windOsc: document.getElementById('v2WindOsc'),
+  wind2Osc: document.getElementById('v2Wind2Osc'),
+  whisp: document.getElementById('v2Whisp'),
+  windDensity: document.getElementById('v2WindDensity'),
+  windSize: document.getElementById('v2WindSize'),
+  jitter: document.getElementById('v2Jitter'),
+  jitterDiameter: document.getElementById('v2JitterDiameter'),
+  opacity: document.getElementById('v2Opacity'),
+  depth: document.getElementById('v2Depth'),
+  color: document.getElementById('v2Color')
+};
+
+const displays = {
+  spacing: document.getElementById('v2SpacingValue'),
+  width: document.getElementById('v2WidthValue'),
+  wind: document.getElementById('v2WindValue'),
+  wind2: document.getElementById('v2Wind2Value'),
+  windOsc: document.getElementById('v2WindOscValue'),
+  wind2Osc: document.getElementById('v2Wind2OscValue'),
+  whisp: document.getElementById('v2WhispValue'),
+  windDensity: document.getElementById('v2WindDensityValue'),
+  windSize: document.getElementById('v2WindSizeValue'),
+  jitter: document.getElementById('v2JitterValue'),
+  jitterDiameter: document.getElementById('v2JitterDiameterValue'),
+  opacity: document.getElementById('v2OpacityValue'),
+  depth: document.getElementById('v2DepthValue'),
+  colorHex: document.getElementById('v2ColorHex'),
+  windDir: document.getElementById('v2WindDirValue'),
+  wind2Dir: document.getElementById('v2Wind2DirValue'),
+  orient: document.getElementById('v2OrientValue')
+};
+
+const compasses = {
+  wind: document.getElementById('v2WindCompass'),
+  windNeedle: document.getElementById('v2WindNeedle'),
+  wind2: document.getElementById('v2Wind2Compass'),
+  wind2Needle: document.getElementById('v2Wind2Needle'),
+  orient: document.getElementById('v2OrientCompass'),
+  orientNeedle: document.getElementById('v2OrientNeedle')
+};
+
+// Slider listeners
+controls.spacing.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ spacing: value });
+  displays.spacing.textContent = value;
+});
+
+controls.width.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  animation.setParams({ width: value });
+  displays.width.textContent = value;
+});
+
+controls.wind.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  animation.setParams({ wind: value });
+  displays.wind.textContent = value;
+});
+
+controls.wind2.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  animation.setParams({ wind2: value });
+  displays.wind2.textContent = value;
+});
+
+controls.windOsc.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ windOscillation: value });
+  displays.windOsc.textContent = value;
+});
+
+controls.wind2Osc.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ wind2Oscillation: value });
+  displays.wind2Osc.textContent = value;
+});
+
+controls.whisp.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ whisp: value });
+  displays.whisp.textContent = value;
+});
+
+controls.windDensity.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ windDensity: value });
+  displays.windDensity.textContent = value;
+});
+
+controls.windSize.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ windSize: value });
+  displays.windSize.textContent = value;
+});
+
+controls.jitter.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ jitter: value });
+  displays.jitter.textContent = value;
+});
+
+controls.jitterDiameter.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  animation.setParams({ jitterDiameter: value });
+  displays.jitterDiameter.textContent = value;
+});
+
+controls.opacity.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  animation.setParams({ opacity: value });
+  displays.opacity.textContent = value;
+});
+
+controls.depth.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  animation.setParams({ opacityDepthFactor: value });
+  displays.depth.textContent = value;
+});
+
+controls.color.addEventListener('input', (e) => {
+  animation.setParams({ color: e.target.value });
+  displays.colorHex.textContent = e.target.value;
+});
+
+// Compass interactions
+let dragging = { wind: false, wind2: false, orient: false };
+
+function updateWindDir(e) {
+  const rect = compasses.wind.getBoundingClientRect();
+  const angle = Math.atan2(e.clientY - rect.top - rect.height/2, e.clientX - rect.left - rect.width/2);
+  animation.setParams({ windDirection: angle });
+  compasses.windNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${angle * 180/Math.PI + 90}deg)`;
+  displays.windDir.textContent = getDirectionName(angle);
+}
+
+function updateWind2Dir(e) {
+  const rect = compasses.wind2.getBoundingClientRect();
+  const angle = Math.atan2(e.clientY - rect.top - rect.height/2, e.clientX - rect.left - rect.width/2);
+  animation.setParams({ wind2Direction: angle });
+  compasses.wind2Needle.style.transform = `translateX(-50%) translateY(-100%) rotate(${angle * 180/Math.PI + 90}deg)`;
+  displays.wind2Dir.textContent = getDirectionName(angle);
+}
+
+function updateOrient(e) {
+  const rect = compasses.orient.getBoundingClientRect();
+  const angle = Math.atan2(e.clientY - rect.top - rect.height/2, e.clientX - rect.left - rect.width/2);
+  animation.setParams({ lineOrientation: angle });
+  compasses.orientNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${angle * 180/Math.PI + 90}deg)`;
+  displays.orient.textContent = getOrientationName(angle);
+}
+
+compasses.wind.addEventListener('mousedown', (e) => { dragging.wind = true; updateWindDir(e); });
+compasses.wind2.addEventListener('mousedown', (e) => { dragging.wind2 = true; updateWind2Dir(e); });
+compasses.orient.addEventListener('mousedown', (e) => { dragging.orient = true; updateOrient(e); });
+
+document.addEventListener('mousemove', (e) => {
+  if (dragging.wind) updateWindDir(e);
+  if (dragging.wind2) updateWind2Dir(e);
+  if (dragging.orient) updateOrient(e);
+});
+
+document.addEventListener('mouseup', () => {
+  dragging.wind = dragging.wind2 = dragging.orient = false;
+});
+
+// Touch support
+compasses.wind.addEventListener('touchstart', (e) => { dragging.wind = true; updateWindDir(e.touches[0]); });
+compasses.wind2.addEventListener('touchstart', (e) => { dragging.wind2 = true; updateWind2Dir(e.touches[0]); });
+compasses.orient.addEventListener('touchstart', (e) => { dragging.orient = true; updateOrient(e.touches[0]); });
+
+document.addEventListener('touchmove', (e) => {
+  if (dragging.wind) updateWindDir(e.touches[0]);
+  if (dragging.wind2) updateWind2Dir(e.touches[0]);
+  if (dragging.orient) updateOrient(e.touches[0]);
+});
+
+document.addEventListener('touchend', () => {
+  dragging.wind = dragging.wind2 = dragging.orient = false;
+});
+
+// Initialize controls from animation params
+const params = animation.getParams();
+
+controls.spacing.value = params.spacing;
+displays.spacing.textContent = params.spacing;
+controls.width.value = params.width;
+displays.width.textContent = params.width;
+controls.wind.value = params.wind;
+displays.wind.textContent = params.wind;
+controls.wind2.value = params.wind2;
+displays.wind2.textContent = params.wind2;
+controls.windOsc.value = params.windOscillation;
+displays.windOsc.textContent = params.windOscillation;
+controls.wind2Osc.value = params.wind2Oscillation;
+displays.wind2Osc.textContent = params.wind2Oscillation;
+controls.whisp.value = params.whisp;
+displays.whisp.textContent = params.whisp;
+controls.windDensity.value = params.windDensity;
+displays.windDensity.textContent = params.windDensity;
+controls.windSize.value = params.windSize;
+displays.windSize.textContent = params.windSize;
+controls.jitter.value = params.jitter;
+displays.jitter.textContent = params.jitter;
+controls.jitterDiameter.value = params.jitterDiameter;
+displays.jitterDiameter.textContent = params.jitterDiameter;
+controls.opacity.value = params.opacity;
+displays.opacity.textContent = params.opacity;
+controls.depth.value = params.opacityDepthFactor;
+displays.depth.textContent = params.opacityDepthFactor;
+controls.color.value = params.color;
+displays.colorHex.textContent = params.color;
+
+// Set compass needles
+const windDeg = params.windDirection * 180 / Math.PI + 90;
+compasses.windNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${windDeg}deg)`;
+displays.windDir.textContent = getDirectionName(params.windDirection);
+
+const wind2Deg = params.wind2Direction * 180 / Math.PI + 90;
+compasses.wind2Needle.style.transform = `translateX(-50%) translateY(-100%) rotate(${wind2Deg}deg)`;
+displays.wind2Dir.textContent = getDirectionName(params.wind2Direction);
+
+const orientDeg = params.lineOrientation * 180 / Math.PI + 90;
+compasses.orientNeedle.style.transform = `translateX(-50%) translateY(-100%) rotate(${orientDeg}deg)`;
+displays.orient.textContent = getOrientationName(params.lineOrientation);
+</script>
