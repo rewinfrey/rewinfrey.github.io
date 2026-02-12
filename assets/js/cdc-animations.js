@@ -1,0 +1,1078 @@
+/**
+ * Content-Defined Chunking (CDC) Animations
+ *
+ * Interactive visualizations for the CDC blog post demonstrating:
+ * - Fixed vs content-defined chunking comparison
+ * - GEAR hash rolling window
+ * - Chunk boundary detection with dual masks
+ * - Deduplication across similar documents
+ */
+
+// =============================================================================
+// GEAR Hash Table (from FastCDC paper, generated from MD5 digests)
+// =============================================================================
+
+const GEAR = [
+  0x3b5d3c7dn, 0x784d68ban, 0xcd52880fn, 0xecc49174n,
+  0xb1a395e0n, 0xb5762f97n, 0xfd65e9b7n, 0x74b5cb5dn,
+  0x15a18f8fn, 0xacc5b166n, 0xdab52333n, 0x7cb60e99n,
+  0x8a2cd1b0n, 0x1e66b23en, 0x9da99356n, 0xf6ecba5fn,
+  0x2c167effn, 0x2c9e4bfan, 0x0a691c2an, 0xdfc59cb9n,
+  0x16ea47a8n, 0xe0cfea23n, 0xbf8dbcc3n, 0xc6e8f45cn,
+  0x3fd5ee42n, 0x1c770f0fn, 0x6c586aban, 0xb799c8a5n,
+  0x41a21c91n, 0x7acd2736n, 0xf1cd4d27n, 0x5f5c4196n,
+  0x1fce6fc4n, 0x0a4b7d38n, 0x3d8a8e1en, 0xdab3a9acn,
+  0x02d7f9d8n, 0x3b5bc0e1n, 0x9a0a1a5fn, 0x79c13b8en,
+  0x71dd7082n, 0xc42b3c10n, 0x1e8ace0en, 0x1c4b1093n,
+  0x39f5e449n, 0xda1f5baan, 0x5e7bf131n, 0x66d0be3fn,
+  0x215694acn, 0x0fece8a7n, 0x3b10a63en, 0x2d7e4d2cn,
+  0xf04f0d7bn, 0x3a3abb67n, 0x8a07e5e0n, 0x8d2c09f8n,
+  0x08fba6d8n, 0x9cdf1a5cn, 0xf95d7e86n, 0x8a9c0927n,
+  0x2f046c6fn, 0x29982a46n, 0x7c8c8d2en, 0xdf6c936cn,
+  0xa12dddbfn, 0x2d6f7d86n, 0x43ff5e5cn, 0x5c2c4ff5n,
+  0x3f7a80b7n, 0x18a3fd40n, 0xbcff3097n, 0xc2b8b2dbn,
+  0x7d29c80an, 0x79e0dd2fn, 0x88c06f85n, 0xb2fc7b8an,
+  0x5e6fcff4n, 0x93c9c3e8n, 0x6bcf9c0bn, 0xd27ac891n,
+  0x0d7c8e49n, 0x4cf36b5dn, 0x2b57d6b2n, 0x1f9fb859n,
+  0xe3c5afefn, 0x2eb96c22n, 0xf5cfc3f6n, 0x1b8a3f95n,
+  0x6d4c5e3cn, 0x27718ee7n, 0x2c77bde9n, 0xf5d67959n,
+  0x3b1b4d97n, 0x75f75e68n, 0xec9b3b8an, 0xb2b60ff1n,
+  0xa7c1edb4n, 0x1b3da069n, 0x5f01c4a2n, 0x3db5de80n,
+  0x5c2bf6a1n, 0xb4feb12en, 0x81ee7bb7n, 0x97deb0a5n,
+  0x2c3b87e9n, 0x0b3e3f4cn, 0xf6bf3b19n, 0xc15dc9e2n,
+  0x89dd6a44n, 0xd71eb99fn, 0xd4bca3c9n, 0x3c0f43efn,
+  0xcd85e2a0n, 0x91ed4ac4n, 0xf67a59a3n, 0x6b9766efn,
+  0xf6096d47n, 0xe8f5ee6cn, 0x03b958fen, 0xd4e69aa9n,
+  0x0f75c2c4n, 0x62d63dd1n, 0x19e6f8b7n, 0x2c65b52bn,
+  0xc7a968edn, 0x1e6ada6en, 0x2c8e7e5cn, 0xcdf1c87cn,
+  0x5c5e5c4fn, 0x58f79f71n, 0x4dfa3996n, 0xf9e6c09bn,
+  0x3be2d1c1n, 0xc82b1f25n, 0x50f66f31n, 0x4cd2d88fn,
+  0xa0fa9d93n, 0xa5e6f749n, 0xf10ac5c5n, 0x1f7d4a4an,
+  0xa8e45c42n, 0x5e73f25en, 0x52dbb28dn, 0x76f8cdf8n,
+  0x02d6ef72n, 0xad98d65fn, 0x4c5e8bb4n, 0x62cbc8acn,
+  0xca6756a7n, 0xf67f68c0n, 0xb92d2c7an, 0xa93e9c59n,
+  0xbdc8d29fn, 0xbf26b9b9n, 0xd42f26a1n, 0x02c9a1f4n,
+  0xfeaa1eb6n, 0x3c7c98fdn, 0x09cebf7cn, 0xf58d7fc1n,
+  0x2c56e95bn, 0x9c05e8d0n, 0xeef83a25n, 0xdad67756n,
+  0xdf00f87fn, 0xdeb2a0e6n, 0xe53b5f89n, 0xf9b58b67n,
+  0x1c07c2c2n, 0x5abcb9dcn, 0xa4e64f6cn, 0xdfc4dbe2n,
+  0xf9f09e86n, 0xf50adfe8n, 0xa66ca0f6n, 0xffb4e8f2n,
+  0xa9f6d60en, 0x4c4d14d5n, 0x5f0aaaafn, 0xe8eec1b2n,
+  0xb6f8df6bn, 0x6dd85eb7n, 0x5a75fb3an, 0x559c0af8n,
+  0xe8f1f8b5n, 0xf5e06b6bn, 0xbab0bd3en, 0x2dd07c7fn,
+  0x2eafa2b0n, 0xf7cdf3e1n, 0x1a4e8f70n, 0xe6c2aa48n,
+  0x75d7e8a2n, 0x9bf16f87n, 0xf97fc6a1n, 0xb91c0a1fn,
+  0x3f6f1e54n, 0xa8d98ccan, 0x2dc7dbe4n, 0x0f1e8bb1n,
+  0xee4f14f6n, 0x1de4cd41n, 0x5f59ce8cn, 0xdfe5db57n,
+  0x75e03b1fn, 0xbea6e5cen, 0xadfbf56cn, 0x1c53d9f5n,
+  0xe7f2a3f0n, 0x0f5f6f65n, 0xee0bd9d3n, 0xa8c5e6e2n,
+  0xbfcae4c3n, 0xccc1bec0n, 0xd4f1e0b1n, 0xcfa2f5f9n,
+  0x1fb8bbd4n, 0xfd5fa5b7n, 0xbf2f8be5n, 0x5f7e39c6n,
+  0xf8bd4cd6n, 0xf8e99bc1n, 0x3fdc5bf4n, 0x4f9f4be5n,
+  0xbfbbd6e0n, 0x1c7bb3b5n, 0xdfb25c5en, 0x8f5f3fa9n,
+  0x2f5cbf57n, 0xdf7c7d5bn, 0x4f0f6b8cn, 0xc21f5f9bn,
+  0x4f8e6f78n, 0xfb7c8bd6n, 0x7f9d5f2en, 0x3f5f9db1n,
+  0xcf6f2b7dn, 0x1f6f8f95n, 0x8fafc5e2n, 0xdf3fbfb4n,
+  0xcfaf3f1fn, 0x9f5e1f7cn, 0x4f9e6f3bn, 0xff7d2f55n,
+  0x2fbe5f8en, 0x3f7e9f51n, 0x8fce5f14n, 0xcfde9f77n,
+  0x1fae3f3an, 0x9ffe7f9dn, 0x6f1e5f60n, 0xef2e9f23n,
+  0x3f3ebfe6n, 0xbf4e7fa9n, 0x0f5e3f6cn, 0xcf6edfa2n,
+];
+
+// Mask values for normalized chunking (indexed by log2 of average size)
+const MASKS = [
+  0x0000000000000000n,  // 0 - padding
+  0x0000000000000000n,  // 1 - padding
+  0x0000000000000000n,  // 2 - padding
+  0x0000000000000000n,  // 3 - padding
+  0x0000000000000000n,  // 4 - padding
+  0x0000000000000000n,  // 5 - padding
+  0x0000000000000001n,  // 6 - 64B
+  0x0000000000000003n,  // 7 - 128B
+  0x0000000000000007n,  // 8 - 256B
+  0x000000000000000fn,  // 9 - 512B
+  0x000000000000001fn,  // 10 - 1KB
+  0x000000000000003fn,  // 11 - 2KB
+  0x000000000000007fn,  // 12 - 4KB
+  0x00000000000000ffn,  // 13 - 8KB
+  0x00000000000001ffn,  // 14 - 16KB
+  0x00000000000003ffn,  // 15 - 32KB
+  0x00000000000007ffn,  // 16 - 64KB
+  0x0000000000000fffn,  // 17 - 128KB
+  0x0000000000001fffn,  // 18 - 256KB
+  0x0000000000003fffn,  // 19 - 512KB
+  0x0000000000007fffn,  // 20 - 1MB
+  0x000000000000ffffn,  // 21 - 2MB
+  0x000000000001ffffn,  // 22 - 4MB
+  0x000000000003ffffn,  // 23 - 8MB
+  0x000000000007ffffn,  // 24 - 16MB
+  0x00000000000fffffn,  // 25 - 32MB
+];
+
+// Chunk background colors (hue-diverse for clear adjacent-chunk distinction)
+const CHUNK_COLORS = [
+  'rgba(196, 90, 59, 0.18)',   // terracotta
+  'rgba(90, 138, 90, 0.18)',   // sage green
+  'rgba(70, 110, 160, 0.18)',  // steel blue
+  'rgba(160, 100, 50, 0.20)',  // amber
+  'rgba(130, 80, 150, 0.16)',  // muted purple
+  'rgba(60, 130, 130, 0.16)',  // teal
+];
+
+const CHUNK_SOLID_COLORS = [
+  '#c45a3b',   // terracotta
+  '#5a8a5a',   // sage green
+  '#466ea0',   // steel blue
+  '#a06432',   // amber
+  '#825096',   // muted purple
+  '#3c8282',   // teal
+];
+
+const CHUNK_BORDER_COLORS = [
+  'rgba(196, 90, 59, 0.5)',
+  'rgba(90, 138, 90, 0.5)',
+  'rgba(70, 110, 160, 0.5)',
+  'rgba(160, 100, 50, 0.5)',
+  'rgba(130, 80, 150, 0.5)',
+  'rgba(60, 130, 130, 0.5)',
+];
+
+// =============================================================================
+// CDC Chunking Implementation
+// =============================================================================
+
+/**
+ * Find chunk boundary using FastCDC algorithm
+ * @param {Uint8Array} data - Input data
+ * @param {number} minSize - Minimum chunk size
+ * @param {number} avgSize - Target average chunk size
+ * @param {number} maxSize - Maximum chunk size
+ * @returns {number} - Position of chunk boundary
+ */
+function findChunkBoundary(data, minSize, avgSize, maxSize) {
+  if (data.length <= minSize) {
+    return data.length;
+  }
+
+  const bits = Math.floor(Math.log2(avgSize));
+  const maskS = MASKS[Math.min(bits + 1, MASKS.length - 1)];
+  const maskL = MASKS[Math.max(bits - 1, 0)];
+
+  let remaining = Math.min(data.length, maxSize);
+  let center = Math.min(avgSize, remaining);
+  let index = minSize;
+  let hash = 0n;
+
+  // Phase 1: strict mask until average size
+  while (index < center) {
+    hash = ((hash << 1n) + GEAR[data[index] % 256]) & 0xffffffffn;
+    if ((hash & maskS) === 0n) {
+      return index;
+    }
+    index++;
+  }
+
+  // Phase 2: loose mask until max size
+  while (index < remaining) {
+    hash = ((hash << 1n) + GEAR[data[index] % 256]) & 0xffffffffn;
+    if ((hash & maskL) === 0n) {
+      return index;
+    }
+    index++;
+  }
+
+  return remaining;
+}
+
+/**
+ * Chunk data using CDC algorithm
+ * @param {Uint8Array} data - Input data
+ * @param {number} minSize - Minimum chunk size
+ * @param {number} avgSize - Target average chunk size
+ * @param {number} maxSize - Maximum chunk size
+ * @returns {Array<{offset: number, length: number}>} - Array of chunks
+ */
+function chunkData(data, minSize, avgSize, maxSize) {
+  const chunks = [];
+  let offset = 0;
+
+  while (offset < data.length) {
+    const remaining = data.slice(offset);
+    const boundary = findChunkBoundary(remaining, minSize, avgSize, maxSize);
+    chunks.push({ offset, length: boundary });
+    offset += boundary;
+  }
+
+  return chunks;
+}
+
+/**
+ * Fixed-size chunking (for comparison)
+ */
+function chunkDataFixed(data, chunkSize) {
+  const chunks = [];
+  let offset = 0;
+
+  while (offset < data.length) {
+    const length = Math.min(chunkSize, data.length - offset);
+    chunks.push({ offset, length });
+    offset += length;
+  }
+
+  return chunks;
+}
+
+/**
+ * Simple hash for chunk fingerprinting (demonstration only)
+ */
+function hashChunk(data, offset, length) {
+  let hash = 0n;
+  for (let i = 0; i < length && offset + i < data.length; i++) {
+    hash = ((hash << 5n) - hash + BigInt(data[offset + i])) & 0xffffffffffffffffn;
+  }
+  return hash.toString(16).padStart(8, '0').slice(0, 8);
+}
+
+// =============================================================================
+// DOM Utilities (safe alternatives to innerHTML)
+// =============================================================================
+
+/**
+ * Clear all children from an element
+ */
+function clearElement(element) {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
+/**
+ * Create a text span with optional styling
+ */
+function createStyledSpan(text, styles = {}) {
+  const span = document.createElement('span');
+  span.textContent = text;
+  Object.assign(span.style, styles);
+  return span;
+}
+
+// =============================================================================
+// Fixed vs CDC Comparison Demo
+// =============================================================================
+
+class FixedVsCDCDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.originalText = `The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump! The five boxing wizards jump quickly.`;
+
+    // Encode as bytes
+    this.encoder = new TextEncoder();
+    this.originalData = this.encoder.encode(this.originalText);
+
+    // Configuration
+    this.fixedChunkSize = 32;
+    this.cdcMinSize = 16;
+    this.cdcAvgSize = 32;
+    this.cdcMaxSize = 64;
+
+    // Insert text for modification
+    this.insertText = 'INSERTED TEXT HERE! ';
+
+    this.init();
+  }
+
+  init() {
+    this.renderBlocks('fixed-blocks-before', this.originalData, true);
+    this.renderBlocks('cdc-blocks-before', this.originalData, false);
+
+    // Create modified version
+    const insertData = this.encoder.encode(this.insertText);
+    const modifiedData = new Uint8Array(this.originalData.length + insertData.length);
+    modifiedData.set(insertData, 0);
+    modifiedData.set(this.originalData, insertData.length);
+
+    this.renderBlocks('fixed-blocks-after', modifiedData, true, this.originalData);
+    this.renderBlocks('cdc-blocks-after', modifiedData, false, this.originalData);
+  }
+
+  renderBlocks(elementId, data, isFixed, originalData = null) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    clearElement(container);
+
+    const chunks = isFixed
+      ? chunkDataFixed(data, this.fixedChunkSize)
+      : chunkData(data, this.cdcMinSize, this.cdcAvgSize, this.cdcMaxSize);
+
+    // If comparing, get original chunk hashes
+    let originalHashes = null;
+    if (originalData) {
+      const originalChunks = isFixed
+        ? chunkDataFixed(originalData, this.fixedChunkSize)
+        : chunkData(originalData, this.cdcMinSize, this.cdcAvgSize, this.cdcMaxSize);
+      originalHashes = new Set(
+        originalChunks.map(c => hashChunk(originalData, c.offset, c.length))
+      );
+    }
+
+    chunks.forEach((chunk, index) => {
+      const block = document.createElement('div');
+      block.className = `cdc-block chunk-${index % 6}`;
+
+      // Calculate width proportional to chunk size
+      const widthPercent = (chunk.length / data.length) * 100;
+      block.style.width = `${Math.max(widthPercent, 2)}%`;
+      block.style.flex = `${chunk.length} 0 auto`;
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[index % 6];
+
+      // Check if this chunk exists in original
+      if (originalHashes) {
+        const currentHash = hashChunk(data, chunk.offset, chunk.length);
+        if (!originalHashes.has(currentHash)) {
+          // New/modified chunk - highlight with border
+          block.style.outline = '2px solid #c45a3b';
+          block.style.outlineOffset = '-2px';
+        }
+      }
+
+      block.title = `${chunk.length} bytes`;
+      container.appendChild(block);
+    });
+
+    // Add legend
+    if (originalData) {
+      const matchCount = this.countMatchingChunks(data, originalData, isFixed);
+      const totalChunks = chunks.length;
+      const legend = document.createElement('div');
+      legend.style.cssText = 'font-size: 0.75rem; color: #8b7355; margin-top: 0.5rem; text-align: center;';
+      legend.textContent = `${matchCount}/${totalChunks} chunks unchanged (${Math.round(matchCount/totalChunks*100)}% dedup)`;
+      container.appendChild(legend);
+    }
+  }
+
+  countMatchingChunks(newData, originalData, isFixed) {
+    const newChunks = isFixed
+      ? chunkDataFixed(newData, this.fixedChunkSize)
+      : chunkData(newData, this.cdcMinSize, this.cdcAvgSize, this.cdcMaxSize);
+
+    const originalChunks = isFixed
+      ? chunkDataFixed(originalData, this.fixedChunkSize)
+      : chunkData(originalData, this.cdcMinSize, this.cdcAvgSize, this.cdcMaxSize);
+
+    const originalHashes = new Set(
+      originalChunks.map(c => hashChunk(originalData, c.offset, c.length))
+    );
+
+    return newChunks.filter(c =>
+      originalHashes.has(hashChunk(newData, c.offset, c.length))
+    ).length;
+  }
+}
+
+// =============================================================================
+// GEAR Hash Rolling Window Demo
+// =============================================================================
+
+class GearHashDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.text = 'The quick brown fox jumps over the lazy dog.';
+    this.encoder = new TextEncoder();
+    this.data = this.encoder.encode(this.text);
+
+    this.position = 0;
+    this.hash = 0n;
+    this.previousHash = 0n;
+    this.isPlaying = false;
+    this.speed = 5;
+    this.animationFrame = null;
+    this.lastTime = 0;
+    this.chunks = [];
+    this.chunkBoundaries = [];
+
+    // GEAR table DOM references
+    this.gearCells = [];
+    this.prevActiveCell = -1;
+
+    // CDC parameters
+    this.minSize = 8;
+    this.avgSize = 16;
+    this.maxSize = 32;
+
+    // Track where the current chunk starts (for relative size checks)
+    this.currentChunkStart = 0;
+
+    this.init();
+  }
+
+  init() {
+    this.contentDisplay = document.getElementById('gear-content-display');
+    this.hashDisplay = document.getElementById('gear-hash-value');
+    this.progressBar = document.getElementById('gear-progress');
+    this.playBtn = document.getElementById('gear-play-btn');
+
+    this.stepBtn = document.getElementById('gear-step-btn');
+    this.resetBtn = document.getElementById('gear-reset-btn');
+    this.speedControl = document.getElementById('gear-speed');
+    this.tableReadout = document.getElementById('gear-table-readout');
+    this.operationPanel = document.getElementById('gear-operation-panel');
+
+    // Build the GEAR lookup table grid
+    this.buildGearTable();
+
+    // View mode tabs
+    const tabs = this.container.querySelectorAll('.cdc-view-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        this.currentView = tab.dataset.view;
+        this.render();
+      });
+    });
+    this.currentView = 'text';
+
+    // Chunk hover: highlight matching text + block on mouseover
+    this.hoveredChunk = null;
+    this.contentDisplay?.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-chunk-index]');
+      const idx = el ? el.dataset.chunkIndex : null;
+      if (idx !== this.hoveredChunk) {
+        this.clearChunkHover();
+        this.hoveredChunk = idx;
+        if (idx !== null) {
+          this.contentDisplay.querySelectorAll(`[data-chunk-index="${idx}"]`).forEach(
+            el => el.classList.add('chunk-hover')
+          );
+        }
+      }
+    });
+    this.contentDisplay?.addEventListener('mouseleave', () => {
+      this.clearChunkHover();
+      this.hoveredChunk = null;
+    });
+
+    // Playback controls
+    this.playBtn?.addEventListener('click', () => this.togglePlay());
+    this.stepBtn?.addEventListener('click', () => this.step());
+    this.resetBtn?.addEventListener('click', () => this.reset());
+    this.speedControl?.addEventListener('input', (e) => {
+      this.speed = parseInt(e.target.value);
+    });
+
+    this.render();
+  }
+
+  /**
+   * Build the 16×16 GEAR lookup table grid.
+   * Each cell is colored by its GEAR value (warm hue 20-50°, lightness 65-90%).
+   */
+  buildGearTable() {
+    const grid = document.getElementById('gear-table-grid');
+    if (!grid) return;
+
+    clearElement(grid);
+    this.gearCells = [];
+
+    for (let i = 0; i < 256; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'gear-table-cell';
+
+      // Normalize the GEAR value to a color
+      const gearVal = Number(GEAR[i] & 0xffffffffn);
+      const normalized = gearVal / 0xffffffff;
+      const hue = 20 + normalized * 30;       // 20-50° warm range
+      const lightness = 65 + normalized * 25;  // 65-90%
+      cell.style.backgroundColor = `hsl(${hue}, 55%, ${lightness}%)`;
+
+      cell.title = `0x${i.toString(16).padStart(2, '0').toUpperCase()} → 0x${gearVal.toString(16).padStart(8, '0')}`;
+
+      // Hover listener updates readout
+      cell.addEventListener('mouseenter', () => {
+        this.updateReadout(i);
+      });
+      cell.addEventListener('mouseleave', () => {
+        // Restore to current step's byte if stepping, else clear
+        if (this.position > 0) {
+          const lastByte = this.data[this.position - 1];
+          this.updateReadout(lastByte);
+        } else {
+          if (this.tableReadout) {
+            this.tableReadout.textContent = 'GEAR[--] = --';
+          }
+        }
+      });
+
+      grid.appendChild(cell);
+      this.gearCells.push(cell);
+    }
+  }
+
+  /**
+   * Update the GEAR table readout text for a given byte index.
+   */
+  updateReadout(byteIndex) {
+    if (!this.tableReadout) return;
+    const gearVal = Number(GEAR[byteIndex] & 0xffffffffn);
+    clearElement(this.tableReadout);
+
+    const text1 = document.createTextNode('GEAR[');
+    const strong = document.createElement('strong');
+    strong.textContent = byteIndex.toString();
+    const text2 = document.createTextNode('] = ');
+    const valStrong = document.createElement('strong');
+    valStrong.textContent = '0x' + gearVal.toString(16).padStart(8, '0');
+    this.tableReadout.appendChild(text1);
+    this.tableReadout.appendChild(strong);
+    this.tableReadout.appendChild(text2);
+    this.tableReadout.appendChild(valStrong);
+  }
+
+  clearChunkHover() {
+    this.contentDisplay?.querySelectorAll('.chunk-hover').forEach(
+      el => el.classList.remove('chunk-hover')
+    );
+  }
+
+  /**
+   * Highlight the active cell in the GEAR table grid.
+   */
+  highlightGearCell(index) {
+    if (this.prevActiveCell >= 0 && this.prevActiveCell < this.gearCells.length) {
+      this.gearCells[this.prevActiveCell].classList.remove('active');
+    }
+    if (index >= 0 && index < this.gearCells.length) {
+      this.gearCells[index].classList.add('active');
+    }
+    this.prevActiveCell = index;
+  }
+
+  /**
+   * Build a colored <span> inside the <pre> panel.
+   */
+  colorSpan(text, className) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    if (className) span.className = className;
+    return span;
+  }
+
+  /**
+   * Update the operation breakdown panel with all intermediate values.
+   * Renders aligned monospace text inside the <pre> element.
+   */
+  updateOperationPanel(char, byteValue, gearValue, shiftedHash, newHash, isBoundary) {
+    if (!this.operationPanel) return;
+    clearElement(this.operationPanel);
+
+    const hex = '0x' + byteValue.toString(16).padStart(2, '0');
+    const gearHex = '0x' + gearValue.toString(16).padStart(8, '0');
+    const shiftHex = '0x' + shiftedHash.toString(16).padStart(8, '0');
+    const resultHex = '0x' + newHash.toString(16).padStart(8, '0');
+    const pad = byteValue.toString().length < 3 ? ' '.repeat(3 - byteValue.toString().length) : '';
+
+    // Line 1: byte derivation
+    //   'r' (0x72 = 114)    GEAR[114] = 0xb799c8a5
+    const p = this.operationPanel;
+    p.appendChild(document.createTextNode('  '));
+    p.appendChild(this.colorSpan(`'${char}'`, 'gear-op-value bold'));
+    p.appendChild(document.createTextNode(` (${hex} = ${byteValue})${pad}   `));
+    p.appendChild(this.colorSpan(`GEAR[${byteValue}]`, 'gear-op-value terracotta'));
+    p.appendChild(document.createTextNode(' = '));
+    p.appendChild(this.colorSpan(gearHex, 'gear-op-value terracotta'));
+    p.appendChild(document.createTextNode('\n'));
+
+    // Line 2: blank separator
+    p.appendChild(document.createTextNode('\n'));
+
+    // Line 3: hash << 1
+    p.appendChild(document.createTextNode('  hash << 1  = '));
+    p.appendChild(this.colorSpan(shiftHex, 'gear-op-value sage fresh'));
+    p.appendChild(document.createTextNode('\n'));
+
+    // Line 4: + GEAR[n]
+    const gearLabel = `+ GEAR[${byteValue}]`;
+    const labelPad = ' '.repeat(Math.max(0, 11 - gearLabel.length));
+    p.appendChild(document.createTextNode('  ' + gearLabel + labelPad + '= '));
+    p.appendChild(this.colorSpan(gearHex, 'gear-op-value terracotta fresh'));
+    p.appendChild(document.createTextNode('\n'));
+
+    // Line 5: divider
+    p.appendChild(document.createTextNode('  ─────────────────────────────\n'));
+
+    // Line 6: New hash
+    p.appendChild(document.createTextNode('  New hash   = '));
+    const resultClass = isBoundary ? 'gear-op-value boundary fresh' : 'gear-op-value bold fresh';
+    p.appendChild(this.colorSpan(resultHex, resultClass));
+    if (isBoundary) {
+      p.appendChild(this.colorSpan('  ← boundary!', 'gear-op-value boundary'));
+    }
+    p.appendChild(document.createTextNode('\n'));
+  }
+
+  togglePlay() {
+    this.isPlaying = !this.isPlaying;
+    if (this.playBtn) {
+      const icon = this.playBtn.querySelector('span');
+      if (icon) {
+        icon.className = this.isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+      }
+    }
+
+    if (this.isPlaying) {
+      this.lastTime = performance.now();
+      this.animate();
+    } else {
+      cancelAnimationFrame(this.animationFrame);
+    }
+  }
+
+  animate() {
+    if (!this.isPlaying) return;
+
+    const now = performance.now();
+    const elapsed = now - this.lastTime;
+    const interval = 500 / this.speed;
+
+    if (elapsed >= interval) {
+      this.step();
+      this.lastTime = now;
+
+      if (this.position >= this.data.length) {
+        this.isPlaying = false;
+        if (this.playBtn) {
+          const icon = this.playBtn.querySelector('span');
+          if (icon) icon.className = 'fa-solid fa-play';
+        }
+        return;
+      }
+    }
+
+    this.animationFrame = requestAnimationFrame(() => this.animate());
+  }
+
+  step() {
+    if (this.position >= this.data.length) return;
+
+    // 1. Read byte at current position
+    const byteValue = this.data[this.position];
+    const char = this.text[this.position];
+
+    // 2. Capture previous hash
+    this.previousHash = this.hash;
+
+    // 3. Compute shifted hash
+    const shiftedHash = Number((this.previousHash << 1n) & 0xffffffffn);
+
+    // 4. Compute GEAR lookup value
+    const gearValue = Number(GEAR[byteValue % 256] & 0xffffffffn);
+
+    // 5. Compute new hash
+    const newHashNum = (shiftedHash + gearValue) & 0xffffffff;
+    this.hash = BigInt(newHashNum);
+    this.position++;
+
+    // 6. Check for chunk boundary (using chunk-relative length)
+    let isBoundary = false;
+    const chunkLen = this.position - this.currentChunkStart;
+    if (chunkLen >= this.minSize) {
+      const bits = Math.floor(Math.log2(this.avgSize));
+      const mask = MASKS[bits];
+      if ((this.hash & mask) === 0n || chunkLen >= this.maxSize) {
+        this.chunkBoundaries.push(this.position);
+        isBoundary = true;
+        this.hash = 0n;
+        this.currentChunkStart = this.position;
+      }
+    }
+
+    // 7. Update operation panel with all intermediate values
+    this.updateOperationPanel(char, byteValue, gearValue, shiftedHash, newHashNum, isBoundary);
+
+    // 8. Highlight the GEAR table cell
+    this.highlightGearCell(byteValue);
+    this.updateReadout(byteValue);
+
+    // 9. Render
+    this.render();
+  }
+
+  reset() {
+    this.position = 0;
+    this.hash = 0n;
+    this.previousHash = 0n;
+    this.chunkBoundaries = [];
+    this.currentChunkStart = 0;
+    this.isPlaying = false;
+    if (this.playBtn) {
+      const icon = this.playBtn.querySelector('span');
+      if (icon) icon.className = 'fa-solid fa-play';
+    }
+    cancelAnimationFrame(this.animationFrame);
+
+    // Clear GEAR cell highlight
+    this.highlightGearCell(-1);
+
+    // Reset operation panel
+    if (this.operationPanel) {
+      clearElement(this.operationPanel);
+      this.operationPanel.textContent = '  Step through to see the hash computation...';
+    }
+
+    // Reset readout
+    if (this.tableReadout) {
+      this.tableReadout.textContent = 'GEAR[--] = --';
+    }
+
+    this.render();
+  }
+
+  render() {
+    if (this.progressBar) {
+      this.progressBar.style.width = `${(this.position / this.data.length) * 100}%`;
+    }
+
+    if (this.hashDisplay) {
+      const hashStr = '0x' + this.hash.toString(16).padStart(8, '0');
+      this.hashDisplay.textContent = hashStr;
+
+      // Highlight if boundary condition met
+      const bits = Math.floor(Math.log2(this.avgSize));
+      const mask = MASKS[bits];
+      if (this.position >= this.minSize && (this.hash & mask) === 0n) {
+        this.hashDisplay.classList.add('boundary');
+      } else {
+        this.hashDisplay.classList.remove('boundary');
+      }
+    }
+
+    this.renderContent();
+  }
+
+  renderContent() {
+    if (!this.contentDisplay) return;
+
+    switch (this.currentView) {
+      case 'text':
+        this.renderTextView();
+        break;
+      case 'hex':
+        this.renderHexView();
+        break;
+    }
+  }
+
+  renderTextView() {
+    clearElement(this.contentDisplay);
+    this.contentDisplay.className = 'cdc-text-view';
+
+    let chunkIndex = 0;
+
+    for (let i = 0; i < this.text.length; i++) {
+      if (this.chunkBoundaries.includes(i)) {
+        chunkIndex++;
+      }
+
+      const char = this.text[i];
+      const isProcessed = i < this.position;
+      const isCurrent = this.position > 0 && i === this.position - 1;
+      const isUnprocessed = i >= this.position;
+
+      const span = document.createElement('span');
+      span.textContent = char === ' ' ? '\u00A0' : char;
+
+      if (isProcessed) {
+        span.dataset.chunkIndex = chunkIndex;
+        span.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
+        span.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
+      }
+      if (isCurrent) {
+        span.style.outline = '2px solid #c45a3b';
+        span.style.outlineOffset = '-1px';
+      }
+      if (isUnprocessed) {
+        span.style.opacity = '0.4';
+      }
+
+      this.contentDisplay.appendChild(span);
+    }
+
+    this.contentDisplay.appendChild(this.buildChunkAnnotationBar());
+  }
+
+  renderHexView() {
+    clearElement(this.contentDisplay);
+    this.contentDisplay.className = 'cdc-hex-view';
+
+    let chunkIndex = 0;
+
+    for (let i = 0; i < this.data.length; i++) {
+      if (this.chunkBoundaries.includes(i)) {
+        chunkIndex++;
+      }
+
+      const byte = this.data[i];
+      const hex = byte.toString(16).padStart(2, '0').toUpperCase();
+      const isProcessed = i < this.position;
+      const isCurrent = this.position > 0 && i === this.position - 1;
+      const isUnprocessed = i >= this.position;
+
+      const span = document.createElement('span');
+      span.className = 'cdc-hex-byte';
+      span.textContent = hex;
+
+      if (isProcessed) {
+        span.dataset.chunkIndex = chunkIndex;
+        span.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
+        span.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
+      }
+      if (isCurrent) {
+        span.style.outline = '2px solid #c45a3b';
+        span.style.outlineOffset = '-1px';
+      }
+      if (isUnprocessed) {
+        span.style.opacity = '0.4';
+      }
+
+      this.contentDisplay.appendChild(span);
+    }
+
+    this.contentDisplay.appendChild(this.buildChunkAnnotationBar());
+  }
+
+  /**
+   * Build the chunk annotation bar: colored blocks with underline + tick + label.
+   * Appended below both text and hex views.
+   */
+  buildChunkAnnotationBar() {
+    const bar = document.createElement('div');
+    bar.className = 'cdc-blocks-view';
+
+    // Don't show the bar until the animation has started
+    if (this.position === 0) return bar;
+
+    const boundaries = [0, ...this.chunkBoundaries, this.data.length];
+    const isLastChunkComplete = this.chunkBoundaries.length > 0 &&
+      this.chunkBoundaries[this.chunkBoundaries.length - 1] === this.data.length;
+
+    for (let i = 0; i < boundaries.length - 1; i++) {
+      const start = boundaries[i];
+      const end = boundaries[i + 1];
+      const length = end - start;
+
+      if (length === 0) continue;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cdc-block-wrapper';
+      wrapper.dataset.chunkIndex = i;
+      wrapper.style.flex = `${length} 0 0`;
+
+      // Colored block bar
+      const block = document.createElement('div');
+      block.className = 'cdc-block';
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+
+      const processedLength = Math.min(this.position - start, length);
+      const processedPercent = Math.max(0, processedLength / length);
+
+      block.style.opacity = this.position > start ? 1 : 0.3;
+
+      if (this.position > start && this.position < end) {
+        const baseColor = CHUNK_SOLID_COLORS[i % 6];
+        block.style.background = `linear-gradient(to right, ${baseColor} 0%, ${baseColor} ${processedPercent * 100}%, rgba(61, 58, 54, 0.1) ${processedPercent * 100}%)`;
+      }
+
+      block.title = `${length} bytes`;
+      wrapper.appendChild(block);
+
+      // Annotation: line + center tick + label
+      if (this.position > start) {
+        const isInProgress = i === boundaries.length - 2 && !isLastChunkComplete && this.position < end;
+
+        const annotation = document.createElement('div');
+        annotation.className = 'cdc-block-annotation';
+
+        const line = document.createElement('div');
+        line.className = 'cdc-block-line';
+        annotation.appendChild(line);
+
+        const tick = document.createElement('div');
+        tick.className = 'cdc-block-tick';
+        annotation.appendChild(tick);
+
+        const label = document.createElement('div');
+        label.className = 'cdc-block-label';
+        const bytesText = isInProgress ? '\u2026' : `${length} bytes`;
+        label.textContent = `Chunk ${i + 1} (${bytesText})`;
+        annotation.appendChild(label);
+
+        wrapper.appendChild(annotation);
+      }
+
+      bar.appendChild(wrapper);
+    }
+
+    return bar;
+  }
+}
+
+// =============================================================================
+// Deduplication Demo
+// =============================================================================
+
+class DedupDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.doc1Text = `The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!`;
+
+    this.doc2Text = `The quick brown fox jumps over the lazy dog. MODIFIED SECTION HERE! How vexingly quick daft zebras jump!`;
+
+    this.encoder = new TextEncoder();
+    this.doc1Data = this.encoder.encode(this.doc1Text);
+    this.doc2Data = this.encoder.encode(this.doc2Text);
+
+    // CDC parameters
+    this.minSize = 16;
+    this.avgSize = 32;
+    this.maxSize = 64;
+
+    this.init();
+  }
+
+  init() {
+    this.doc1Display = document.getElementById('dedup-doc1');
+    this.doc2Display = document.getElementById('dedup-doc2');
+    this.chunksDisplay = document.getElementById('dedup-chunks');
+    this.totalSizeDisplay = document.getElementById('dedup-total-size');
+    this.storedSizeDisplay = document.getElementById('dedup-stored-size');
+    this.ratioDisplay = document.getElementById('dedup-ratio');
+
+    this.render();
+  }
+
+  render() {
+    // Chunk both documents
+    const chunks1 = chunkData(this.doc1Data, this.minSize, this.avgSize, this.maxSize);
+    const chunks2 = chunkData(this.doc2Data, this.minSize, this.avgSize, this.maxSize);
+
+    // Get hashes and content for each chunk
+    const chunkMap1 = chunks1.map(c => ({
+      ...c,
+      hash: hashChunk(this.doc1Data, c.offset, c.length),
+      content: this.doc1Text.slice(c.offset, c.offset + c.length)
+    }));
+
+    const chunkMap2 = chunks2.map(c => ({
+      ...c,
+      hash: hashChunk(this.doc2Data, c.offset, c.length),
+      content: this.doc2Text.slice(c.offset, c.offset + c.length)
+    }));
+
+    // Find unique chunks across both documents
+    const allHashes = new Map();
+    [...chunkMap1, ...chunkMap2].forEach(c => {
+      if (!allHashes.has(c.hash)) {
+        allHashes.set(c.hash, { ...c, count: 1 });
+      } else {
+        allHashes.get(c.hash).count++;
+      }
+    });
+
+    // Render documents with highlighted chunks
+    this.renderDocument(this.doc1Display, chunkMap1, allHashes);
+    this.renderDocument(this.doc2Display, chunkMap2, allHashes);
+
+    // Render unique chunks
+    this.renderUniqueChunks(allHashes);
+
+    // Calculate and display stats
+    const totalSize = this.doc1Data.length + this.doc2Data.length;
+    const storedSize = Array.from(allHashes.values()).reduce((sum, c) => sum + c.length, 0);
+    const ratio = ((totalSize - storedSize) / totalSize * 100).toFixed(0);
+
+    if (this.totalSizeDisplay) {
+      this.totalSizeDisplay.textContent = `${totalSize}B`;
+    }
+    if (this.storedSizeDisplay) {
+      this.storedSizeDisplay.textContent = `${storedSize}B`;
+    }
+    if (this.ratioDisplay) {
+      this.ratioDisplay.textContent = `${ratio}%`;
+    }
+  }
+
+  renderDocument(container, chunks, allHashes) {
+    if (!container) return;
+
+    clearElement(container);
+    container.className = 'cdc-text-view';
+
+    chunks.forEach((chunk, index) => {
+      const isShared = allHashes.get(chunk.hash).count > 1;
+      const colorIndex = index % 6;
+
+      const span = document.createElement('span');
+      span.className = `chunk chunk-${colorIndex}${isShared ? ' shared' : ''}`;
+      span.dataset.hash = chunk.hash;
+      span.title = `${chunk.hash}${isShared ? ' (shared)' : ''}`;
+      span.textContent = chunk.content;
+      span.style.backgroundColor = CHUNK_COLORS[colorIndex];
+
+      if (isShared) {
+        span.style.boxShadow = 'inset 0 0 0 2px rgba(42, 125, 79, 0.5)';
+      }
+
+      container.appendChild(span);
+    });
+  }
+
+  renderUniqueChunks(allHashes) {
+    if (!this.chunksDisplay) return;
+
+    clearElement(this.chunksDisplay);
+
+    let colorIndex = 0;
+
+    allHashes.forEach((chunk, hash) => {
+      const el = document.createElement('div');
+      el.className = `cdc-dedup-chunk${chunk.count > 1 ? ' shared' : ''}`;
+      el.style.backgroundColor = CHUNK_SOLID_COLORS[colorIndex % CHUNK_SOLID_COLORS.length];
+      el.textContent = hash.slice(0, 6);
+      el.title = `${chunk.length}B${chunk.count > 1 ? ' (shared by both docs)' : ''}`;
+      this.chunksDisplay.appendChild(el);
+      colorIndex++;
+    });
+  }
+}
+
+// =============================================================================
+// Initialize on page load
+// =============================================================================
+
+function initCDCAnimations() {
+  // Fixed vs CDC comparison
+  new FixedVsCDCDemo('fixed-vs-cdc-demo');
+
+  // GEAR hash rolling window
+  new GearHashDemo('gear-hash-demo');
+
+  // Deduplication demo
+  new DedupDemo('dedup-demo');
+}
+
+// Auto-init when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCDCAnimations);
+} else {
+  initCDCAnimations();
+}
+
+// Export for module usage
+export { FixedVsCDCDemo, GearHashDemo, DedupDemo, chunkData, chunkDataFixed, findChunkBoundary };

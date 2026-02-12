@@ -107,31 +107,83 @@ title: CDC Animation Sandbox
 .cdc-text-view .chunk-4 { background-color: rgba(212, 165, 116, 0.15); }
 .cdc-text-view .chunk-5 { background-color: rgba(139, 115, 85, 0.25); }
 
-/* Block view */
+/* Block annotation bar (appended below text/hex views) */
 .cdc-blocks-view {
   display: flex;
-  flex-wrap: wrap;
+  align-items: stretch;
   gap: 2px;
+  margin-top: 1rem;
   padding: 0.5rem 0;
+  width: 100%;
+}
+
+.cdc-block-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .cdc-block {
   height: 24px;
   border-radius: 3px;
   transition: all 0.2s ease;
-  position: relative;
+  width: 100%;
 }
 
-.cdc-block.chunk-0 { background-color: #c45a3b; }
-.cdc-block.chunk-1 { background-color: #d4a574; }
-.cdc-block.chunk-2 { background-color: #8b7355; }
-.cdc-block.chunk-3 { background-color: #c45a3b; opacity: 0.7; }
-.cdc-block.chunk-4 { background-color: #d4a574; opacity: 0.7; }
-.cdc-block.chunk-5 { background-color: #8b7355; opacity: 0.7; }
+/* Underline + tick annotation below each chunk */
+.cdc-block-annotation {
+  width: 100%;
+  position: relative;
+  margin-top: 0.3rem;
+}
 
-.cdc-block:hover {
-  transform: scaleY(1.2);
-  z-index: 1;
+.cdc-block-line {
+  width: 100%;
+  height: 0;
+  border-top: 1.5px solid #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 8px;
+  background: #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #8b7355;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+  text-align: center;
+  margin-top: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chunk hover: highlight text chars + annotation block together */
+.cdc-text-view span.chunk-hover,
+.cdc-hex-view span.chunk-hover {
+  filter: brightness(0.85);
+  outline: 1px solid rgba(61, 58, 54, 0.25);
+  outline-offset: -1px;
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block {
+  filter: brightness(1.15);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block-label {
+  color: #3d3a36;
+  font-weight: 600;
 }
 
 /* Hex view */
@@ -211,7 +263,7 @@ title: CDC Animation Sandbox
   padding: 0.75rem 1rem;
   background: rgba(61, 58, 54, 0.03);
   border-radius: 6px;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -602,8 +654,128 @@ title: CDC Animation Sandbox
   margin-bottom: 2rem;
 }
 
+/* GEAR Lookup Table grid */
+.gear-table-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  margin-top: 0.5rem;
+}
+
+.gear-table-cell {
+  height: 15px;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.gear-table-cell:hover {
+  transform: scale(1.4);
+  z-index: 2;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
+
+.gear-table-cell.active {
+  outline: 2px solid #c45a3b;
+  outline-offset: 0px;
+  box-shadow: 0 0 6px rgba(196, 90, 59, 0.5);
+  z-index: 3;
+  transform: scale(1.4);
+}
+
+.gear-table-readout {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.8rem;
+  color: #8b7355;
+  min-height: 1.4em;
+}
+
+.gear-table-readout strong {
+  color: #c45a3b;
+}
+
+/* Operation breakdown panel */
+.gear-operation-panel {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  padding: 0.75rem 1rem;
+  background: rgba(61, 58, 54, 0.03);
+  border-radius: 6px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.gear-op-value {
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.gear-op-value.sage { color: #5a8a5a; }
+.gear-op-value.terracotta { color: #c45a3b; }
+.gear-op-value.bold { font-weight: 700; color: #3d3a36; }
+.gear-op-value.boundary { color: #2a7d4f; font-weight: 700; }
+
+/* Flash animation for updated values */
+@keyframes gear-flash {
+  0% { opacity: 0.3; transform: translateX(-4px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.gear-op-value.fresh {
+  animation: gear-flash 0.3s ease-out;
+}
+
+/* Two-column layout: Operation panel + GEAR table side-by-side */
+.gear-two-col {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+
+.gear-col-left {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.gear-col-right {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Chunk boundary marker (vertical separator at chunk splits) */
+.chunk-boundary-marker {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #c45a3b;
+  margin: 0 2px;
+  vertical-align: middle;
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* Chunk label (small tag at start of each chunk) */
+.chunk-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #8b7355;
+  background: rgba(61, 58, 54, 0.06);
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  margin-right: 2px;
+  vertical-align: top;
+  line-height: 1;
+  user-select: none;
+}
+
 /* Mobile responsive */
 @media (max-width: 42em) {
+  .gear-two-col {
+    flex-direction: column;
+  }
   .cdc-controls {
     grid-template-columns: 1fr;
   }
@@ -620,6 +792,20 @@ title: CDC Animation Sandbox
   .cdc-hex-view {
     font-size: 0.65rem;
   }
+
+  .gear-table-grid {
+    gap: 0px;
+  }
+
+  .gear-table-cell {
+    border-radius: 0;
+    height: 12px;
+  }
+
+  .gear-operation-panel {
+    font-size: 0.68rem;
+    padding: 0.5rem 0.75rem;
+  }
 }
 </style>
 
@@ -634,11 +820,11 @@ title: CDC Animation Sandbox
   </p>
 
   <div class="cdc-viz" id="gear-hash-demo">
+    <!-- Panel 1: Input Text -->
     <div class="cdc-viz-header">
-      <div class="cdc-viz-title">GEAR Hash Rolling Window</div>
+      <div class="cdc-viz-title">Input Text</div>
       <div class="cdc-view-tabs">
         <button class="cdc-view-tab active" data-view="text">Text</button>
-        <button class="cdc-view-tab" data-view="blocks">Blocks</button>
         <button class="cdc-view-tab" data-view="hex">Hex</button>
       </div>
     </div>
@@ -647,10 +833,33 @@ title: CDC Animation Sandbox
         The quick brown fox jumps over the lazy dog.
       </div>
     </div>
-    <div class="cdc-hash-display">
-      <span class="cdc-hash-label">Current Hash:</span>
-      <span id="gear-hash-value" class="cdc-hash-value">0x0000000000000000</span>
+
+    <!-- Two-column layout: Operation + Hash on left, GEAR table on right -->
+    <div class="gear-two-col">
+      <div class="gear-col-left">
+        <!-- Operation Breakdown -->
+        <pre class="gear-operation-panel" id="gear-operation-panel">  Step through to see the hash computation...</pre>
+
+        <!-- Current Hash Display -->
+        <div class="cdc-hash-display">
+          <span class="cdc-hash-label">Current Hash:</span>
+          <span id="gear-hash-value" class="cdc-hash-value">0x00000000</span>
+        </div>
+      </div>
+
+      <div class="gear-col-right">
+        <!-- GEAR Lookup Table -->
+        <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
+          <div class="cdc-viz-title">GEAR Lookup Table</div>
+        </div>
+        <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>
+        <div class="gear-table-grid" id="gear-table-grid">
+          <!-- 256 cells populated by JS -->
+        </div>
+      </div>
     </div>
+
+    <!-- Playback Controls -->
     <div class="cdc-playback">
       <button class="cdc-playback-btn" id="gear-play-btn">
         <span class="fa-solid fa-play"></span>
