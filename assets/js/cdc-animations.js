@@ -425,18 +425,6 @@ class GearHashDemo {
     // Build the GEAR lookup table grid
     this.buildGearTable();
 
-    // View mode tabs
-    const tabs = this.container.querySelectorAll('.cdc-view-tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        this.currentView = tab.dataset.view;
-        this.render();
-      });
-    });
-    this.currentView = 'text';
-
     // Chunk hover: highlight matching text + block on mouseover
     this.hoveredChunk = null;
     this.contentDisplay?.addEventListener('mouseover', (e) => {
@@ -757,57 +745,8 @@ class GearHashDemo {
   renderContent() {
     if (!this.contentDisplay) return;
 
-    switch (this.currentView) {
-      case 'text':
-        this.renderTextView();
-        break;
-      case 'hex':
-        this.renderHexView();
-        break;
-    }
-  }
-
-  renderTextView() {
     clearElement(this.contentDisplay);
-    this.contentDisplay.className = 'cdc-text-view';
-
-    let chunkIndex = 0;
-
-    for (let i = 0; i < this.text.length; i++) {
-      if (this.chunkBoundaries.includes(i)) {
-        chunkIndex++;
-      }
-
-      const char = this.text[i];
-      const isProcessed = i < this.position;
-      const isCurrent = this.position > 0 && i === this.position - 1;
-      const isUnprocessed = i >= this.position;
-
-      const span = document.createElement('span');
-      span.textContent = char === ' ' ? '\u00A0' : char;
-
-      if (isProcessed) {
-        span.dataset.chunkIndex = chunkIndex;
-        span.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
-        span.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
-      }
-      if (isCurrent) {
-        span.style.outline = '2px solid #c45a3b';
-        span.style.outlineOffset = '-1px';
-      }
-      if (isUnprocessed) {
-        span.style.opacity = '0.4';
-      }
-
-      this.contentDisplay.appendChild(span);
-    }
-
-    this.contentDisplay.appendChild(this.buildChunkAnnotationBar());
-  }
-
-  renderHexView() {
-    clearElement(this.contentDisplay);
-    this.contentDisplay.className = 'cdc-hex-view';
+    this.contentDisplay.className = 'cdc-combined-view';
 
     let chunkIndex = 0;
 
@@ -816,30 +755,42 @@ class GearHashDemo {
         chunkIndex++;
       }
 
+      const char = this.text[i];
       const byte = this.data[i];
       const hex = byte.toString(16).padStart(2, '0').toUpperCase();
       const isProcessed = i < this.position;
       const isCurrent = this.position > 0 && i === this.position - 1;
       const isUnprocessed = i >= this.position;
 
-      const span = document.createElement('span');
-      span.className = 'cdc-hex-byte';
-      span.textContent = hex;
+      const col = document.createElement('div');
+      col.className = 'cdc-byte-col';
+
+      // Character
+      const charSpan = document.createElement('span');
+      charSpan.className = 'cdc-byte-char';
+      charSpan.textContent = char === ' ' ? '\u00A0' : char;
+      col.appendChild(charSpan);
+
+      // Hex
+      const hexSpan = document.createElement('span');
+      hexSpan.className = 'cdc-byte-hex';
+      hexSpan.textContent = hex;
+      col.appendChild(hexSpan);
 
       if (isProcessed) {
-        span.dataset.chunkIndex = chunkIndex;
-        span.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
-        span.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
+        col.dataset.chunkIndex = chunkIndex;
+        col.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
+        col.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
       }
       if (isCurrent) {
-        span.style.outline = '2px solid #c45a3b';
-        span.style.outlineOffset = '-1px';
+        col.style.outline = '2px solid #c45a3b';
+        col.style.outlineOffset = '-1px';
       }
       if (isUnprocessed) {
-        span.style.opacity = '0.4';
+        col.style.opacity = '0.4';
       }
 
-      this.contentDisplay.appendChild(span);
+      this.contentDisplay.appendChild(col);
     }
 
     this.contentDisplay.appendChild(this.buildChunkAnnotationBar());

@@ -107,6 +107,36 @@ title: CDC Animation Sandbox
 .cdc-text-view .chunk-4 { background-color: rgba(212, 165, 116, 0.15); }
 .cdc-text-view .chunk-5 { background-color: rgba(139, 115, 85, 0.25); }
 
+/* Combined text + hex view */
+.cdc-combined-view {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+}
+
+.cdc-byte-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 2px;
+  padding: 0.15rem 0.1rem;
+}
+
+.cdc-byte-char {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #3d3a36;
+}
+
+.cdc-byte-hex {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: #8b7355;
+  margin-top: 1px;
+}
+
 /* Block annotation bar (appended below text/hex views) */
 .cdc-blocks-view {
   display: flex;
@@ -169,8 +199,7 @@ title: CDC Animation Sandbox
 }
 
 /* Chunk hover: highlight text chars + annotation block together */
-.cdc-text-view span.chunk-hover,
-.cdc-hex-view span.chunk-hover {
+.cdc-combined-view .cdc-byte-col.chunk-hover {
   filter: brightness(0.85);
   outline: 1px solid rgba(61, 58, 54, 0.25);
   outline-offset: -1px;
@@ -820,34 +849,19 @@ title: CDC Animation Sandbox
   </p>
 
   <div class="cdc-viz" id="gear-hash-demo">
-    <!-- Panel 1: Input Text -->
+    <!-- Input Text + Hex -->
     <div class="cdc-viz-header">
       <div class="cdc-viz-title">Input Text</div>
-      <div class="cdc-view-tabs">
-        <button class="cdc-view-tab active" data-view="text">Text</button>
-        <button class="cdc-view-tab" data-view="hex">Hex</button>
-      </div>
     </div>
     <div class="cdc-content">
-      <div id="gear-content-display" class="cdc-text-view">
+      <div id="gear-content-display" class="cdc-combined-view">
         The quick brown fox jumps over the lazy dog.
       </div>
     </div>
 
-    <!-- Two-column layout: Operation + Hash on left, GEAR table on right -->
+    <!-- Two-column layout: GEAR table on left, Operation + Hash on right -->
     <div class="gear-two-col">
       <div class="gear-col-left">
-        <!-- Operation Breakdown -->
-        <pre class="gear-operation-panel" id="gear-operation-panel">  Step through to see the hash computation...</pre>
-
-        <!-- Current Hash Display -->
-        <div class="cdc-hash-display">
-          <span class="cdc-hash-label">Current Hash:</span>
-          <span id="gear-hash-value" class="cdc-hash-value">0x00000000</span>
-        </div>
-      </div>
-
-      <div class="gear-col-right">
         <!-- GEAR Lookup Table -->
         <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
           <div class="cdc-viz-title">GEAR Lookup Table</div>
@@ -855,6 +869,17 @@ title: CDC Animation Sandbox
         <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>
         <div class="gear-table-grid" id="gear-table-grid">
           <!-- 256 cells populated by JS -->
+        </div>
+      </div>
+
+      <div class="gear-col-right">
+        <!-- Operation Breakdown -->
+        <pre class="gear-operation-panel" id="gear-operation-panel">  Step through to see the hash computation...</pre>
+
+        <!-- Current Hash Display -->
+        <div class="cdc-hash-display">
+          <span class="cdc-hash-label">Current Hash:</span>
+          <span id="gear-hash-value" class="cdc-hash-value">0x00000000</span>
         </div>
       </div>
     </div>
