@@ -389,7 +389,7 @@ class GearHashDemo {
     this.hash = 0n;
     this.previousHash = 0n;
     this.isPlaying = false;
-    this.speed = 5;
+    this.speed = 2;
     this.animationFrame = null;
     this.lastTime = 0;
     this.chunks = [];
@@ -407,12 +407,17 @@ class GearHashDemo {
     // Track where the current chunk starts (for relative size checks)
     this.currentChunkStart = 0;
 
+    // Hash history: array of { char, hash, isBoundary } for each processed byte
+    this.hashHistory = [];
+
     this.init();
   }
 
   init() {
     this.contentDisplay = document.getElementById('gear-content-display');
-    this.hashDisplay = document.getElementById('gear-hash-value');
+    this.hashDisplay = document.getElementById('gear-hash-display');
+    this.hashWindow = document.getElementById('gear-hash-window');
+    this.shiftViz = document.getElementById('gear-shift-viz');
     this.progressBar = document.getElementById('gear-progress');
     this.playBtn = document.getElementById('gear-play-btn');
 
@@ -420,7 +425,6 @@ class GearHashDemo {
     this.resetBtn = document.getElementById('gear-reset-btn');
     this.speedControl = document.getElementById('gear-speed');
     this.tableReadout = document.getElementById('gear-table-readout');
-    this.operationPanel = document.getElementById('gear-operation-panel');
 
     // Build the GEAR lookup table grid
     this.buildGearTable();
@@ -471,13 +475,15 @@ class GearHashDemo {
       const cell = document.createElement('div');
       cell.className = 'gear-table-cell';
 
-      // Normalize the GEAR value to a color
-      const gearVal = Number(GEAR[i] & 0xffffffffn);
-      const normalized = gearVal / 0xffffffff;
-      const hue = 20 + normalized * 30;       // 20-50° warm range
-      const lightness = 65 + normalized * 25;  // 65-90%
-      cell.style.backgroundColor = `hsl(${hue}, 55%, ${lightness}%)`;
+      // Color by row hue + column-driven lightness gradient
+      const row = Math.floor(i / 16);
+      const col = i % 16;
+      const hue = (row * 22.5 + 10) % 360;
+      const saturation = row % 2 === 0 ? 42 : 36;
+      const lightness = 85 - (col / 15) * 18;  // 85% → 67%, light to dark left-to-right
+      cell.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
+      const gearVal = Number(GEAR[i] & 0xffffffffn);
       cell.title = `0x${i.toString(16).padStart(2, '0').toUpperCase()} → 0x${gearVal.toString(16).padStart(8, '0')}`;
 
       // Hover listener updates readout
@@ -509,16 +515,23 @@ class GearHashDemo {
     const gearVal = Number(GEAR[byteIndex] & 0xffffffffn);
     clearElement(this.tableReadout);
 
+    const hexStr = '0x' + gearVal.toString(16).padStart(8, '0');
+    const binStr = '0b' + gearVal.toString(2).padStart(32, '0');
+
     const text1 = document.createTextNode('GEAR[');
     const strong = document.createElement('strong');
     strong.textContent = byteIndex.toString();
     const text2 = document.createTextNode('] = ');
     const valStrong = document.createElement('strong');
-    valStrong.textContent = '0x' + gearVal.toString(16).padStart(8, '0');
+    valStrong.textContent = hexStr;
+    const binSpan = document.createElement('span');
+    binSpan.textContent = ' ' + binStr;
+    binSpan.style.cssText = 'font-size: 0.65rem; color: #aaa; font-weight: normal;';
     this.tableReadout.appendChild(text1);
     this.tableReadout.appendChild(strong);
     this.tableReadout.appendChild(text2);
     this.tableReadout.appendChild(valStrong);
+    this.tableReadout.appendChild(binSpan);
   }
 
   clearChunkHover() {
@@ -538,69 +551,6 @@ class GearHashDemo {
       this.gearCells[index].classList.add('active');
     }
     this.prevActiveCell = index;
-  }
-
-  /**
-   * Build a colored <span> inside the <pre> panel.
-   */
-  colorSpan(text, className) {
-    const span = document.createElement('span');
-    span.textContent = text;
-    if (className) span.className = className;
-    return span;
-  }
-
-  /**
-   * Update the operation breakdown panel with all intermediate values.
-   * Renders aligned monospace text inside the <pre> element.
-   */
-  updateOperationPanel(char, byteValue, gearValue, shiftedHash, newHash, isBoundary) {
-    if (!this.operationPanel) return;
-    clearElement(this.operationPanel);
-
-    const hex = '0x' + byteValue.toString(16).padStart(2, '0');
-    const gearHex = '0x' + gearValue.toString(16).padStart(8, '0');
-    const shiftHex = '0x' + shiftedHash.toString(16).padStart(8, '0');
-    const resultHex = '0x' + newHash.toString(16).padStart(8, '0');
-    const pad = byteValue.toString().length < 3 ? ' '.repeat(3 - byteValue.toString().length) : '';
-
-    // Line 1: byte derivation
-    //   'r' (0x72 = 114)    GEAR[114] = 0xb799c8a5
-    const p = this.operationPanel;
-    p.appendChild(document.createTextNode('  '));
-    p.appendChild(this.colorSpan(`'${char}'`, 'gear-op-value bold'));
-    p.appendChild(document.createTextNode(` (${hex} = ${byteValue})${pad}   `));
-    p.appendChild(this.colorSpan(`GEAR[${byteValue}]`, 'gear-op-value terracotta'));
-    p.appendChild(document.createTextNode(' = '));
-    p.appendChild(this.colorSpan(gearHex, 'gear-op-value terracotta'));
-    p.appendChild(document.createTextNode('\n'));
-
-    // Line 2: blank separator
-    p.appendChild(document.createTextNode('\n'));
-
-    // Line 3: hash << 1
-    p.appendChild(document.createTextNode('  hash << 1  = '));
-    p.appendChild(this.colorSpan(shiftHex, 'gear-op-value sage fresh'));
-    p.appendChild(document.createTextNode('\n'));
-
-    // Line 4: + GEAR[n]
-    const gearLabel = `+ GEAR[${byteValue}]`;
-    const labelPad = ' '.repeat(Math.max(0, 11 - gearLabel.length));
-    p.appendChild(document.createTextNode('  ' + gearLabel + labelPad + '= '));
-    p.appendChild(this.colorSpan(gearHex, 'gear-op-value terracotta fresh'));
-    p.appendChild(document.createTextNode('\n'));
-
-    // Line 5: divider
-    p.appendChild(document.createTextNode('  ─────────────────────────────\n'));
-
-    // Line 6: New hash
-    p.appendChild(document.createTextNode('  New hash   = '));
-    const resultClass = isBoundary ? 'gear-op-value boundary fresh' : 'gear-op-value bold fresh';
-    p.appendChild(this.colorSpan(resultHex, resultClass));
-    if (isBoundary) {
-      p.appendChild(this.colorSpan('  ← boundary!', 'gear-op-value boundary'));
-    }
-    p.appendChild(document.createTextNode('\n'));
   }
 
   togglePlay() {
@@ -679,10 +629,17 @@ class GearHashDemo {
       }
     }
 
-    // 7. Update operation panel with all intermediate values
-    this.updateOperationPanel(char, byteValue, gearValue, shiftedHash, newHashNum, isBoundary);
+    // 7. Record hash history
+    this.hashHistory.push({
+      char,
+      hash: '0x' + newHashNum.toString(16).padStart(8, '0'),
+      isBoundary,
+    });
 
-    // 8. Highlight the GEAR table cell
+    // 8. Update bit-shift visualization
+    this.renderShiftViz(Number(this.previousHash), shiftedHash, gearValue, newHashNum, isBoundary);
+
+    // 9. Highlight the GEAR table cell
     this.highlightGearCell(byteValue);
     this.updateReadout(byteValue);
 
@@ -696,6 +653,7 @@ class GearHashDemo {
     this.previousHash = 0n;
     this.chunkBoundaries = [];
     this.currentChunkStart = 0;
+    this.hashHistory = [];
     this.isPlaying = false;
     if (this.playBtn) {
       const icon = this.playBtn.querySelector('span');
@@ -706,10 +664,9 @@ class GearHashDemo {
     // Clear GEAR cell highlight
     this.highlightGearCell(-1);
 
-    // Reset operation panel
-    if (this.operationPanel) {
-      clearElement(this.operationPanel);
-      this.operationPanel.textContent = '  Step through to see the hash computation...';
+    // Reset shift viz
+    if (this.shiftViz) {
+      clearElement(this.shiftViz);
     }
 
     // Reset readout
@@ -726,20 +683,216 @@ class GearHashDemo {
     }
 
     if (this.hashDisplay) {
-      const hashStr = '0x' + this.hash.toString(16).padStart(8, '0');
-      this.hashDisplay.textContent = hashStr;
+      const hashNum = Number(this.hash & 0xffffffffn);
+      const hashStr = '0x' + hashNum.toString(16).padStart(8, '0');
+      const binStr = '0b' + hashNum.toString(2).padStart(32, '0');
+      clearElement(this.hashDisplay);
+      this.hashDisplay.appendChild(document.createTextNode('Current Hash: '));
+      const strong = document.createElement('strong');
+      strong.textContent = hashStr;
+      this.hashDisplay.appendChild(strong);
+      const binSpan = document.createElement('span');
+      binSpan.textContent = ' ' + binStr;
+      binSpan.style.cssText = 'font-size: 0.65rem; color: #aaa;';
+      this.hashDisplay.appendChild(binSpan);
 
       // Highlight if boundary condition met
       const bits = Math.floor(Math.log2(this.avgSize));
       const mask = MASKS[bits];
       if (this.position >= this.minSize && (this.hash & mask) === 0n) {
-        this.hashDisplay.classList.add('boundary');
-      } else {
-        this.hashDisplay.classList.remove('boundary');
+        strong.style.color = '#2a7d4f';
       }
     }
 
+    this.renderHashWindow();
     this.renderContent();
+  }
+
+  renderHashWindow() {
+    if (!this.hashWindow) return;
+    clearElement(this.hashWindow);
+
+    if (this.hashHistory.length === 0) return;
+
+    // Find the start of the current chunk in the history
+    let currentChunkStartIdx = 0;
+    for (let i = this.hashHistory.length - 1; i >= 0; i--) {
+      if (i > 0 && this.hashHistory[i - 1].isBoundary) {
+        currentChunkStartIdx = i;
+        break;
+      }
+    }
+
+    // Show the current chunk's bytes in the window
+    for (let i = currentChunkStartIdx; i < this.hashHistory.length; i++) {
+      const entry = this.hashHistory[i];
+      const cell = document.createElement('div');
+      cell.className = 'gear-hw-cell';
+
+      if (i === this.hashHistory.length - 1) {
+        cell.classList.add('current');
+      }
+      if (entry.isBoundary) {
+        cell.classList.add('boundary');
+      }
+
+      const charEl = document.createElement('span');
+      charEl.className = 'gear-hw-char';
+      charEl.textContent = entry.char === ' ' ? '\u00A0' : entry.char;
+      cell.appendChild(charEl);
+
+      const hashEl = document.createElement('span');
+      hashEl.className = 'gear-hw-hash';
+      if (entry.isBoundary) hashEl.classList.add('boundary');
+      hashEl.textContent = entry.hash.slice(2, 6);
+      cell.appendChild(hashEl);
+
+      this.hashWindow.appendChild(cell);
+    }
+
+    // Auto-scroll to keep the current cell visible
+    this.hashWindow.scrollLeft = this.hashWindow.scrollWidth;
+  }
+
+  /**
+   * Render the bit-shift visualization showing:
+   * Row 1: previous hash bits (MSB marked as "dropped")
+   * Row 2: shifted hash bits (new 0 on right highlighted)
+   * Row 3: GEAR value bits
+   * Row 4: result hash bits
+   */
+  renderShiftViz(previousHash, shiftedHash, gearValue, newHash, isBoundary) {
+    if (!this.shiftViz) return;
+    clearElement(this.shiftViz);
+
+    const toHex = (n) => '0x' + (n >>> 0).toString(16).padStart(8, '0');
+    const toBits = (n) => {
+      const bits = [];
+      for (let i = 31; i >= 0; i--) {
+        bits.push((n >>> i) & 1);
+      }
+      return bits;
+    };
+
+    const prevBits = toBits(previousHash);
+    const shiftBits = toBits(shiftedHash);
+    const gearBits = toBits(gearValue);
+    const resultBits = toBits(newHash);
+
+    const makeBitRow = (bits, label, hexVal, options = {}) => {
+      const row = document.createElement('div');
+      row.className = 'gear-shift-row';
+
+      const labelEl = document.createElement('span');
+      labelEl.className = 'gear-shift-label';
+      labelEl.textContent = label;
+      row.appendChild(labelEl);
+
+      // Hex value
+      const hexEl = document.createElement('span');
+      hexEl.className = 'gear-shift-hex';
+      hexEl.textContent = hexVal;
+      row.appendChild(hexEl);
+
+      const bitsContainer = document.createElement('div');
+      bitsContainer.className = 'gear-shift-bits';
+      if (options.animated) bitsContainer.classList.add('animated');
+
+      bits.forEach((bit, i) => {
+        const cell = document.createElement('span');
+        cell.className = `gear-bit b${bit}`;
+
+        if (options.markDropped && i === 0) {
+          cell.classList.add('dropped');
+        }
+        if (options.markEntering && i === 31) {
+          cell.classList.add('entering');
+        }
+
+        cell.textContent = bit;
+        bitsContainer.appendChild(cell);
+      });
+
+      row.appendChild(bitsContainer);
+      return row;
+    };
+
+    // === Shift box: wraps hash → << 1 → hash<<1 ===
+    const shiftBox = document.createElement('div');
+    shiftBox.className = 'gear-shift-box';
+
+    // Row 1: previous hash with MSB marked
+    shiftBox.appendChild(makeBitRow(prevBits, 'hash', toHex(previousHash), { markDropped: true }));
+
+    // Arrow indicator
+    const arrowRow = document.createElement('div');
+    arrowRow.className = 'gear-shift-row';
+    const arrowLabel = document.createElement('span');
+    arrowLabel.className = 'gear-shift-label';
+    arrowLabel.textContent = '<< 1';
+    arrowRow.appendChild(arrowLabel);
+    const arrowSpacer = document.createElement('span');
+    arrowSpacer.className = 'gear-shift-hex';
+    arrowSpacer.textContent = '';
+    arrowRow.appendChild(arrowSpacer);
+    const arrowBits = document.createElement('div');
+    arrowBits.className = 'gear-shift-bits';
+    arrowBits.style.cssText = 'justify-content: space-between; width: calc(32 * 7px); color: #8b7355; font-size: 0.5rem;';
+    const arrowLeft = document.createElement('span');
+    arrowLeft.textContent = 'MSB dropped \u2190';
+    arrowLeft.style.color = '#c45a3b';
+    const arrowRight = document.createElement('span');
+    arrowRight.textContent = '\u2192 0 enters';
+    arrowRight.style.color = '#5a8a5a';
+    arrowBits.appendChild(arrowLeft);
+    arrowBits.appendChild(arrowRight);
+    arrowRow.appendChild(arrowBits);
+    shiftBox.appendChild(arrowRow);
+
+    // Row 2: shifted result
+    shiftBox.appendChild(makeBitRow(shiftBits, 'hash<<1', toHex(shiftedHash), { animated: true, markEntering: true }));
+
+    this.shiftViz.appendChild(shiftBox);
+
+    // === Connecting arrow from shift box down to addition ===
+    const connector = document.createElement('div');
+    connector.className = 'gear-shift-connector';
+    connector.textContent = '\u25BC';
+    this.shiftViz.appendChild(connector);
+
+    // === Addition section: hash<<1 + GEAR[n] = result ===
+    const addSection = document.createElement('div');
+    addSection.className = 'gear-shift-add';
+
+    addSection.appendChild(makeBitRow(shiftBits, 'hash<<1', toHex(shiftedHash), {}));
+    addSection.appendChild(makeBitRow(gearBits, '+ GEAR[n]', toHex(gearValue), {}));
+
+    // Separator
+    const sep = document.createElement('div');
+    sep.className = 'gear-shift-row';
+    const sepLabel = document.createElement('span');
+    sepLabel.className = 'gear-shift-label';
+    sepLabel.textContent = '';
+    sep.appendChild(sepLabel);
+    const sepSpacer = document.createElement('span');
+    sepSpacer.className = 'gear-shift-hex';
+    sepSpacer.textContent = '';
+    sep.appendChild(sepSpacer);
+    const sepLine = document.createElement('div');
+    sepLine.className = 'gear-shift-separator';
+    sep.appendChild(sepLine);
+    addSection.appendChild(sep);
+
+    // Result row
+    const resultLabel = isBoundary ? '= hash \u2713' : '= hash';
+    const resultRow = makeBitRow(resultBits, resultLabel, toHex(newHash), {});
+    if (isBoundary) {
+      resultRow.style.fontWeight = '700';
+      resultRow.querySelector('.gear-shift-label').style.color = '#2a7d4f';
+    }
+    addSection.appendChild(resultRow);
+
+    this.shiftViz.appendChild(addSection);
   }
 
   renderContent() {

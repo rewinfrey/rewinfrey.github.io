@@ -288,30 +288,13 @@ title: CDC Animation Sandbox
 /* Hash display */
 .cdc-hash-display {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.85rem;
-  padding: 0.75rem 1rem;
-  background: rgba(61, 58, 54, 0.03);
-  border-radius: 6px;
-  margin-top: 0.75rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cdc-hash-label {
-  font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 0.8rem;
   color: #8b7355;
+  min-height: 1.4em;
 }
 
-.cdc-hash-value {
+.cdc-hash-display strong {
   color: #c45a3b;
-  font-weight: 500;
-}
-
-.cdc-hash-value.boundary {
-  color: #2a7d4f;
-  font-weight: 700;
 }
 
 /* Controls panel */
@@ -724,6 +707,173 @@ title: CDC Animation Sandbox
   color: #c45a3b;
 }
 
+/* Rolling hash window strip */
+.gear-hash-window {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  padding: 0.25rem 0;
+  margin-bottom: 0.5rem;
+  min-height: 3.2rem;
+}
+
+.gear-hw-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2rem;
+  padding: 0.2rem 0.15rem;
+  border-radius: 3px;
+  background: rgba(61, 58, 54, 0.04);
+  transition: background-color 0.15s ease;
+}
+
+.gear-hw-cell.current {
+  outline: 2px solid #c45a3b;
+  outline-offset: -1px;
+}
+
+.gear-hw-cell.boundary {
+  border-right: 2px solid #2a7d4f;
+}
+
+.gear-hw-char {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.8rem;
+  color: #3d3a36;
+  line-height: 1.2;
+}
+
+.gear-hw-hash {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.5rem;
+  color: #8b7355;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.gear-hw-hash.boundary {
+  color: #2a7d4f;
+  font-weight: 700;
+}
+
+/* Bit-shift visualization */
+.gear-shift-viz {
+  margin-bottom: 0.5rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+}
+
+.gear-shift-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 3px;
+}
+
+.gear-shift-label {
+  width: 4rem;
+  text-align: right;
+  color: #8b7355;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.gear-shift-hex {
+  width: 5.5rem;
+  text-align: right;
+  color: #3d3a36;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  padding-right: 0.3rem;
+}
+
+.gear-shift-bits {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+
+.gear-bit {
+  width: 7px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.45rem;
+  line-height: 1;
+  border-radius: 1px;
+}
+
+.gear-bit.b0,
+.gear-bit.b1 {
+  background: rgba(61, 58, 54, 0.06);
+  color: #3d3a36;
+}
+
+/* MSB being dropped */
+.gear-bit.dropped {
+  background: rgba(196, 90, 59, 0.25);
+  color: #c45a3b;
+  text-decoration: line-through;
+}
+
+/* New zero entering on the right */
+.gear-bit.entering {
+  background: rgba(90, 138, 90, 0.25);
+  color: #5a8a5a;
+  font-weight: 700;
+}
+
+/* Shift arrow between rows */
+.gear-shift-arrow {
+  color: #8b7355;
+  font-size: 0.7rem;
+  padding: 0 0.15rem;
+}
+
+/* Slide-left animation */
+@keyframes gear-slide-left {
+  0% { transform: translateX(7px); opacity: 0.5; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.gear-shift-bits.animated .gear-bit {
+  animation: gear-slide-left 0.25s ease-out;
+}
+
+/* Shift box: bordered container around the << 1 operation */
+.gear-shift-box {
+  border: 1.5px solid rgba(196, 90, 59, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(196, 90, 59, 0.02);
+}
+
+/* Connector arrow between shift box and addition */
+.gear-shift-connector {
+  text-align: center;
+  color: #8b7355;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.15rem 0;
+}
+
+/* Addition section */
+.gear-shift-add {
+  border: 1.5px solid rgba(61, 58, 54, 0.12);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(61, 58, 54, 0.02);
+}
+
+/* Separator between shift rows */
+.gear-shift-separator {
+  width: calc(32 * 7px);
+  border-top: 1px solid rgba(61, 58, 54, 0.15);
+  margin: 2px 0;
+}
+
 /* Operation breakdown panel */
 .gear-operation-panel {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
@@ -842,17 +992,13 @@ title: CDC Animation Sandbox
      Demo 1: GEAR Hash Rolling Window
      ============================================================ -->
 <section class="sandbox-section">
-  <h1 class="sandbox-section-title">GEAR Hash Rolling Window</h1>
+  <h1 class="sandbox-section-title">FastCDC: GEAR Rolling Hash</h1>
   <p class="sandbox-section-description">
     Watch the GEAR hash update byte-by-byte as it slides across the input.
     The hash is computed as: <code>hash = (hash &lt;&lt; 1) + GEAR[byte]</code>
   </p>
 
   <div class="cdc-viz" id="gear-hash-demo">
-    <!-- Input Text + Hex -->
-    <div class="cdc-viz-header">
-      <div class="cdc-viz-title">Input Text</div>
-    </div>
     <div class="cdc-content">
       <div id="gear-content-display" class="cdc-combined-view">
         The quick brown fox jumps over the lazy dog.
@@ -873,14 +1019,18 @@ title: CDC Animation Sandbox
       </div>
 
       <div class="gear-col-right">
-        <!-- Operation Breakdown -->
-        <pre class="gear-operation-panel" id="gear-operation-panel">  Step through to see the hash computation...</pre>
+        <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+          <div class="cdc-viz-title">Rolling Hash Window</div>
+        </div>
 
         <!-- Current Hash Display -->
-        <div class="cdc-hash-display">
-          <span class="cdc-hash-label">Current Hash:</span>
-          <span id="gear-hash-value" class="cdc-hash-value">0x00000000</span>
-        </div>
+        <div class="cdc-hash-display" id="gear-hash-display">Current Hash: <strong>0x00000000</strong></div>
+
+        <!-- Visual hash window strip -->
+        <div class="gear-hash-window" id="gear-hash-window"></div>
+
+        <!-- Bit-shift visualization -->
+        <div class="gear-shift-viz" id="gear-shift-viz"></div>
       </div>
     </div>
 
@@ -900,7 +1050,7 @@ title: CDC Animation Sandbox
       </div>
       <div class="cdc-speed-control">
         <span class="cdc-speed-label">Speed</span>
-        <input type="range" id="gear-speed" min="1" max="10" value="5" style="width: 80px;">
+        <input type="range" id="gear-speed" min="1" max="10" value="2" style="width: 80px;">
       </div>
     </div>
   </div>
