@@ -994,7 +994,7 @@ title: CDC Animation Sandbox
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">FastCDC: GEAR Rolling Hash</h1>
   <p class="sandbox-section-description">
-    Watch the GEAR hash update byte-by-byte as it slides across the input.
+    Step through the GEAR rolling hash byte-by-byte as it slides across the input.
     The hash is computed as: <code>hash = (hash &lt;&lt; 1) + GEAR[byte]</code>
   </p>
 
@@ -1036,13 +1036,13 @@ title: CDC Animation Sandbox
 
     <!-- Playback Controls -->
     <div class="cdc-playback">
-      <button class="cdc-playback-btn" id="gear-play-btn">
+      <button class="cdc-playback-btn" id="gear-play-btn" title="Play / Pause">
         <span class="fa-solid fa-play"></span>
       </button>
-      <button class="cdc-playback-btn secondary" id="gear-step-btn">
+      <button class="cdc-playback-btn secondary" id="gear-step-btn" title="Step forward one byte">
         <span class="fa-solid fa-forward-step"></span>
       </button>
-      <button class="cdc-playback-btn secondary" id="gear-reset-btn">
+      <button class="cdc-playback-btn secondary" id="gear-reset-btn" title="Reset to beginning">
         <span class="fa-solid fa-rotate-left"></span>
       </button>
       <div class="cdc-progress">
@@ -1050,7 +1050,7 @@ title: CDC Animation Sandbox
       </div>
       <div class="cdc-speed-control">
         <span class="cdc-speed-label">Speed</span>
-        <input type="range" id="gear-speed" min="1" max="10" value="2" style="width: 80px;">
+        <input type="range" id="gear-speed" min="1" max="10" value="2" style="width: 80px;" title="Playback speed">
       </div>
     </div>
   </div>
