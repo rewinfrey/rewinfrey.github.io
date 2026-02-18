@@ -20,4 +20,7 @@ sass:
 # code highlighting
 highlighter: rouge
 
+# Social / Open Graph defaults
+default_image: "/assets/images/default_og.png"
+
 exclude: ['vendor', 'jekyll-cache']
