@@ -1029,130 +1029,559 @@ class GearHashDemo {
 // Deduplication Demo
 // =============================================================================
 
-class DedupDemo {
+class VersionedDedupDemo {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
-    this.doc1Text = `The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!`;
-
-    this.doc2Text = `The quick brown fox jumps over the lazy dog. MODIFIED SECTION HERE! How vexingly quick daft zebras jump!`;
+    this.baseText = `Every morning the baker rises before dawn to light the old brick oven. The smell of fresh bread fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves.`;
 
     this.encoder = new TextEncoder();
-    this.doc1Data = this.encoder.encode(this.doc1Text);
-    this.doc2Data = this.encoder.encode(this.doc2Text);
-
-    // CDC parameters
     this.minSize = 16;
     this.avgSize = 32;
     this.maxSize = 64;
 
-    this.init();
+    this.versions = [];
+    this.versionCounter = 0;
+    this.contentStore = new Map(); // hash -> {length, content, versionIndices: Set}
+
+    this.buildUI();
+    this.saveVersion(this.baseText, 'original');
   }
 
-  init() {
-    this.doc1Display = document.getElementById('dedup-doc1');
-    this.doc2Display = document.getElementById('dedup-doc2');
-    this.chunksDisplay = document.getElementById('dedup-chunks');
-    this.totalSizeDisplay = document.getElementById('dedup-total-size');
-    this.storedSizeDisplay = document.getElementById('dedup-stored-size');
-    this.ratioDisplay = document.getElementById('dedup-ratio');
+  buildUI() {
+    clearElement(this.container);
+
+    // Editor
+    const editor = document.createElement('div');
+    editor.className = 'cdc-dedup-editor';
+
+    this.textarea = document.createElement('textarea');
+    this.textarea.className = 'cdc-dedup-textarea';
+    this.textarea.value = this.baseText;
+    editor.appendChild(this.textarea);
+
+    const btn = document.createElement('button');
+    btn.className = 'cdc-dedup-save-btn';
+    btn.textContent = 'Save Version';
+    btn.addEventListener('click', () => {
+      const text = this.textarea.value;
+      if (!text.trim()) return;
+      this.versionCounter++;
+      this.saveVersion(text, `v${this.versionCounter}`);
+    });
+    editor.appendChild(btn);
+
+    this.container.appendChild(editor);
+
+    // Slider control (reuses parametric-control-row styles)
+    const controlRow = document.createElement('div');
+    controlRow.className = 'parametric-control-row';
+
+    const label = document.createElement('span');
+    label.className = 'parametric-control-label';
+    this.sliderValueEl = document.createElement('strong');
+    this.sliderValueEl.textContent = this.avgSize;
+    label.append('Target Average: ', this.sliderValueEl, ' bytes');
+    controlRow.appendChild(label);
+
+    this.slider = document.createElement('input');
+    this.slider.type = 'range';
+    this.slider.min = '16';
+    this.slider.max = '128';
+    this.slider.value = String(this.avgSize);
+    this.slider.step = '2';
+    this.slider.addEventListener('input', () => this.onSliderChange());
+    controlRow.appendChild(this.slider);
+
+    this.derivedParamsEl = document.createElement('span');
+    this.derivedParamsEl.className = 'parametric-derived-params';
+    this.derivedParamsEl.textContent = `(min: ${this.minSize}, max: ${this.maxSize})`;
+    controlRow.appendChild(this.derivedParamsEl);
+
+    this.container.appendChild(controlRow);
+
+    // Timeline heading
+    const timelineTitle = document.createElement('div');
+    timelineTitle.className = 'cdc-dedup-timeline-title';
+    timelineTitle.textContent = 'Timeline';
+    this.container.appendChild(timelineTitle);
+
+    // Timeline
+    this.timelineEl = document.createElement('div');
+    this.timelineEl.className = 'cdc-dedup-timeline';
+    this.container.appendChild(this.timelineEl);
+
+    // Unique chunks storage
+    const storage = document.createElement('div');
+    storage.className = 'cdc-dedup-storage';
+    const storageTitle = document.createElement('div');
+    storageTitle.className = 'cdc-dedup-storage-title';
+    storageTitle.textContent = 'Unique Chunks Stored';
+    storage.appendChild(storageTitle);
+    this.chunksDisplay = document.createElement('div');
+    this.chunksDisplay.className = 'cdc-dedup-chunks';
+    storage.appendChild(this.chunksDisplay);
+    this.container.appendChild(storage);
+
+    // Global stats
+    const stats = document.createElement('div');
+    stats.className = 'cdc-stats';
+
+    const statDefs = [
+      { id: 'dedup-total-size', label: 'Total Size' },
+      { id: 'dedup-stored-size', label: 'Stored' },
+      { id: 'dedup-ratio', label: 'Dedup Ratio' }
+    ];
+
+    for (const def of statDefs) {
+      const stat = document.createElement('div');
+      stat.className = 'cdc-stat';
+      const value = document.createElement('div');
+      value.id = def.id;
+      value.className = 'cdc-stat-value';
+      value.textContent = '--';
+      stat.appendChild(value);
+      const lbl = document.createElement('div');
+      lbl.className = 'cdc-stat-label';
+      lbl.textContent = def.label;
+      stat.appendChild(lbl);
+      stats.appendChild(stat);
+    }
+
+    this.container.appendChild(stats);
+
+    this.totalSizeDisplay = stats.querySelector('#dedup-total-size');
+    this.storedSizeDisplay = stats.querySelector('#dedup-stored-size');
+    this.ratioDisplay = stats.querySelector('#dedup-ratio');
+  }
+
+  saveVersion(text, label) {
+    const data = this.encoder.encode(text);
+    const versionId = this.versionCounter;
+    this.versions.unshift({ id: versionId, label, text, data, chunkMap: [] });
+    this.rechunk();
+  }
+
+  onSliderChange() {
+    this.avgSize = parseInt(this.slider.value);
+    this.minSize = Math.max(4, Math.floor(this.avgSize / 2));
+    this.maxSize = this.avgSize * 2;
+    if (this.sliderValueEl) this.sliderValueEl.textContent = this.avgSize;
+    if (this.derivedParamsEl) this.derivedParamsEl.textContent = `(min: ${this.minSize}, max: ${this.maxSize})`;
+    this.rechunk();
+  }
+
+  rechunk() {
+    // Rebuild contentStore and chunkMaps from scratch using current params
+    this.contentStore.clear();
+
+    for (const version of this.versions) {
+      const chunks = chunkData(version.data, this.minSize, this.avgSize, this.maxSize);
+      version.chunkMap = chunks.map(c => ({
+        offset: c.offset,
+        length: c.length,
+        hash: hashChunk(version.data, c.offset, c.length),
+        content: version.text.slice(c.offset, c.offset + c.length)
+      }));
+
+      for (const chunk of version.chunkMap) {
+        if (this.contentStore.has(chunk.hash)) {
+          this.contentStore.get(chunk.hash).versionIndices.add(version.id);
+        } else {
+          this.contentStore.set(chunk.hash, {
+            length: chunk.length,
+            content: chunk.content,
+            versionIndices: new Set([version.id])
+          });
+        }
+      }
+    }
 
     this.render();
   }
 
+  isChunkShared(hash, versionId) {
+    const entry = this.contentStore.get(hash);
+    if (!entry) return false;
+    for (const vid of entry.versionIndices) {
+      if (vid < versionId) return true;
+    }
+    return false;
+  }
+
   render() {
-    // Chunk both documents
-    const chunks1 = chunkData(this.doc1Data, this.minSize, this.avgSize, this.maxSize);
-    const chunks2 = chunkData(this.doc2Data, this.minSize, this.avgSize, this.maxSize);
+    this.renderTimeline();
+    this.renderUniqueChunks();
+    this.renderStats();
+  }
 
-    // Get hashes and content for each chunk
-    const chunkMap1 = chunks1.map(c => ({
-      ...c,
-      hash: hashChunk(this.doc1Data, c.offset, c.length),
-      content: this.doc1Text.slice(c.offset, c.offset + c.length)
-    }));
+  renderTimeline() {
+    clearElement(this.timelineEl);
 
-    const chunkMap2 = chunks2.map(c => ({
-      ...c,
-      hash: hashChunk(this.doc2Data, c.offset, c.length),
-      content: this.doc2Text.slice(c.offset, c.offset + c.length)
-    }));
+    for (const version of this.versions) {
+      const entry = document.createElement('div');
+      entry.className = 'cdc-version-entry';
 
-    // Find unique chunks across both documents
-    const allHashes = new Map();
-    [...chunkMap1, ...chunkMap2].forEach(c => {
-      if (!allHashes.has(c.hash)) {
-        allHashes.set(c.hash, { ...c, count: 1 });
-      } else {
-        allHashes.get(c.hash).count++;
-      }
-    });
+      const dot = document.createElement('div');
+      dot.className = 'cdc-version-dot';
+      entry.appendChild(dot);
 
-    // Render documents with highlighted chunks
-    this.renderDocument(this.doc1Display, chunkMap1, allHashes);
-    this.renderDocument(this.doc2Display, chunkMap2, allHashes);
+      const content = document.createElement('div');
+      content.className = 'cdc-version-content';
 
-    // Render unique chunks
-    this.renderUniqueChunks(allHashes);
+      const label = document.createElement('div');
+      label.className = 'cdc-version-label';
+      label.textContent = version.label;
+      content.appendChild(label);
 
-    // Calculate and display stats
-    const totalSize = this.doc1Data.length + this.doc2Data.length;
-    const storedSize = Array.from(allHashes.values()).reduce((sum, c) => sum + c.length, 0);
-    const ratio = ((totalSize - storedSize) / totalSize * 100).toFixed(0);
+      const cols = document.createElement('div');
+      cols.className = 'cdc-version-cols';
 
-    if (this.totalSizeDisplay) {
-      this.totalSizeDisplay.textContent = `${totalSize}B`;
-    }
-    if (this.storedSizeDisplay) {
-      this.storedSizeDisplay.textContent = `${storedSize}B`;
-    }
-    if (this.ratioDisplay) {
-      this.ratioDisplay.textContent = `${ratio}%`;
+      const textCol = document.createElement('div');
+      textCol.className = 'cdc-version-text cdc-text-view';
+      this.renderVersionText(textCol, version);
+      cols.appendChild(textCol);
+
+      const blocksCol = document.createElement('div');
+      blocksCol.className = 'cdc-version-blocks';
+      this.renderVersionBlocks(blocksCol, version);
+      cols.appendChild(blocksCol);
+
+      content.appendChild(cols);
+      entry.appendChild(content);
+
+      this.attachVersionHover(entry);
+      this.timelineEl.appendChild(entry);
     }
   }
 
-  renderDocument(container, chunks, allHashes) {
-    if (!container) return;
-
-    clearElement(container);
-    container.className = 'cdc-text-view';
-
-    chunks.forEach((chunk, index) => {
-      const isShared = allHashes.get(chunk.hash).count > 1;
+  renderVersionText(container, version) {
+    version.chunkMap.forEach((chunk, index) => {
+      const shared = this.isChunkShared(chunk.hash, version.id);
       const colorIndex = index % 6;
 
       const span = document.createElement('span');
-      span.className = `chunk chunk-${colorIndex}${isShared ? ' shared' : ''}`;
-      span.dataset.hash = chunk.hash;
-      span.title = `${chunk.hash}${isShared ? ' (shared)' : ''}`;
+      span.className = `chunk chunk-${colorIndex}`;
+      span.dataset.chunkIndex = index;
+      span.dataset.chunkHash = chunk.hash;
       span.textContent = chunk.content;
       span.style.backgroundColor = CHUNK_COLORS[colorIndex];
 
-      if (isShared) {
-        span.style.boxShadow = 'inset 0 0 0 2px rgba(42, 125, 79, 0.5)';
+      if (!shared && version.id > 0) {
+        span.style.borderBottom = '2px solid #c45a3b';
+        span.style.paddingBottom = '1px';
       }
 
       container.appendChild(span);
     });
   }
 
-  renderUniqueChunks(allHashes) {
-    if (!this.chunksDisplay) return;
+  renderVersionBlocks(container, version) {
+    const bar = document.createElement('div');
+    bar.className = 'cdc-blocks-view';
 
+    let newCount = 0;
+    let sharedCount = 0;
+
+    version.chunkMap.forEach((chunk, i) => {
+      const shared = this.isChunkShared(chunk.hash, version.id);
+      if (shared) sharedCount++;
+      else newCount++;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cdc-block-wrapper';
+      wrapper.dataset.chunkIndex = i;
+      wrapper.dataset.chunkHash = chunk.hash;
+      wrapper.style.flex = `${chunk.length} 0 0`;
+
+      const block = document.createElement('div');
+      block.className = 'cdc-block';
+      block.style.backgroundColor = (shared && version.id > 0) ? 'rgba(61, 58, 54, 0.2)' : CHUNK_SOLID_COLORS[i % 6];
+      block.title = `${chunk.length}B${shared ? ' (shared)' : ''}`;
+      wrapper.appendChild(block);
+
+      bar.appendChild(wrapper);
+    });
+
+    container.appendChild(bar);
+
+    const stats = document.createElement('div');
+    stats.className = 'cdc-version-stats';
+    const total = version.chunkMap.length;
+    stats.textContent = `${total} chunks, ${newCount} new, ${sharedCount} shared`;
+    container.appendChild(stats);
+  }
+
+  attachVersionHover(entryEl) {
+    let hoveredIdx = null;
+
+    entryEl.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-chunk-index]');
+      const idx = el ? el.dataset.chunkIndex : null;
+      if (idx !== hoveredIdx) {
+        entryEl.querySelectorAll('.chunk-hover').forEach(
+          el => el.classList.remove('chunk-hover')
+        );
+        hoveredIdx = idx;
+        if (idx !== null) {
+          entryEl.querySelectorAll(`[data-chunk-index="${idx}"]`).forEach(
+            el => el.classList.add('chunk-hover')
+          );
+        }
+      }
+    });
+
+    entryEl.addEventListener('mouseleave', () => {
+      entryEl.querySelectorAll('.chunk-hover').forEach(
+        el => el.classList.remove('chunk-hover')
+      );
+      hoveredIdx = null;
+    });
+  }
+
+  renderUniqueChunks() {
     clearElement(this.chunksDisplay);
-
     let colorIndex = 0;
 
-    allHashes.forEach((chunk, hash) => {
+    this.contentStore.forEach((entry, hash) => {
       const el = document.createElement('div');
-      el.className = `cdc-dedup-chunk${chunk.count > 1 ? ' shared' : ''}`;
+      const sharedAcrossVersions = entry.versionIndices.size > 1;
+      el.className = `cdc-dedup-chunk${sharedAcrossVersions ? ' shared' : ''}`;
       el.style.backgroundColor = CHUNK_SOLID_COLORS[colorIndex % CHUNK_SOLID_COLORS.length];
       el.textContent = hash.slice(0, 6);
-      el.title = `${chunk.length}B${chunk.count > 1 ? ' (shared by both docs)' : ''}`;
+      el.dataset.chunkHash = hash;
+      el.title = `${entry.length}B — in ${entry.versionIndices.size} version(s)`;
       this.chunksDisplay.appendChild(el);
       colorIndex++;
     });
+
+    this.attachStoreHover();
+  }
+
+  attachStoreHover() {
+    let hoveredHash = null;
+
+    this.chunksDisplay.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-chunk-hash]');
+      const hash = el ? el.dataset.chunkHash : null;
+      if (hash !== hoveredHash) {
+        this.clearHashHover();
+        hoveredHash = hash;
+        if (hash !== null) {
+          this.container.querySelectorAll(`[data-chunk-hash="${hash}"]`).forEach(
+            el => el.classList.add('hash-hover')
+          );
+        }
+      }
+    });
+
+    this.chunksDisplay.addEventListener('mouseleave', () => {
+      this.clearHashHover();
+      hoveredHash = null;
+    });
+  }
+
+  clearHashHover() {
+    this.container.querySelectorAll('.hash-hover').forEach(
+      el => el.classList.remove('hash-hover')
+    );
+  }
+
+  renderStats() {
+    const totalSize = this.versions.reduce((sum, v) => sum + v.data.length, 0);
+    const storedSize = Array.from(this.contentStore.values()).reduce((sum, e) => sum + e.length, 0);
+    const ratio = totalSize > 0 ? ((totalSize - storedSize) / totalSize * 100).toFixed(0) : 0;
+
+    if (this.totalSizeDisplay) this.totalSizeDisplay.textContent = `${totalSize}B`;
+    if (this.storedSizeDisplay) this.storedSizeDisplay.textContent = `${storedSize}B`;
+    if (this.ratioDisplay) this.ratioDisplay.textContent = `${ratio}%`;
+  }
+}
+
+// =============================================================================
+// Parametric Chunking Explorer
+// =============================================================================
+
+const PARAMETRIC_INPUT_TEXT = `Content-defined chunking splits data into variable-size pieces based on the content itself, not fixed positions. This means that when a small edit occurs in the middle of a file, only the chunks near the edit change. The boundaries are determined by a rolling hash function that scans through the bytes one at a time. When the hash output matches a particular bit pattern, a chunk boundary is placed. The clever trick is that this pattern matching is driven entirely by the local byte content, so identical regions always produce identical chunks regardless of their position. This is what enables efficient deduplication in modern storage systems.`;
+
+class ParametricChunkingDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.encoder = new TextEncoder();
+    this.inputText = PARAMETRIC_INPUT_TEXT;
+    this.data = this.encoder.encode(this.inputText);
+    this.avgSize = 32;
+    this.hoveredChunk = null;
+
+    this.init();
+  }
+
+  init() {
+    this.slider = document.getElementById('parametric-slider');
+    this.sliderValue = document.getElementById('parametric-slider-value');
+    this.derivedParams = document.getElementById('parametric-derived-params');
+    this.textDisplay = document.getElementById('parametric-text-display');
+    this.blocksBar = document.getElementById('parametric-blocks-bar');
+    this.distributionChart = document.getElementById('parametric-distribution');
+    this.statCount = document.getElementById('parametric-stat-count');
+    this.statTarget = document.getElementById('parametric-stat-target');
+    this.statActual = document.getElementById('parametric-stat-actual');
+    this.statMin = document.getElementById('parametric-stat-min');
+    this.statMax = document.getElementById('parametric-stat-max');
+
+    this.slider?.addEventListener('input', () => this.update());
+
+    // Cross-hover via event delegation
+    this.container.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-chunk-index]');
+      const idx = el ? el.dataset.chunkIndex : null;
+      if (idx !== this.hoveredChunk) {
+        this.clearHover();
+        this.hoveredChunk = idx;
+        if (idx !== null) {
+          this.container.querySelectorAll(`[data-chunk-index="${idx}"]`).forEach(
+            el => el.classList.add('chunk-hover')
+          );
+        }
+      }
+    });
+    this.container.addEventListener('mouseleave', () => {
+      this.clearHover();
+      this.hoveredChunk = null;
+    });
+
+    this.update();
+  }
+
+  clearHover() {
+    this.container.querySelectorAll('.chunk-hover').forEach(
+      el => el.classList.remove('chunk-hover')
+    );
+  }
+
+  update() {
+    this.avgSize = parseInt(this.slider.value);
+    const minSize = Math.max(4, Math.floor(this.avgSize / 2));
+    const maxSize = this.avgSize * 3;
+
+    if (this.sliderValue) this.sliderValue.textContent = this.avgSize;
+    if (this.derivedParams) this.derivedParams.textContent = `(min: ${minSize}, max: ${maxSize})`;
+
+    const chunks = chunkData(this.data, minSize, this.avgSize, maxSize);
+
+    this.renderText(chunks);
+    this.renderBlocks(chunks);
+    this.renderDistribution(chunks);
+    this.renderStats(chunks);
+  }
+
+  renderText(chunks) {
+    if (!this.textDisplay) return;
+    clearElement(this.textDisplay);
+
+    chunks.forEach((chunk, i) => {
+      const span = document.createElement('span');
+      span.className = `chunk chunk-${i % 6}`;
+      span.dataset.chunkIndex = i;
+      span.textContent = this.inputText.slice(chunk.offset, chunk.offset + chunk.length);
+      span.style.backgroundColor = CHUNK_COLORS[i % 6];
+      this.textDisplay.appendChild(span);
+    });
+  }
+
+  renderBlocks(chunks) {
+    if (!this.blocksBar) return;
+    clearElement(this.blocksBar);
+
+    chunks.forEach((chunk, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cdc-block-wrapper';
+      wrapper.dataset.chunkIndex = i;
+      wrapper.style.flex = `${chunk.length} 0 0`;
+
+      const block = document.createElement('div');
+      block.className = 'cdc-block';
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
+      wrapper.appendChild(block);
+
+      const annotation = document.createElement('div');
+      annotation.className = 'cdc-block-annotation';
+
+      const line = document.createElement('div');
+      line.className = 'cdc-block-line';
+      annotation.appendChild(line);
+
+      const tick = document.createElement('div');
+      tick.className = 'cdc-block-tick';
+      annotation.appendChild(tick);
+
+      const label = document.createElement('div');
+      label.className = 'cdc-block-label';
+      label.textContent = `${chunk.length}B`;
+      annotation.appendChild(label);
+
+      wrapper.appendChild(annotation);
+      this.blocksBar.appendChild(wrapper);
+    });
+  }
+
+  renderDistribution(chunks) {
+    if (!this.distributionChart) return;
+    clearElement(this.distributionChart);
+
+    if (chunks.length === 0) return;
+
+    const maxLen = Math.max(...chunks.map(c => c.length));
+    const chartHeight = 120;
+
+    // Dashed reference line at target avg height
+    const refFraction = Math.min(this.avgSize / maxLen, 1);
+    const refBottom = refFraction * chartHeight;
+    const refLine = document.createElement('div');
+    refLine.className = 'parametric-dist-reference';
+    refLine.style.bottom = `${refBottom}px`;
+
+    const refLabel = document.createElement('span');
+    refLabel.className = 'parametric-dist-reference-label';
+    refLabel.textContent = `target: ${this.avgSize}B`;
+    refLine.appendChild(refLabel);
+    this.distributionChart.appendChild(refLine);
+
+    // One bar per chunk
+    chunks.forEach((chunk, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'parametric-dist-bar';
+      bar.dataset.chunkIndex = i;
+      const fraction = chunk.length / maxLen;
+      bar.style.height = `${Math.max(fraction * 100, 2)}%`;
+      bar.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'parametric-dist-tooltip';
+      tooltip.textContent = `${chunk.length} bytes`;
+      bar.appendChild(tooltip);
+
+      this.distributionChart.appendChild(bar);
+    });
+  }
+
+  renderStats(chunks) {
+    if (chunks.length === 0) return;
+
+    const sizes = chunks.map(c => c.length);
+    const actualAvg = (sizes.reduce((a, b) => a + b, 0) / sizes.length).toFixed(1);
+    const minChunk = Math.min(...sizes);
+    const maxChunk = Math.max(...sizes);
+
+    if (this.statCount) this.statCount.textContent = chunks.length;
+    if (this.statTarget) this.statTarget.textContent = `${this.avgSize}B`;
+    if (this.statActual) this.statActual.textContent = `${actualAvg}B`;
+    if (this.statMin) this.statMin.textContent = `${minChunk}B`;
+    if (this.statMax) this.statMax.textContent = `${maxChunk}B`;
   }
 }
 
@@ -1167,8 +1596,11 @@ function initCDCAnimations() {
   // GEAR hash rolling window
   new GearHashDemo('gear-hash-demo');
 
-  // Deduplication demo
-  new DedupDemo('dedup-demo');
+  // Versioned deduplication demo
+  new VersionedDedupDemo('dedup-demo');
+
+  // Parametric chunking explorer
+  new ParametricChunkingDemo('parametric-demo');
 }
 
 // Auto-init when DOM is ready
@@ -1179,4 +1611,4 @@ if (document.readyState === 'loading') {
 }
 
 // Export for module usage
-export { FixedVsCDCDemo, GearHashDemo, DedupDemo, chunkData, chunkDataFixed, findChunkBoundary };
+export { FixedVsCDCDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, chunkData, chunkDataFixed, findChunkBoundary };
