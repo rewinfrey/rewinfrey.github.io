@@ -994,25 +994,65 @@ categories:
   margin-top: 1.5rem;
 }
 
-.cdc-references ol {
-  padding-left: 1.5rem;
-  margin: 0.75rem 0 0 0;
+.cdc-references .bib-entry {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.06);
 }
 
-.cdc-references li {
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #5a564f;
-  margin-bottom: 0.4rem;
+.cdc-references .bib-entry:last-child {
+  border-bottom: none;
 }
 
-.cdc-references li a {
+.cdc-references .bib-number {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #c45a3b;
-  text-decoration: none;
+  margin-bottom: 0.3rem;
 }
 
-.cdc-references li a:hover {
-  text-decoration: underline;
+.cdc-references .bib-citation {
+  font-size: 0.9rem;
+  color: #3d3a36;
+  line-height: 1.7;
+}
+
+.cdc-references .bib-citation em {
+  color: #5a5550;
+}
+
+.cdc-references .bib-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cdc-references .bib-link {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cdc-references .bib-link.pdf {
+  background: rgba(196, 90, 59, 0.1);
+  color: #c45a3b;
+}
+
+.cdc-references .bib-link.pdf:hover {
+  background: rgba(196, 90, 59, 0.2);
+}
+
+.cdc-references .bib-link.external {
+  background: rgba(61, 58, 54, 0.06);
+  color: #5a5550;
+}
+
+.cdc-references .bib-link.external:hover {
+  background: rgba(61, 58, 54, 0.12);
 }
 
 .cdc-learn-more {
@@ -2020,8 +2060,8 @@ pub fn cut_gear(
     max_size: usize,
     mask_s: u64,
     mask_l: u64,
-    mask_s_ls: u64,  // Left-shifted strict mask
-    mask_l_ls: u64,  // Left-shifted loose mask
+    mask_s_ls: u64,        // Left-shifted strict mask
+    mask_l_ls: u64,        // Left-shifted loose mask
     gear: &[u64; 256],
     gear_ls: &[u64; 256],  // Left-shifted GEAR table
 ) -> (u64, usize) {
@@ -2198,10 +2238,25 @@ Notice how the dual-mask strategy keeps chunk sizes clustered around the target 
 ### References
 
 <div class="cdc-references">
-<ol start="5">
-<li id="ref-5">W. Xia et al., <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia">"FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication,"</a> <em>USENIX ATC</em>, 2016.</li>
-<li id="ref-6">W. Xia et al., <a href="https://ranger.uta.edu/~jiang/publication/Journals/2020/2020-IEEE-TPDS(Wen%20Xia).pdf">"The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems,"</a> <em>IEEE TPDS</em>, vol. 31, no. 9, 2020.</li>
-</ol>
+
+<div class="bib-entry" id="ref-5">
+  <div class="bib-number">[5]</div>
+  <div class="bib-citation">W. Xia, H. Jiang, D. Feng, L. Tian, M. Fu &amp; Y. Zhou, "FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication," <em>Proceedings of the USENIX Annual Technical Conference (ATC)</em>, 2016.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2016-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-6">
+  <div class="bib-number">[6]</div>
+  <div class="bib-citation">W. Xia, Y. Zhou, H. Jiang, D. Feng, Y. Hua, Y. Hu, Q. Liu &amp; Y. Zhang, "The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems," <em>IEEE Transactions on Parallel and Distributed Systems</em>, vol. 31, no. 9, pp. 2017-2031, 2020.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2020-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/9055082" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
 </div>
 
 ---

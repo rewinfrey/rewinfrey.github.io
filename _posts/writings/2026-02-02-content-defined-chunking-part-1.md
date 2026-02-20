@@ -856,73 +856,96 @@ categories:
 }
 
 /* Taxonomy tree diagram */
-.cdc-taxonomy {
-  padding: 1.25rem 1.5rem;
-  background: rgba(61, 58, 54, 0.03);
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
+/* Taxonomy comparison table */
+.cdc-taxonomy-table {
+  margin: 1.5rem 0;
 }
 
-.cdc-taxonomy strong {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.95rem;
-  color: #3d3a36;
-}
-
-.cdc-taxonomy-tree {
-  margin-top: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-/* Root node */
-.cdc-tax-root {
-  padding: 0.4rem 1rem;
-  background: #3d3a36;
-  color: #fff;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.8rem;
-  font-weight: 600;
+.cdc-taxonomy-table table {
+  width: 100%;
+  border: 1px solid rgba(61, 58, 54, 0.15);
   border-radius: 6px;
+  overflow: hidden;
+}
+
+.cdc-taxonomy-table th,
+.cdc-taxonomy-table td {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  border-left: 1px solid rgba(61, 58, 54, 0.1);
+  width: auto;
+  text-align: left;
+  font-weight: 400;
+  background: transparent;
+}
+
+.cdc-taxonomy-table td:last-child,
+.cdc-taxonomy-table th:last-child {
+  border-left: 1px solid rgba(61, 58, 54, 0.1);
+  font-weight: 400;
+  background: transparent;
+}
+
+.cdc-taxonomy-table th:first-child,
+.cdc-taxonomy-table td:first-child {
+  border-left: none;
+}
+
+.cdc-taxonomy-table th {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-align: center;
 }
 
-/* Vertical connector from root */
-.cdc-tax-vline {
-  width: 2px;
-  height: 16px;
-  background: rgba(61, 58, 54, 0.25);
+.cdc-taxonomy-table th.bsw {
+  background: rgba(196, 90, 59, 0.1);
+  color: #c45a3b;
 }
 
-/* Horizontal bar connecting the three families */
-.cdc-tax-hbar {
-  width: 80%;
-  height: 2px;
-  background: rgba(61, 58, 54, 0.25);
-  position: relative;
+.cdc-taxonomy-table th.extrema {
+  background: rgba(42, 125, 79, 0.08);
+  color: #2a7d4f;
 }
 
-/* Three-column family layout */
-.cdc-tax-families {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-  width: 100%;
-  margin-top: 0;
+.cdc-taxonomy-table th.statistical {
+  background: rgba(139, 115, 85, 0.1);
+  color: #8b7355;
 }
 
-.cdc-tax-family {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+.cdc-taxonomy-table .row-label {
+  font-weight: 600;
+  color: #3d3a36;
+  white-space: nowrap;
 }
 
-/* Vertical connector from hbar to family label */
-.cdc-tax-family .cdc-tax-vline {
-  height: 12px;
+.cdc-taxonomy-table .algo-year {
+  color: #a89b8c;
+  font-size: 0.78rem;
+}
+
+.cdc-taxonomy-table tr {
+  border-bottom: 1px solid rgba(61, 58, 54, 0.08);
+}
+
+.cdc-taxonomy-table thead tr {
+  background: transparent;
+  border-bottom: 2px solid rgba(61, 58, 54, 0.15);
+}
+
+.cdc-taxonomy-table-note {
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  color: #a89b8c;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.cdc-taxonomy-table-note a {
+  color: #c45a3b;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .cdc-tax-family-label {
@@ -953,25 +976,6 @@ categories:
   border: 1px solid rgba(139, 115, 85, 0.25);
 }
 
-.cdc-tax-algorithms {
-  margin-top: 0.35rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.cdc-tax-algo {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.65rem;
-  color: #5a564f;
-  line-height: 1.3;
-}
-
-.cdc-tax-algo .cdc-tax-year {
-  color: #a89b8c;
-}
-
 /* Citations */
 .cdc-cite {
   font-size: 0.7em;
@@ -994,25 +998,72 @@ categories:
   margin-top: 1.5rem;
 }
 
-.cdc-references ol {
-  padding-left: 1.5rem;
-  margin: 0.75rem 0 0 0;
+.cdc-references .bib-entry {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.06);
 }
 
-.cdc-references li {
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #5a564f;
-  margin-bottom: 0.4rem;
+.cdc-references .bib-entry:last-child {
+  border-bottom: none;
 }
 
-.cdc-references li a {
+.cdc-references .bib-number {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #c45a3b;
-  text-decoration: none;
+  margin-bottom: 0.3rem;
 }
 
-.cdc-references li a:hover {
-  text-decoration: underline;
+.cdc-references .bib-citation {
+  font-size: 0.9rem;
+  color: #3d3a36;
+  line-height: 1.7;
+}
+
+.cdc-references .bib-citation em {
+  color: #5a5550;
+}
+
+.cdc-references .bib-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cdc-references .bib-link {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cdc-references .bib-link.pdf {
+  background: rgba(196, 90, 59, 0.1);
+  color: #c45a3b;
+}
+
+.cdc-references .bib-link.pdf:hover {
+  background: rgba(196, 90, 59, 0.2);
+}
+
+.cdc-references .bib-link.external {
+  background: rgba(61, 58, 54, 0.06);
+  color: #5a5550;
+}
+
+.cdc-references .bib-link.external:hover {
+  background: rgba(61, 58, 54, 0.12);
+}
+
+.cdc-references .bib-note {
+  font-size: 0.82rem;
+  color: #8b7355;
+  margin-top: 0.4rem;
+  line-height: 1.5;
 }
 
 .cdc-learn-more {
@@ -1639,19 +1690,20 @@ categories:
   padding: 0.75rem 1rem;
 }
 
+/* Card header: name left, family badge right */
+.cdc-tl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 .cdc-tl-card .cdc-tax-family-label {
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
   display: inline-block;
-  margin-bottom: 0.25rem;
-}
-
-.cdc-tl-year {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #a89b8c;
-  margin-bottom: 0.1rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
 }
 
 .cdc-tl-name {
@@ -1659,8 +1711,28 @@ categories:
   font-size: 1.15em;
   font-weight: 700;
   color: #3d3a36;
-  margin-bottom: 0.3rem;
   line-height: 1.3;
+}
+
+.cdc-tl-year {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #a89b8c;
+  margin-bottom: 0.4rem;
+}
+
+/* Section headings within cards */
+.cdc-tl-section {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #a89b8c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0.75rem 0 0.3rem 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.08);
 }
 
 .cdc-tl-desc {
@@ -1673,7 +1745,7 @@ categories:
   font-size: 0.9em;
   color: #8b7355;
   line-height: 1.6;
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
   padding: 0.4rem 0.6rem;
   background: rgba(139, 115, 85, 0.06);
   border-radius: 4px;
@@ -1684,7 +1756,7 @@ categories:
 }
 
 .cdc-tl-card .highlight {
-  margin: 0.5rem 0 0 0;
+  margin: 0.3rem 0 0 0;
   border-radius: 5px;
   border: 1px solid rgba(61, 58, 54, 0.08);
   overflow-x: auto;
@@ -1728,7 +1800,6 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
         <li><a href="#origins">Origins</a></li>
         <li><a href="#a-taxonomy-of-cdc-algorithms">A Taxonomy of CDC Algorithms</a></li>
         <li><a href="#algorithmic-timeline">Algorithmic Timeline</a></li>
-        <li><a href="#comparing-the-families">Comparing the Families</a></li>
       </ul>
     </li>
     <li>
@@ -1836,43 +1907,68 @@ The deduplication era of 2005-2015 drove an explosion of CDC research. Systems l
 
 A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href="#ref-12">[12]</a></span> organizes the landscape into **three distinct families** based on their core mechanism for finding chunk boundaries. This taxonomy clarifies a field that can otherwise feel like a confusing proliferation of acronyms.
 
-<div class="cdc-taxonomy">
-  <div class="cdc-taxonomy-tree">
-    <div class="cdc-tax-root">CDC Algorithms</div>
-    <div class="cdc-tax-vline"></div>
-    <div class="cdc-tax-hbar"></div>
-    <div class="cdc-tax-families">
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label bsw">BSW</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">Rabin <span class="cdc-tax-year">1981</span></span>
-          <span class="cdc-tax-algo">Buzhash <span class="cdc-tax-year">1997</span></span>
-          <span class="cdc-tax-algo">Gear <span class="cdc-tax-year">2014</span></span>
-          <span class="cdc-tax-algo">PCI <span class="cdc-tax-year">2020</span></span>
-        </div>
-      </div>
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label extrema">Local Extrema</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">AE <span class="cdc-tax-year">2015</span></span>
-          <span class="cdc-tax-algo">RAM <span class="cdc-tax-year">2017</span></span>
-          <span class="cdc-tax-algo">MII <span class="cdc-tax-year">2019</span></span>
-        </div>
-      </div>
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label statistical">Statistical</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">BFBC <span class="cdc-tax-year">2020</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="margin-top: 1rem; font-size: 0.72rem; color: #a89b8c; line-height: 1.4; text-align: center;">
-    Taxonomy from Gregoriadis et al. <a href="#ref-12" style="color: #c45a3b; text-decoration: none; font-weight: 600;">[12]</a>
-  </div>
+<div class="cdc-taxonomy-table">
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th class="bsw">BSW</th>
+        <th class="extrema">Local Extrema</th>
+        <th class="statistical">Statistical</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Algorithms</td>
+        <td>Rabin <span class="algo-year">1981</span>, Buzhash <span class="algo-year">1997</span>, Gear <span class="algo-year">2014</span>, PCI <span class="algo-year">2020</span></td>
+        <td>AE <span class="algo-year">2015</span>, RAM <span class="algo-year">2017</span>, MII <span class="algo-year">2019</span></td>
+        <td>BFBC <span class="algo-year">2020</span></td>
+      </tr>
+      <tr>
+        <td class="row-label">Core operation</td>
+        <td>Rolling hash + mask</td>
+        <td>Byte comparisons</td>
+        <td>Frequency analysis</td>
+      </tr>
+      <tr>
+        <td class="row-label">Throughput</td>
+        <td>Medium&ndash;High</td>
+        <td>High</td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dedup ratio</td>
+        <td>High</td>
+        <td>Comparable</td>
+        <td>Dataset-dependent</td>
+      </tr>
+      <tr>
+        <td class="row-label">SIMD-friendly</td>
+        <td>Limited</td>
+        <td>Excellent</td>
+        <td>Limited</td>
+      </tr>
+      <tr>
+        <td class="row-label">Streaming</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>No (pre-scan)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Chunk distribution</td>
+        <td>Exponential (improved with NC)</td>
+        <td>Varies</td>
+        <td>Varies</td>
+      </tr>
+      <tr>
+        <td class="row-label">Used in practice</td>
+        <td>Restic, Borg, FastCDC</td>
+        <td>Research</td>
+        <td>Research</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cdc-taxonomy-table-note">Taxonomy from Gregoriadis et al. <a href="#ref-12">[12]</a></div>
 </div>
 
 ### Algorithmic Timeline
@@ -1884,21 +1980,28 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot bsw"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">Rabin Fingerprint<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
+        <span class="cdc-tax-family-label bsw">BSW</span>
+      </div>
       <div class="cdc-tl-year">1981</div>
-      <div class="cdc-tl-name">Rabin Fingerprint<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
+      <div class="cdc-tl-section">Overview</div>
       <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> (the Galois field with two elements) where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity: the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Used in <strong>Restic</strong> backup and <strong>LBFS</strong>.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> Restic generates a random irreducible polynomial of degree 53 per repository, so that chunk boundaries cannot be predicted from known content. Rabin's provable collision bound -- at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em> -- makes it the choice when formal hash uniformity guarantees are needed.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // Rabin fingerprint: rolling hash over GF(2)
 uint64_t fp = 0;
 for (size_t i = 0; i < len; i++) {
-    fp ^= shift_table[window[i % w]]; // remove outgoing byte
-    fp = (fp << 8) | data[i];           // shift in new byte
-    if (fp & HIGH_BIT) fp ^= poly;      // reduce mod irreducible poly
+    fp ^= shift_table[window[i % w]];  // remove outgoing byte
+    fp = (fp << 8) | data[i];          // shift in new byte
+    if (fp & HIGH_BIT) fp ^= poly;     // reduce mod irreducible poly
     window[i % w] = data[i];
     if ((fp % D) == r) return i;       // boundary!
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte (one XOR to remove, one shift + XOR to add, one polynomial reduction).</div><div><strong>Space:</strong> <em>O(w + 256)</em>, sliding window buffer plus a precomputed byte-shift table.</div></div>
     </div>
   </div>
@@ -1910,23 +2013,30 @@ for (size_t i = 0; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot bsw"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">Buzhash<span class="cdc-cite"><a href="#ref-3">[3]</a></span></div>
+        <span class="cdc-tax-family-label bsw">BSW</span>
+      </div>
       <div class="cdc-tl-year">1997</div>
-      <div class="cdc-tl-name">Buzhash<span class="cdc-cite"><a href="#ref-3">[3]</a></span></div>
-      <div class="cdc-tl-desc">Replaces Rabin's polynomial division with a <strong>cyclic polynomial</strong> where each byte maps to a random value via a lookup table, and the hash is maintained by cyclically rotating (barrel shifting) the current value and XORing in the new byte's table entry. Removing the outgoing byte uses the same table but rotated by the window size. This eliminates the polynomial reduction step entirely: no multiplication, just rotations and XORs. The result is significantly faster than Rabin in practice while providing comparable distribution properties for boundary detection. Used by Borg backup, which seeds the table with a secret value to prevent attackers from predicting chunk boundaries from known content.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Replaces Rabin's polynomial division with a <strong>cyclic polynomial</strong> where each byte maps to a random value via a lookup table, and the hash is maintained by cyclically rotating (barrel shifting) the current value and XORing in the new byte's table entry. Removing the outgoing byte uses the same table but rotated by the window size. This eliminates the polynomial reduction step entirely: no multiplication, just rotations and XORs. The result is significantly faster than Rabin in practice while providing comparable distribution properties for boundary detection.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Used in <strong>Borg</strong> backup, which XORs the lookup table with an encrypted per-repository seed to prevent chunk-boundary fingerprinting attacks. Borg notes that Buzhash is used only for boundary detection; a separate cryptographic MAC serves as the deduplication hash. The combination of simple arithmetic (rotations and XORs) with seed-based table randomization makes Buzhash a practical choice when both throughput and boundary-prediction resistance are needed.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // Buzhash: cyclic polynomial rolling hash
-uint32_t table[256]; // random values, initialized once
+uint32_t table[256];                            // random values, initialized once
 
 uint32_t h = 0;
 for (size_t i = 0; i < len; i++) {
-    h = ROTATE_LEFT(h, 1);                // cyclic shift by 1
-    h ^= ROTATE_LEFT(table[window[i % w]], w); // remove outgoing
-    h ^= table[data[i]];                   // add incoming
+    h = ROTATE_LEFT(h, 1);                      // cyclic shift by 1
+    h ^= ROTATE_LEFT(table[window[i % w]], w);  // remove outgoing
+    h ^= table[data[i]];                        // add incoming
     window[i % w] = data[i];
-    if ((h % D) == r) return i;            // boundary!
+    if ((h % D) == r) return i;                 // boundary!
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one table lookup, one rotate, and two XORs.</div><div><strong>Space:</strong> <em>O(w + 256)</em>, window buffer plus the random lookup table.</div></div>
     </div>
   </div>
@@ -1938,10 +2048,16 @@ for (size_t i = 0; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot bsw"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">Gear<span class="cdc-cite"><a href="#ref-4">[4]</a></span></div>
+        <span class="cdc-tax-family-label bsw">BSW</span>
+      </div>
       <div class="cdc-tl-year">2014</div>
-      <div class="cdc-tl-name">Gear<span class="cdc-cite"><a href="#ref-4">[4]</a></span></div>
-      <div class="cdc-tl-desc">Radically simplifies the rolling hash by eliminating the sliding window entirely. There is no outgoing byte to remove because the hash is purely feedforward. Each step left-shifts the hash by 1 bit and adds a random table lookup for the incoming byte: <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. Since older bits naturally shift out of a 64-bit register, the hash is dominated by the most recent ~64 bytes. The insight is that for CDC purposes, you don't need a true sliding window hash; an approximate one where old bytes decay away is sufficient, since boundary decisions are local. One shift + one add gives the tightest inner loop of any CDC hash, roughly 2-3&times; faster than Buzhash. This became the hash of choice for FastCDC.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Radically simplifies the rolling hash by eliminating the sliding window entirely. There is no outgoing byte to remove because the hash is purely feedforward. Each step left-shifts the hash by 1 bit and adds a random table lookup for the incoming byte: <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. Since older bits naturally shift out of a 64-bit register, the hash is dominated by the most recent ~64 bytes. The insight is that for CDC purposes, you don't need a true sliding window hash; an approximate one where old bytes decay away is sufficient, since boundary decisions are local. One shift + one add gives the tightest inner loop of any CDC hash, roughly 2-3&times; faster than Buzhash.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Originally the chunking engine within the <strong>Ddelta</strong> delta compression system,<span class="cdc-cite"><a href="#ref-4">[4]</a></span> where it demonstrated 2&times; throughput over Rabin by cutting more than half the per-byte operations. Later adopted by <strong>FastCDC</strong> as its core hash.<span class="cdc-cite"><a href="#ref-5">[5]</a></span> The tight inner loop (one shift, one add) also makes Gear straightforward to implement and audit.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // Gear hash: feedforward, no window needed
 uint64_t gear_table[256]; // random 64-bit values
@@ -1953,6 +2069,7 @@ for (size_t i = min_size; i < len; i++) {
         return i; // boundary!
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one left-shift, one table lookup, and one addition.</div><div><strong>Space:</strong> <em>O(256)</em> for the lookup table. No window buffer needed.</div></div>
     </div>
   </div>
@@ -1962,10 +2079,16 @@ for (size_t i = min_size; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot extrema"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">AE - Asymmetric Extremum<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
+        <span class="cdc-tax-family-label extrema">Extrema</span>
+      </div>
       <div class="cdc-tl-year">2015</div>
-      <div class="cdc-tl-name">AE - Asymmetric Extremum<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
+      <div class="cdc-tl-section">Overview</div>
       <div class="cdc-tl-desc">A complete departure from the hash-based lineage. AE finds chunk boundaries by scanning for the <strong>maximum byte value</strong> within a sliding window of size <em>w</em>. A boundary is declared when the maximum is at the rightmost position of the window. It is called "asymmetric" because the check is one-sided: the max only needs to beat the preceding bytes, not the following ones. This naturally produces chunks whose sizes center around the window size. The approach eliminates all hash computation (no multiplication, no XOR, no table lookups), using only byte comparisons. The trade-off: a naive implementation rescans the entire window for each byte position, giving <em>O(w)</em> per byte, though a monotonic deque can reduce this to <em>O(1)</em> amortized.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Reported 3&times; throughput over Rabin-based CDC while achieving comparable deduplication ratios on real-world datasets.<span class="cdc-cite"><a href="#ref-7">[7]</a></span> The simplicity of pure byte comparisons makes AE an important baseline in the local-extrema lineage, and its boundary decisions are inherently SIMD-parallelizable, a property later exploited by VectorCDC.<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // AE: boundary when max byte is at window's right edge
 for (size_t i = min_size; i < len; i++) {
@@ -1978,6 +2101,7 @@ for (size_t i = min_size; i < len; i++) {
     if (max_pos == i) return i; // boundary!
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(w)</em> per byte naive, <em>O(1)</em> amortized with monotonic deque.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window.</div></div>
     </div>
   </div>
@@ -1985,24 +2109,31 @@ for (size_t i = min_size; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot bsw"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">FastCDC<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span></div>
+        <span class="cdc-tax-family-label bsw">BSW</span>
+      </div>
       <div class="cdc-tl-year">2016</div>
-      <div class="cdc-tl-name">FastCDC<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span></div>
-      <div class="cdc-tl-desc">Builds directly on Gear (2014) and addresses a fundamental weakness of all single-threshold CDC: the exponential chunk-size distribution that produces many tiny chunks and occasional very large ones. FastCDC's key contribution is <strong>Normalized Chunking</strong> — a dual-mask strategy that uses a stricter mask (more bits must be zero) for positions below the expected average, and a looser mask (fewer bits) for positions above it. This "squeezes" the distribution toward a bell curve, dramatically improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). The inner loop remains identical to Gear — one shift, one add, one mask check — so the dual-mask adds zero per-byte overhead. Combined with cut-point skipping (jumping past <code>min_size</code> bytes), FastCDC reported 10&times; throughput over Rabin-based CDC while matching or exceeding its deduplication ratio.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Builds directly on Gear (2014) and addresses a fundamental weakness of all single-threshold CDC: the exponential chunk-size distribution that produces many tiny chunks and occasional very large ones. FastCDC's key contribution is <strong>Normalized Chunking</strong>, a dual-mask strategy that uses a stricter mask (more bits must be zero) for positions below the expected average, and a looser mask (fewer bits) for positions above it. This "squeezes" the distribution toward a bell curve, dramatically improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). The inner loop remains identical to Gear (one shift, one add, one mask check), so the dual-mask adds zero per-byte overhead. Combined with cut-point skipping (jumping past <code>min_size</code> bytes), FastCDC reported 10&times; throughput over Rabin-based CDC while matching or exceeding its deduplication ratio.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Reported 10&times; throughput over Rabin-based CDC and 3&times; over standalone Gear and AE, while matching or exceeding their deduplication ratios.<span class="cdc-cite"><a href="#ref-5">[5]</a></span> The 2020 enhancement (rolling two bytes per iteration) added another 30-40% throughput.<span class="cdc-cite"><a href="#ref-6">[6]</a></span> Adopted as the default chunker in open-source projects including <strong>Rdedup</strong>, and actively maintained as the <strong>fastcdc-rs</strong> Rust crate.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // FastCDC: Gear hash + normalized chunking
 uint64_t hash = 0;
 size_t i = min;
-for (; i < avg && i < len; i++) {     // phase 1: strict mask
+for (; i < avg && i < len; i++) {              // phase 1: strict mask
     hash = (hash << 1) + gear_table[data[i]];
     if (!(hash & mask_s)) return i;
 }
-for (; i < max && i < len; i++) {     // phase 2: loose mask
+for (; i < max && i < len; i++) {              // phase 2: loose mask
     hash = (hash << 1) + gear_table[data[i]];
     if (!(hash & mask_l)) return i;
 }
-return i; // hit max chunk size
+return i;                                      // hit max chunk size
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, identical to Gear. The dual-mask is a branch on position, not a per-byte cost.</div><div><strong>Space:</strong> <em>O(256)</em> for the Gear table.</div></div>
     </div>
   </div>
@@ -2010,25 +2141,32 @@ return i; // hit max chunk size
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot extrema"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">RAM - Rapid Asymmetric Maximum<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
+        <span class="cdc-tax-family-label extrema">Extrema</span>
+      </div>
       <div class="cdc-tl-year">2017</div>
-      <div class="cdc-tl-name">RAM - Rapid Asymmetric Maximum<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
-      <div class="cdc-tl-desc">Refines AE's extremum approach with a critical performance optimization. RAM uses an <strong>asymmetric window</strong>: a small lookback (e.g., 256 bytes) and a larger lookahead (roughly the target chunk size). A boundary is declared when the current byte is the maximum of both windows combined. The key insight is the <strong>skip optimization</strong>: when a byte is <em>not</em> the maximum in the lookahead, the algorithm jumps directly to the position of the actual maximum, bypassing all intermediate positions. This provides sublinear average-case behavior — bytes examined per boundary is roughly proportional to chunk size, not chunk size times window size. Like AE, RAM uses only byte comparisons with no arithmetic, making it attractive for resource-constrained environments.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Refines AE's extremum approach with a critical performance optimization. RAM uses an <strong>asymmetric window</strong>: a small lookback (e.g., 256 bytes) and a larger lookahead (roughly the target chunk size). A boundary is declared when the current byte is the maximum of both windows combined. The key insight is the <strong>skip optimization</strong>: when a byte is <em>not</em> the maximum in the lookahead, the algorithm jumps directly to the position of the actual maximum, bypassing all intermediate positions. This provides sublinear average-case behavior, where bytes examined per boundary is roughly proportional to chunk size, not chunk size times window size. Like AE, RAM uses only byte comparisons with no arithmetic, making it attractive for resource-constrained environments.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Targets cloud storage deduplication, where the skip optimization reduces the number of bytes examined per boundary.<span class="cdc-cite"><a href="#ref-8">[8]</a></span> When the current byte is not the lookahead maximum, the algorithm jumps directly to the actual maximum, giving sublinear average-case behavior on data with sparse boundaries. Like AE, RAM's boundary decisions are SIMD-parallelizable: VectorCDC's VRAM variant achieves 17&times; speedup using AVX-512.<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // RAM: skip to the max, don't scan past it
 size_t i = min;
 while (i < len) {
     size_t max_pos = i;
-    for (size_t j = i+1; j <= i+ahead; j++) // scan lookahead
+    for (size_t j = i+1; j <= i+ahead; j++)       // scan lookahead
         if (data[j] >= data[max_pos]) max_pos = j;
-    if (max_pos != i) { i = max_pos; continue; } // skip!
+    if (max_pos != i) { i = max_pos; continue; }  // skip!
     bool ok = 1;
-    for (size_t j = i-back; j < i; j++)        // check lookback
+    for (size_t j = i-back; j < i; j++)           // check lookback
         if (data[j] > data[i]) { ok = 0; break; }
-    if (ok) return i; // boundary!
+    if (ok) return i;                             // boundary!
     i++;
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> amortized per byte due to skip optimization (worst case <em>O(w)</em>).</div><div><strong>Space:</strong> <em>O(w<sub>back</sub> + w<sub>ahead</sub>)</em> for the window buffers.</div></div>
     </div>
   </div>
@@ -2036,10 +2174,16 @@ while (i < len) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot extrema"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">MII - Maximum of Interval-length Independent<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
+        <span class="cdc-tax-family-label extrema">Extrema</span>
+      </div>
       <div class="cdc-tl-year">2019</div>
-      <div class="cdc-tl-name">MII - Maximum of Interval-length Independent<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
-      <div class="cdc-tl-desc">Builds on AE and RAM but solves a practical problem: in AE/RAM, changing the target chunk size parameters changes which positions are boundary candidates, destroying deduplication against previously stored data. MII <strong>decouples</strong> the context window from the chunk size parameters. It uses a larger window <em>W</em> (often 2&times; the target) and identifies all positions that are the maximum of their <em>W</em>-neighborhood as boundary <em>candidates</em>. Separately, it filters these candidates to respect min/max chunk constraints. This "interval-length independent" property means the same byte positions will be candidates regardless of configuration — enabling stable deduplication across different chunk size settings and even multi-resolution deduplication.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Builds on AE and RAM but solves a practical problem: in AE/RAM, changing the target chunk size parameters changes which positions are boundary candidates, destroying deduplication against previously stored data. MII <strong>decouples</strong> the context window from the chunk size parameters. It uses a larger window <em>W</em> (often 2&times; the target) and identifies all positions that are the maximum of their <em>W</em>-neighborhood as boundary <em>candidates</em>. Separately, it filters these candidates to respect min/max chunk constraints. This "interval-length independent" property means the same byte positions will be candidates regardless of configuration, enabling stable deduplication across different chunk size settings and even multi-resolution deduplication.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Targets <strong>incremental backup and data synchronization</strong>, where changing chunk-size parameters between backup generations should not invalidate prior deduplication.<span class="cdc-cite"><a href="#ref-9">[9]</a></span> In benchmarks, MII reduced incremental data by 13-34% compared to other algorithms at comparable throughput. The interval-length independence property also enables multi-resolution deduplication, where different storage tiers can use different chunk granularities while sharing boundary candidates.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // MII: boundary candidates are independent of chunk size
 size_t last = 0;
@@ -2048,12 +2192,13 @@ for (size_t i = 0; i < len; i++) {
     for (int j = -W/2; j <= W/2; j++)      // large symmetric window
         if (data[i+j] > data[i]) { is_max = 0; break; }
     if (!is_max) continue;
-    if (i - last >= min) {              // filter by min chunk size
+    if (i - last >= min) {                 // filter by min chunk size
         last = i;
-        emit_boundary(i);               // boundary!
+        emit_boundary(i);                  // boundary!
     }
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(W)</em> per byte naive, <em>O(1)</em> amortized with monotonic deque.</div><div><strong>Space:</strong> <em>O(W)</em> for the context window, where <em>W &gt; w</em>.</div></div>
     </div>
   </div>
@@ -2063,10 +2208,16 @@ for (size_t i = 0; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot bsw"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">PCI - Popcount Independence<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
+        <span class="cdc-tax-family-label bsw">BSW</span>
+      </div>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">PCI - Popcount Independence<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
-      <div class="cdc-tl-desc">Takes an unusual approach within the BSW family: instead of computing a hash, PCI counts the number of <strong>1-bits</strong> (Hamming weight) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold &theta;. Since the popcount of random bytes follows a binomial distribution, the threshold directly controls the average chunk size. What makes this surprisingly practical is hardware support: modern x86 and ARM CPUs have dedicated <code>POPCNT</code> instructions that count bits in a single cycle. No hash tables, no polynomial arithmetic, no random lookup tables — just counting bits in the raw data. The sliding window update is also simple: add the incoming byte's popcount, subtract the outgoing byte's.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Takes an unusual approach within the BSW family: instead of computing a hash, PCI counts the number of <strong>1-bits</strong> (Hamming weight) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold &theta;. Since the popcount of random bytes follows a binomial distribution, the threshold directly controls the average chunk size. What makes this surprisingly practical is hardware support: modern x86 and ARM CPUs have dedicated <code>POPCNT</code> instructions that count bits in a single cycle. No hash tables, no polynomial arithmetic, no random lookup tables. It is just counting bits in the raw data. The sliding window update is also simple: add the incoming byte's popcount, subtract the outgoing byte's.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Designed for <strong>incremental data synchronization</strong> rather than storage deduplication.<span class="cdc-cite"><a href="#ref-10">[10]</a></span> PCI's popcount-based boundaries improve resistance to byte-shift propagation: in benchmarks, PCI improved Rsync calculation speed by up to 70% and reduced detected incremental data by 32-57% compared to other CDC algorithms. The trade-off is less uniform chunk-size distribution, making PCI better suited for sync workloads than dedup-ratio-sensitive storage.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // PCI: boundary when bit-population exceeds threshold
 int pop_sum = 0;
@@ -2078,6 +2229,7 @@ for (size_t i = 0; i < len; i++) {
         return i; // boundary!
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one hardware POPCNT for the incoming byte and one subtraction for the outgoing.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window buffer.</div></div>
     </div>
   </div>
@@ -2085,10 +2237,16 @@ for (size_t i = 0; i < len; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot statistical"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label statistical">Statistical</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">BFBC - Byte-Frequency Based Chunking<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
+        <span class="cdc-tax-family-label statistical">Statistical</span>
+      </div>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">BFBC - Byte-Frequency Based Chunking<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
-      <div class="cdc-tl-desc">A fundamentally different two-pass approach. In the first pass, BFBC scans the data and builds a frequency table of all <strong>byte pairs</strong> (digrams), then selects the top-<em>k</em> most common pairs. In the second pass, it scans linearly and declares a boundary whenever one of these high-frequency digrams appears (subject to min/max constraints). The insight: common digrams are inherently content-defined — they recur consistently regardless of insertions or deletions elsewhere, serving as natural landmarks. Once the frequency table is built, the boundary detection pass is a simple table lookup per position. The fundamental trade-off: the pre-scan makes it <strong>unsuitable for streaming</strong>, and on high-entropy data (compressed files, encrypted content) the digram frequencies flatten out, destroying the algorithm's ability to find meaningful boundaries.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">A fundamentally different two-pass approach. In the first pass, BFBC scans the data and builds a frequency table of all <strong>byte pairs</strong> (digrams), then selects the top-<em>k</em> most common pairs. In the second pass, it scans linearly and declares a boundary whenever one of these high-frequency digrams appears (subject to min/max constraints). The insight: common digrams are inherently content-defined and recur consistently regardless of insertions or deletions elsewhere, serving as natural landmarks. Once the frequency table is built, the boundary detection pass is a simple table lookup per position. The fundamental trade-off: the pre-scan makes it <strong>unsuitable for streaming</strong>, and on high-entropy data (compressed files, encrypted content) the digram frequencies flatten out, destroying the algorithm's ability to find meaningful boundaries.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">Reported 10&times; faster chunking than Rabin-based BSW and 3&times; faster than TTTD (Two Thresholds Two Divisors).<span class="cdc-cite"><a href="#ref-11">[11]</a></span> Best suited for batch processing of known file types where the two-pass cost is acceptable. Works well when digram distributions are stable and distinctive, such as structured documents or source code. Unsuitable for streaming or encrypted/compressed data where digram frequencies flatten out.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // BFBC Phase 1: build digram frequency table
 uint32_t freq[256][256] = {0};
@@ -2102,6 +2260,7 @@ for (size_t i = min; i < len - 1; i++) {
         return i + 1; // boundary after digram
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(n)</em> pre-scan + <em>O(1)</em> per byte for boundary detection.</div><div><strong>Space:</strong> <em>O(256&times;256)</em> for the digram frequency table.</div></div>
     </div>
   </div>
@@ -2111,10 +2270,16 @@ for (size_t i = min; i < len - 1; i++) {
   <div class="cdc-tl-entry">
     <div class="cdc-tl-dot extrema"></div>
     <div class="cdc-tl-card">
-      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-header">
+        <div class="cdc-tl-name">VectorCDC<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
+        <span class="cdc-tax-family-label extrema">Extrema</span>
+      </div>
       <div class="cdc-tl-year">2025</div>
-      <div class="cdc-tl-name">VectorCDC<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
-      <div class="cdc-tl-desc">Demonstrates that Local Extrema algorithms are <strong>inherently SIMD-parallel</strong> in a way hash-based algorithms are not. Finding a local maximum across a window of bytes is a parallel comparison — exactly what SSE/AVX packed-max and packed-compare instructions are designed for. VectorCDC loads 16 bytes (SSE) or 32 bytes (AVX2) into a vector register and uses <code>_mm256_max_epu8</code> to compare all bytes simultaneously, extracting boundary candidates via <code>movemask</code>. Hash-based algorithms resist this because each hash update depends sequentially on the previous one. The VRAM variant (vectorized RAM) achieves <strong>16-42&times;</strong> throughput over scalar implementations, approaching memory bandwidth limits (~10-15 GB/s). Deduplication ratios remain identical since the boundary decisions are mathematically equivalent.</div>
+      <div class="cdc-tl-section">Overview</div>
+      <div class="cdc-tl-desc">Demonstrates that Local Extrema algorithms are <strong>inherently SIMD-parallel</strong> in a way hash-based algorithms are not. Finding a local maximum across a window of bytes is a parallel comparison, exactly what SSE/AVX packed-max and packed-compare instructions are designed for. VectorCDC loads 16 bytes (SSE) or 32 bytes (AVX2) into a vector register and uses <code>_mm256_max_epu8</code> to compare all bytes simultaneously, extracting boundary candidates via <code>movemask</code>. Hash-based algorithms resist this because each hash update depends sequentially on the previous one. The VRAM variant (vectorized RAM) achieves <strong>16-42&times;</strong> throughput over scalar implementations, approaching memory bandwidth limits (~10-15 GB/s). Deduplication ratios remain identical since the boundary decisions are mathematically equivalent.</div>
+      <div class="cdc-tl-section">Application</div>
+      <div class="cdc-tl-desc">VRAM (vectorized RAM) achieves <strong>6.5-30 GB/s</strong> with AVX-512, a 17&times; speedup over scalar RAM, approaching memory bandwidth limits.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> Tested across 10 workloads spanning VM backups, database snapshots, source code repositories, and web archives. Deduplication ratios remain identical since the boundary decisions are mathematically equivalent to the scalar algorithms.</div>
+      <div class="cdc-tl-section">Sample Code</div>
 {% highlight c linenos %}
 // VectorCDC: SIMD-accelerated local max (AVX2)
 for (; i + 32 <= len; i += 32) {
@@ -2128,24 +2293,12 @@ for (; i + 32 <= len; i += 32) {
     if (mask) return i + __builtin_ctz(mask); // first local max
 }
 {% endhighlight %}
+      <div class="cdc-tl-section">Complexity Analysis</div>
       <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1/32)</em> per byte with AVX2, processing 32 bytes per instruction and approaching memory bandwidth.</div><div><strong>Space:</strong> <em>O(1)</em> beyond the data, requiring only a few vector registers with no tables or buffers.</div></div>
     </div>
   </div>
 
 </div>
-
-### Comparing the Families
-
-| | **BSW** | **Local Extrema** | **Statistical** |
-|---|---------|-------------------|-----------------|
-| **Core operation** | Rolling hash + mask | Byte comparisons | Frequency analysis |
-| **Key algorithms** | Rabin, Buzhash, Gear, PCI | AE, RAM, MII | BFBC |
-| **Throughput** | Medium–High | High | Medium |
-| **Dedup ratio** | High | Comparable | Dataset-dependent |
-| **SIMD-friendly** | Limited | Excellent | Limited |
-| **Streaming** | Yes | Yes | No (pre-scan) |
-| **Chunk distribution** | Exponential (improved with NC) | Varies | Varies |
-| **Used in practice** | Restic, Borg, FastCDC | Research | Research |
 
 In the next section, we'll take a closer look at the BSW family through **FastCDC**, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
 
@@ -2154,21 +2307,124 @@ In the next section, we'll take a closer look at the BSW family through **FastCD
 ### References
 
 <div class="cdc-references">
-<ol>
-<li id="ref-1">M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report, 1981.</li>
-<li id="ref-2">A. Muthitacharoen, B. Chen & D. Mazieres, "A Low-Bandwidth Network File System," <em>ACM SOSP</em>, 2001.</li>
-<li id="ref-3">J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM TOIS</em>, vol. 15, no. 3, 1997.</li>
-<li id="ref-4">W. Xia et al., "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, 2014.</li>
-<li id="ref-5">W. Xia et al., <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia">"FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication,"</a> <em>USENIX ATC</em>, 2016.</li>
-<li id="ref-6">W. Xia et al., <a href="https://ranger.uta.edu/~jiang/publication/Journals/2020/2020-IEEE-TPDS(Wen%20Xia).pdf">"The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems,"</a> <em>IEEE TPDS</em>, vol. 31, no. 9, 2020.</li>
-<li id="ref-7">Y. Zhang et al., "AE: An Asymmetric Extremum Content Defined Chunking Algorithm," <em>IEEE INFOCOM</em>, 2015.</li>
-<li id="ref-8">R. N. Widodo, H. Lim & M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, 2017.</li>
-<li id="ref-9">C. Zhang et al., "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, 2019.</li>
-<li id="ref-10">C. Zhang et al., "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, 2020.</li>
-<li id="ref-11">A. S. M. Saeed & L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, 2020.</li>
-<li id="ref-12">M. Gregoriadis, L. Balduf, B. Scheuermann & J. Pouwelse, <a href="https://arxiv.org/abs/2409.06066">"A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication,"</a> <em>arXiv:2409.06066</em>, 2024.</li>
-<li id="ref-13">S. Udayashankar, A. Baba & A. Al-Kiswany, <a href="https://www.usenix.org/conference/fast25/presentation/udayashankar">"VectorCDC: Accelerating Data Deduplication with Vector Instructions,"</a> <em>USENIX FAST</em>, 2025.</li>
-</ol>
+
+<div class="bib-entry" id="ref-1">
+  <div class="bib-number">[1]</div>
+  <div class="bib-citation">M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report TR-15-81, Center for Research in Computing Technology, Harvard University, 1981.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/rabin-1981-fingerprinting.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://scholar.google.com/scholar?q=rabin+fingerprinting+random+polynomials+1981" class="bib-link external"><i class="fa-solid fa-magnifying-glass"></i> Google Scholar</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-2">
+  <div class="bib-number">[2]</div>
+  <div class="bib-citation">A. Muthitacharoen, B. Chen &amp; D. Mazieres, "A Low-Bandwidth Network File System," <em>Proceedings of the 18th ACM Symposium on Operating Systems Principles (SOSP)</em>, 2001.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/lbfs-2001-muthitacharoen.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://dl.acm.org/doi/10.1145/502034.502052" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-3">
+  <div class="bib-number">[3]</div>
+  <div class="bib-citation">J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM Transactions on Information Systems</em>, vol. 15, no. 3, pp. 291-320, 1997.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/buzhash-1997-cohen.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://dl.acm.org/doi/10.1145/256163.256168" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-4">
+  <div class="bib-number">[4]</div>
+  <div class="bib-citation">W. Xia, H. Jiang, D. Feng &amp; L. Tian, "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, pp. 258-272, 2014.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ddelta-2014-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0166531614000790" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ScienceDirect</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-5">
+  <div class="bib-number">[5]</div>
+  <div class="bib-citation">W. Xia, H. Jiang, D. Feng, L. Tian, M. Fu &amp; Y. Zhou, "FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication," <em>Proceedings of the USENIX Annual Technical Conference (ATC)</em>, 2016.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2016-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-6">
+  <div class="bib-number">[6]</div>
+  <div class="bib-citation">W. Xia, Y. Zhou, H. Jiang, D. Feng, Y. Hua, Y. Hu, Q. Liu &amp; Y. Zhang, "The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems," <em>IEEE Transactions on Parallel and Distributed Systems</em>, vol. 31, no. 9, pp. 2017-2031, 2020.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2020-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/9055082" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-7">
+  <div class="bib-number">[7]</div>
+  <div class="bib-citation">Y. Zhang, H. Jiang, D. Feng, W. Xia, M. Fu, F. Huang &amp; Y. Zhou, "AE: An Asymmetric Extremum Content Defined Chunking Algorithm for Fast and Bandwidth-Efficient Data Deduplication," <em>Proceedings of IEEE INFOCOM</em>, 2015.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ae-2015-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/7218510" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-8">
+  <div class="bib-number">[8]</div>
+  <div class="bib-citation">R. N. Widodo, H. Lim &amp; M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, pp. 145-156, 2017.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ram-2017-widodo.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0167739X16305829" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ScienceDirect</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-9">
+  <div class="bib-number">[9]</div>
+  <div class="bib-citation">C. Zhang, D. Qi, W. Li &amp; J. Guo, "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, pp. 86862-86875, 2019.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/mii-2019-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/8752387" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-10">
+  <div class="bib-number">[10]</div>
+  <div class="bib-citation">C. Zhang, D. Qi, W. Li &amp; J. Guo, "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, pp. 5316-5330, 2020.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/pci-2020-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/8949536" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-11">
+  <div class="bib-number">[11]</div>
+  <div class="bib-citation">A. S. M. Saeed &amp; L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, article 1841, 2020.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/bfbc-2020-saeed.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.mdpi.com/2073-8994/12/11/1841" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> MDPI</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-12">
+  <div class="bib-number">[12]</div>
+  <div class="bib-citation">M. Gregoriadis, L. Balduf, B. Scheuermann &amp; J. Pouwelse, "A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication," <em>arXiv:2409.06066</em>, 2024.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/gregoriadis-2024-survey.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://arxiv.org/abs/2409.06066" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-13">
+  <div class="bib-number">[13]</div>
+  <div class="bib-citation">S. Udayashankar, A. Baba &amp; A. Al-Kiswany, "VectorCDC: Accelerating Data Deduplication with Vector Instructions," <em>Proceedings of the 23rd USENIX Conference on File and Storage Technologies (FAST)</em>, 2025.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/vectorcdc-2025-udayashankar.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.usenix.org/conference/fast25/presentation/udayashankar" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
 </div>
 
 ---

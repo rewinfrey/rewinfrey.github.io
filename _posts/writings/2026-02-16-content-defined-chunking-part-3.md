@@ -994,25 +994,65 @@ categories:
   margin-top: 1.5rem;
 }
 
-.cdc-references ol {
-  padding-left: 1.5rem;
-  margin: 0.75rem 0 0 0;
+.cdc-references .bib-entry {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.06);
 }
 
-.cdc-references li {
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #5a564f;
-  margin-bottom: 0.4rem;
+.cdc-references .bib-entry:last-child {
+  border-bottom: none;
 }
 
-.cdc-references li a {
+.cdc-references .bib-number {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #c45a3b;
-  text-decoration: none;
+  margin-bottom: 0.3rem;
 }
 
-.cdc-references li a:hover {
-  text-decoration: underline;
+.cdc-references .bib-citation {
+  font-size: 0.9rem;
+  color: #3d3a36;
+  line-height: 1.7;
+}
+
+.cdc-references .bib-citation em {
+  color: #5a5550;
+}
+
+.cdc-references .bib-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cdc-references .bib-link {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cdc-references .bib-link.pdf {
+  background: rgba(196, 90, 59, 0.1);
+  color: #c45a3b;
+}
+
+.cdc-references .bib-link.pdf:hover {
+  background: rgba(196, 90, 59, 0.2);
+}
+
+.cdc-references .bib-link.external {
+  background: rgba(61, 58, 54, 0.06);
+  color: #5a5550;
+}
+
+.cdc-references .bib-link.external:hover {
+  background: rgba(61, 58, 54, 0.12);
 }
 
 .cdc-learn-more {
@@ -1669,9 +1709,15 @@ I'm comparing three approaches along a granularity spectrum: **whole-file conten
 ### References
 
 <div class="cdc-references">
-<ol start="14">
-<li id="ref-14">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei & T. Wu, <a href="https://arxiv.org/abs/2506.15655">"cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree,"</a> <em>arXiv:2506.15655</em>, 2025.</li>
-</ol>
+
+<div class="bib-entry" id="ref-14">
+  <div class="bib-number">[14]</div>
+  <div class="bib-citation">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
 </div>
 
 **Tools & Implementations**
