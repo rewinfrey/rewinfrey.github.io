@@ -1560,6 +1560,115 @@ categories:
 }
 .cdc-series-nav a { color: #c45a3b; text-decoration: none; }
 .cdc-series-nav a:hover { text-decoration: underline; }
+
+/* ── Algorithmic Timeline ──────────────────────── */
+.cdc-timeline {
+  --line-x: 20px;
+  --line-color: rgba(61, 58, 54, 0.25);
+  --dot-size: 14px;
+  position: relative;
+  padding: 1rem 0 1rem 0;
+  margin-left: 0.5rem;
+}
+
+/* Continuous vertical line */
+.cdc-timeline::before {
+  content: '';
+  position: absolute;
+  left: var(--line-x);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line-color);
+}
+
+/* ── Year markers ─────────────────────────────── */
+.cdc-tl-marker {
+  position: relative;
+  padding: 0.6rem 0 0.6rem calc(var(--line-x) + 20px);
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #a89b8c;
+  letter-spacing: 0.03em;
+}
+/* Tick mark on the line */
+.cdc-tl-marker::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--line-x) - 4px);
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  background: var(--line-color);
+  transform: translateY(-50%);
+}
+
+/* ── Entry (dot + card) ───────────────────────── */
+.cdc-tl-entry {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  padding-left: calc(var(--line-x) + 20px);
+}
+
+/* Dot */
+.cdc-tl-dot {
+  position: absolute;
+  left: var(--line-x);
+  top: 1rem;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--line-color);
+  flex-shrink: 0;
+}
+.cdc-tl-dot.bsw { background: #c45a3b; }
+.cdc-tl-dot.extrema { background: #2a7d4f; }
+.cdc-tl-dot.statistical { background: #8b7355; }
+
+/* Card */
+.cdc-tl-card {
+  background: rgba(61, 58, 54, 0.03);
+  border: 1px solid rgba(61, 58, 54, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.cdc-tl-card .cdc-tax-family-label {
+  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.cdc-tl-year {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #a89b8c;
+  margin-bottom: 0.1rem;
+}
+
+.cdc-tl-name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #3d3a36;
+  margin-bottom: 0.3rem;
+  line-height: 1.3;
+}
+
+.cdc-tl-desc {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.78rem;
+  color: #5a5550;
+  line-height: 1.55;
+}
 </style>
 
 <!-- MathJax for rendering mathematical notation -->
@@ -1593,10 +1702,8 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       <a href="#three-families-of-cdc">Three Families of CDC</a>
       <ul>
         <li><a href="#origins">Origins</a></li>
-        <li><a href="#family-1-basic-sliding-window-bsw">Family 1: Basic Sliding Window (BSW)</a></li>
-        <li><a href="#family-2-local-extrema">Family 2: Local Extrema</a></li>
-        <li><a href="#family-3-statistical">Family 3: Statistical</a></li>
-        <li><a href="#orthogonal-optimizations">Orthogonal Optimizations</a></li>
+        <li><a href="#a-taxonomy-of-cdc-algorithms">A Taxonomy of CDC Algorithms</a></li>
+        <li><a href="#algorithmic-timeline">Algorithmic Timeline</a></li>
         <li><a href="#comparing-the-families">Comparing the Families</a></li>
       </ul>
     </li>
@@ -1744,51 +1851,127 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
   </div>
 </div>
 
-### Family 1: Basic Sliding Window (BSW)
+### Algorithmic Timeline
 
-The BSW family represents the original CDC paradigm: slide a window across the data, compute a **hash** (or hash-like function) of the window contents, and check whether the result satisfies a boundary condition.
+<div class="cdc-timeline">
 
-**Rabin** (1981)<span class="cdc-cite"><a href="#ref-1">[1]</a></span> — The original. Computes a polynomial fingerprint over a sliding window in $GF(2)$. Mathematically well-founded with strong uniformity guarantees, but relatively slow due to the polynomial arithmetic involved.
+  <div class="cdc-tl-marker">1980</div>
 
-**Buzhash** (1997)<span class="cdc-cite"><a href="#ref-3">[3]</a></span> — Replaces polynomial division with a **cyclic polynomial** (bitwise rotation + XOR). No multiplication needed, just table lookups and bit operations. Used by Borg backup with a secret seed for security (preventing attackers from predicting chunk boundaries based on known content).
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot bsw"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-year">1981</div>
+      <div class="cdc-tl-name">Rabin<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
+      <div class="cdc-tl-desc">The original. Computes a polynomial fingerprint over a sliding window in <em>GF(2)</em>. Mathematically well-founded with strong uniformity guarantees, but relatively slow due to the polynomial arithmetic involved.</div>
+    </div>
+  </div>
 
-**Gear** (2014)<span class="cdc-cite"><a href="#ref-4">[4]</a></span> — Radically simplifies the hash: just `hash = (hash << 1) + GEAR_TABLE[byte]`. No need to remove outgoing bytes from the window, since the left-shift naturally discards old information. This makes it extremely fast — the basis for FastCDC.
+  <div class="cdc-tl-marker">1985</div>
+  <div class="cdc-tl-marker">1990</div>
+  <div class="cdc-tl-marker">1995</div>
 
-**PCI** (2020)<span class="cdc-cite"><a href="#ref-10">[10]</a></span> — Takes an unusual approach within the BSW family: instead of computing a hash, it counts the number of **1-bits** (popcount) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold $\theta$. Since the popcount of random bytes follows a binomial distribution, the threshold controls average chunk size. Modern CPUs have dedicated `POPCNT` instructions, making this surprisingly efficient.
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot bsw"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-year">1997</div>
+      <div class="cdc-tl-name">Buzhash<span class="cdc-cite"><a href="#ref-3">[3]</a></span></div>
+      <div class="cdc-tl-desc">Replaces polynomial division with a <strong>cyclic polynomial</strong> (bitwise rotation + XOR). No multiplication needed, just table lookups and bit operations. Used by Borg backup with a secret seed for security.</div>
+    </div>
+  </div>
 
-<div class="cdc-callout" data-label="Common Thread">
-All BSW algorithms share the same core loop: for each byte position, update a rolling value from the local window, then check if it meets a condition. They differ in <em>how</em> they compute that rolling value — polynomial division, cyclic shift, simple shift, or popcount — and how efficiently they can update it.
+  <div class="cdc-tl-marker">2000</div>
+  <div class="cdc-tl-marker">2005</div>
+  <div class="cdc-tl-marker">2010</div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot bsw"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-year">2014</div>
+      <div class="cdc-tl-name">Gear<span class="cdc-cite"><a href="#ref-4">[4]</a></span></div>
+      <div class="cdc-tl-desc">Radically simplifies the hash: just <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. No need to remove outgoing bytes — the left-shift naturally discards old information. The basis for FastCDC.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-marker">2015</div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot extrema"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-year">2015</div>
+      <div class="cdc-tl-name">AE<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
+      <div class="cdc-tl-desc">Asymmetric Extremum. Scans for the maximum byte value in a sliding window; declares a boundary when the maximum is at the rightmost position. No hash needed — just byte comparisons.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot bsw"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-year">2016</div>
+      <div class="cdc-tl-name">FastCDC<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span></div>
+      <div class="cdc-tl-desc">Combines Gear hashing with <strong>Normalized Chunking</strong> — a dual-mask strategy that uses a stricter mask near the target size and a looser mask as chunks grow. This squeezes the chunk size distribution toward a bell curve, improving deduplication.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot extrema"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-year">2017</div>
+      <div class="cdc-tl-name">RAM<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
+      <div class="cdc-tl-desc">Rapid Asymmetric Maximum. Uses an asymmetric window — small lookback, larger lookahead — for faster re-synchronization. Just byte comparisons, no arithmetic, making it suited to resource-constrained environments.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot extrema"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-year">2019</div>
+      <div class="cdc-tl-name">MII<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
+      <div class="cdc-tl-desc">Maximum of the Interval-Length Independent. Uses a larger context window for more stable boundaries. The boundary decision is independent of chunk size parameters, unlike BSW algorithms.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-marker">2020</div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot bsw"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label bsw">BSW</span>
+      <div class="cdc-tl-year">2020</div>
+      <div class="cdc-tl-name">PCI<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
+      <div class="cdc-tl-desc">Counts <strong>1-bits</strong> (popcount) in a sliding window of raw bytes. A boundary fires when the popcount exceeds a threshold. Modern CPUs have dedicated <code>POPCNT</code> instructions, making this surprisingly efficient.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot statistical"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label statistical">Statistical</span>
+      <div class="cdc-tl-year">2020</div>
+      <div class="cdc-tl-name">BFBC<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
+      <div class="cdc-tl-desc">Byte-Frequency Based Chunking. Pre-scans data for the most common byte pairs, then uses them as boundary markers. Simple once built, but requires a pre-scan pass — unsuitable for streaming — and struggles on high-entropy data.</div>
+    </div>
+  </div>
+
+  <div class="cdc-tl-marker">2025</div>
+
+  <div class="cdc-tl-entry">
+    <div class="cdc-tl-dot extrema"></div>
+    <div class="cdc-tl-card">
+      <span class="cdc-tax-family-label extrema">Extrema</span>
+      <div class="cdc-tl-year">2025</div>
+      <div class="cdc-tl-name">VectorCDC<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
+      <div class="cdc-tl-desc">Demonstrates <strong>16-42&times;</strong> speedup for Local Extrema algorithms using SSE/AVX SIMD instructions. Finding a local max across a byte window is inherently parallel — unlike hash updates, which are sequential. Achieves throughput near memory bandwidth.</div>
+    </div>
+  </div>
+
 </div>
-
-### Family 2: Local Extrema
-
-What if we skip hashing entirely? The Local Extrema family finds chunk boundaries by looking for bytes that are local maxima or minima within their neighborhood. The intuition: extreme values in the byte stream are content-dependent landmarks, just like hash-based boundaries, but without the cost of computing a hash.
-
-**AE — Asymmetric Extremum** (2015)<span class="cdc-cite"><a href="#ref-7">[7]</a></span> — Scans for the position of the maximum byte value within a sliding window. When the maximum is at the rightmost position of the window, it declares a boundary. "Asymmetric" because the check is one-sided: the maximum only needs to beat the preceding bytes, not the following ones.
-
-**RAM — Rapid Asymmetric Maximum** (2017)<span class="cdc-cite"><a href="#ref-8">[8]</a></span> — Improves on AE with an asymmetric window: a small lookback and a larger lookahead. This reduces the minimum distance between boundaries and improves re-synchronization after edits. RAM's simplicity — just byte comparisons, no arithmetic — makes it attractive for resource-constrained environments.
-
-**MII — Maximum of the Interval-Length Independent** (2019)<span class="cdc-cite"><a href="#ref-9">[9]</a></span> — Uses a larger context window than AE/RAM, making boundaries more stable but potentially slower to re-synchronize. The "interval-length independent" property means the boundary decision doesn't depend on the chunk size parameters in the same way BSW algorithms do.
-
-<div class="cdc-callout" data-label="No Hash Needed">
-Local Extrema algorithms use only byte comparisons — no multiplication, no XOR, no table lookups. This makes them inherently simple and, as we'll see shortly, naturally suited to hardware acceleration via SIMD vector instructions.
-</div>
-
-### Family 3: Statistical
-
-The Statistical family takes yet another approach: analyze the statistical properties of the data itself to find natural boundary points.
-
-**BFBC — Byte-Frequency Based Chunking** (2020)<span class="cdc-cite"><a href="#ref-11">[11]</a></span> — Pre-scans the data to find the most frequently occurring byte pairs (digrams), then uses the top-$k$ most common pairs as chunk boundaries. The idea is that common patterns serve as natural, content-dependent landmarks.
-
-BFBC's strength is its simplicity once the frequency table is built. Its weakness is fundamental: it requires a pre-scan pass, making it unsuitable for streaming data, and its effectiveness is **dataset-dependent**. On high-entropy data (compressed files, encrypted content), byte-pair frequencies flatten out and the algorithm struggles to find meaningful boundaries.
-
-### Orthogonal Optimizations
-
-Two important techniques cut across the family taxonomy. They don't define new families — they enhance existing ones.
-
-**Normalized Chunking (NC)** applies to BSW algorithms. The problem: basic mask-based boundary detection produces an exponential chunk size distribution — many small chunks and occasional very large ones. NC uses a **dual-mask strategy**: a stricter mask (more bits must match) near the target average size, and a looser mask (fewer bits) as chunks approach the maximum. This "squeezes" the distribution toward a bell curve, improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). FastCDC's most important contribution is combining Gear hashing with NC.<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span>
-
-**Hardware Acceleration (VectorCDC)** applies naturally to Local Extrema algorithms. A 2025 study by Udayashankar et al.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> demonstrated that algorithms like RAM can be accelerated **16-42×** using SSE/AVX vector instructions. The key insight: finding a local maximum across a window of bytes is essentially a parallel comparison — exactly what SIMD instructions are designed for. Hash-based algorithms resist this parallelization because each hash update depends sequentially on the previous one. VectorCDC's VRAM variant achieves throughput comparable to memory bandwidth while preserving identical deduplication ratios.
 
 ### Comparing the Families
 
