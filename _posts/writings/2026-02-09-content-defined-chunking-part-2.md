@@ -1,9 +1,9 @@
 ---
 layout: writing
 group: Writings
-title: "Content-Defined Chunking: From Rabin Fingerprints to FastCDC and Beyond"
-summary: "An interactive deep-dive into how content-defined chunking algorithms enable efficient deduplication, from the 1981 origins through three algorithm families to modern implementations and structure-aware chunking."
-date: 2026-02-02 12:00:00
+title: "Content-Defined Chunking, Part 2: A Deep Dive into FastCDC"
+summary: "An interactive exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization — with code in pseudocode, Rust, and TypeScript."
+date: 2026-02-09 12:00:00
 categories:
 - writings
 ---
@@ -1546,6 +1546,20 @@ categories:
     height: 12px;
   }
 }
+
+/* Series navigation */
+.cdc-series-nav {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #8b7355;
+  padding: 0.75rem 1rem;
+  background: rgba(61, 58, 54, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+  margin: 1.5rem 0;
+}
+.cdc-series-nav a { color: #c45a3b; text-decoration: none; }
+.cdc-series-nav a:hover { text-decoration: underline; }
 </style>
 
 <!-- MathJax for rendering mathematical notation -->
@@ -1559,233 +1573,11 @@ MathJax = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
-Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.
-
-<div class="cdc-toc">
-  <strong>Contents</strong>
-  <ol>
-    <li>
-      <a href="#motivate-the-problem">Motivate the Problem</a>
-      <ul>
-        <li><a href="#why-not-just-use-fixed-size-chunks">Why Not Just Use Fixed-Size Chunks?</a></li>
-        <li><a href="#the-core-idea-content-as-the-arbiter">The Core Idea: Content as the Arbiter</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#three-families-of-cdc">Three Families of CDC</a>
-      <ul>
-        <li><a href="#origins">Origins</a></li>
-        <li><a href="#family-1-basic-sliding-window-bsw">Family 1: Basic Sliding Window (BSW)</a></li>
-        <li><a href="#family-2-local-extrema">Family 2: Local Extrema</a></li>
-        <li><a href="#family-3-statistical">Family 3: Statistical</a></li>
-        <li><a href="#orthogonal-optimizations">Orthogonal Optimizations</a></li>
-        <li><a href="#comparing-the-families">Comparing the Families</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#a-closer-look-at-bsw-via-fastcdc">A Closer Look at BSW via FastCDC</a>
-      <ul>
-        <li><a href="#the-gear-hash">The GEAR Hash</a></li>
-        <li><a href="#finding-chunk-boundaries">Finding Chunk Boundaries</a></li>
-        <li><a href="#the-2016-algorithm">The 2016 Algorithm</a></li>
-        <li><a href="#the-2020-enhancement-rolling-two-bytes">The 2020 Enhancement: Rolling Two Bytes</a></li>
-        <li><a href="#exploring-the-parameters">Exploring the Parameters</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#deduplication-in-action">Deduplication in Action</a>
-      <ul>
-        <li><a href="#the-deduplication-pipeline">The Deduplication Pipeline</a></li>
-        <li><a href="#why-cdc-beats-fixed-chunking">Why CDC Beats Fixed Chunking</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#conclusion">Conclusion</a>
-      <ul>
-        <li><a href="#where-cdc-lives-today">Where CDC Lives Today</a></li>
-        <li><a href="#beyond-deduplication-structure-aware-chunking">Beyond Deduplication: Structure-Aware Chunking</a></li>
-        <li><a href="#why-i-care-about-this">Why I Care About This</a></li>
-        <li><a href="#key-takeaways">Key Takeaways</a></li>
-        <li><a href="#references">References</a></li>
-      </ul>
-    </li>
-  </ol>
+<div class="cdc-series-nav">
+Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
----
-
-## Motivate the Problem
-
-Imagine you're building a backup system. A user stores a 500MB file, then modifies a single paragraph and saves it again. In a naive system, this results in two nearly identical copies of the same file. Despite the small change of a single paragraph, the storage system grew from 500MB to 1GB. Surely we can do better.
-
-This is the **deduplication problem**, and it shows up in many familiar places: cloud blob storage providers managing petabytes of user files (e.g. <a href="https://aws.amazon.com/s3/">Amazon S3</a> or <a href="https://azure.microsoft.com/en-us/products/storage/blobs">Azure Blob Storage</a>), cloud file servers like Google Drive or iCloud, and software backup tools like [Restic](https://restic.net/) and [Borg](https://www.borgbackup.org/).
-
-The simplest form of deduplication is whole-file comparison: hash the entire file, and if two files produce the same hash, store only one copy. This works well for exact duplicates, but falls apart with even the smallest edit. Change a single byte and the hash changes completely, so the system treats the original and the edited version as two entirely different files.
-
-One fix is to reduce the granularity of comparison. Instead of hashing a file as a single unit, split it into smaller segments called chunks and hash each chunk independently. A small edit now only affects the chunks near the change, leaving the rest unchanged. Those unchanged chunks can be recognized as duplicates and stored only once. The question then becomes: how should we decide where to split?
-
-### Why Not Just Use Fixed-Size Chunks?
-
-The naive approach to chunking is fixed-size splitting: choose a chunk size, say 4KB, and split the file at every 4KB boundary. A 1MB file becomes 256 chunks of 4KB each. This approach is conceptually simple, but is problematic if we want to prevent **change amplification**, or invalidating chunks of unchanged content when small edits occur. Using this naive chunking strategy, let's see what happens to unchanged chunks when a small edit occurs at the beginning of a file:
-
-<div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
-  <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
-  <!-- Populated dynamically by ChunkComparisonDemo -->
-</div>
-
-Inserting "NEW INTRO." at the beginning of the file causes every chunk boundary to shift, invalidating all five original chunks. The result is five new chunks and zero unchanged chunks, producing a deduplication ratio of 0%. In practice, this means the entire file would need to be stored again, even though most of its content did not change. We need a chunking strategy whose boundaries are not fixed in size, and that offers more flexibility to identify split points that better preserve unchanged chunks.
-
-### The Core Idea: Content as the Arbiter
-
-How does CDC decide where to split? The details vary across the various CDC algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
-
-Let's revisit the same example from before, but this time we split the text at sentence boundaries. Each sentence ending (a period, exclamation mark, or question mark followed by a space) defines a chunk boundary. Because the boundary is determined by the content itself, not by a fixed byte count, inserting text at the beginning of the file does not invalidate existing unchanged chunks.
-
-<div class="cdc-comparison-panel" id="cdc-chunking-demo" style="margin: 2rem 0;">
-  <div class="cdc-comparison-title">Content-Defined Chunking (sentence boundaries)</div>
-  <!-- Populated dynamically by ChunkComparisonDemo -->
-</div>
-
-Inserting "NEW INTRO." creates just one new chunk. The original five sentences are unchanged, so their chunks are identical to before. The result is a much higher deduplication ratio, meaning we only need to store the new chunk and can reference the existing chunks for the rest of the file.
-
-<div class="cdc-callout" data-label="Key Insight">
-When chunk boundaries are defined by the content itself rather than by fixed byte offsets, a small edit only affects the chunks near the change. The rest of the file's chunks remain identical and can be deduplicated.
-</div>
-
----
-
-## Three Families of CDC
-
-### Origins
-
-The story begins with Turing Award winner **Michael Rabin**, who introduced polynomial fingerprinting in 1981.<span class="cdc-cite"><a href="#ref-1">[1]</a></span> His key insight: represent a sequence of bytes as a polynomial and evaluate it at a random point to get a "fingerprint" that uniquely identifies the content with high probability. More importantly, this fingerprint could be computed *incrementally* — a **rolling hash** — making it efficient to slide across data.
-
-For a sequence of bytes $b_0, b_1, \ldots, b_{n-1}$, the fingerprint is:
-
-$$f(x) = b_0 + b_1 \cdot x + b_2 \cdot x^2 + \ldots + b_{n-1} \cdot x^{n-1} \mod p$$
-
-where $p$ is an irreducible polynomial over $GF(2)$.
-
-<div class="cdc-learn-more">
-Ask your AI assistant about "Galois fields" and "polynomial arithmetic in GF(2)" to understand the mathematical foundations.
-</div>
-
-Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS used a 48-byte sliding window with Rabin fingerprints: when the low 13 bits equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was showing CDC could achieve dramatic bandwidth savings for real file workloads — modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
-
-{% highlight c linenos %}
-// Simplified LBFS boundary check
-if ((fingerprint % 8192) == 0x78) {
-    // This is a chunk boundary
-    emit_chunk(start, current_position);
-    start = current_position;
-}
-{% endhighlight %}
-
-The deduplication era of 2005-2015 drove an explosion of CDC research. Systems like **Data Domain**, **Dropbox**, and **Borg** all relied on CDC, and researchers responded with faster hash functions, better chunk size distributions, and entirely new approaches to finding boundaries. By the mid-2010s, what had been a single technique had branched into a family of algorithms with fundamentally different strategies.
-
-### A Taxonomy of CDC Algorithms
-
-A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href="#ref-12">[12]</a></span> organizes the landscape into **three distinct families** based on their core mechanism for finding chunk boundaries. This taxonomy clarifies a field that can otherwise feel like a confusing proliferation of acronyms.
-
-<div class="cdc-taxonomy">
-  <div class="cdc-taxonomy-tree">
-    <div class="cdc-tax-root">CDC Algorithms</div>
-    <div class="cdc-tax-vline"></div>
-    <div class="cdc-tax-hbar"></div>
-    <div class="cdc-tax-families">
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label bsw">BSW</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">Rabin <span class="cdc-tax-year">1981</span></span>
-          <span class="cdc-tax-algo">Buzhash <span class="cdc-tax-year">1997</span></span>
-          <span class="cdc-tax-algo">Gear <span class="cdc-tax-year">2014</span></span>
-          <span class="cdc-tax-algo">PCI <span class="cdc-tax-year">2020</span></span>
-        </div>
-      </div>
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label extrema">Local Extrema</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">AE <span class="cdc-tax-year">2015</span></span>
-          <span class="cdc-tax-algo">RAM <span class="cdc-tax-year">2017</span></span>
-          <span class="cdc-tax-algo">MII <span class="cdc-tax-year">2019</span></span>
-        </div>
-      </div>
-      <div class="cdc-tax-family">
-        <div class="cdc-tax-vline"></div>
-        <div class="cdc-tax-family-label statistical">Statistical</div>
-        <div class="cdc-tax-algorithms">
-          <span class="cdc-tax-algo">BFBC <span class="cdc-tax-year">2020</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="margin-top: 1rem; font-size: 0.72rem; color: #a89b8c; line-height: 1.4; text-align: center;">
-    Taxonomy from Gregoriadis et al. <a href="#ref-12" style="color: #c45a3b; text-decoration: none; font-weight: 600;">[12]</a>
-  </div>
-</div>
-
-### Family 1: Basic Sliding Window (BSW)
-
-The BSW family represents the original CDC paradigm: slide a window across the data, compute a **hash** (or hash-like function) of the window contents, and check whether the result satisfies a boundary condition.
-
-**Rabin** (1981)<span class="cdc-cite"><a href="#ref-1">[1]</a></span> — The original. Computes a polynomial fingerprint over a sliding window in $GF(2)$. Mathematically well-founded with strong uniformity guarantees, but relatively slow due to the polynomial arithmetic involved.
-
-**Buzhash** (1997)<span class="cdc-cite"><a href="#ref-3">[3]</a></span> — Replaces polynomial division with a **cyclic polynomial** (bitwise rotation + XOR). No multiplication needed, just table lookups and bit operations. Used by Borg backup with a secret seed for security (preventing attackers from predicting chunk boundaries based on known content).
-
-**Gear** (2014)<span class="cdc-cite"><a href="#ref-4">[4]</a></span> — Radically simplifies the hash: just `hash = (hash << 1) + GEAR_TABLE[byte]`. No need to remove outgoing bytes from the window, since the left-shift naturally discards old information. This makes it extremely fast — the basis for FastCDC.
-
-**PCI** (2020)<span class="cdc-cite"><a href="#ref-10">[10]</a></span> — Takes an unusual approach within the BSW family: instead of computing a hash, it counts the number of **1-bits** (popcount) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold $\theta$. Since the popcount of random bytes follows a binomial distribution, the threshold controls average chunk size. Modern CPUs have dedicated `POPCNT` instructions, making this surprisingly efficient.
-
-<div class="cdc-callout" data-label="Common Thread">
-All BSW algorithms share the same core loop: for each byte position, update a rolling value from the local window, then check if it meets a condition. They differ in <em>how</em> they compute that rolling value — polynomial division, cyclic shift, simple shift, or popcount — and how efficiently they can update it.
-</div>
-
-### Family 2: Local Extrema
-
-What if we skip hashing entirely? The Local Extrema family finds chunk boundaries by looking for bytes that are local maxima or minima within their neighborhood. The intuition: extreme values in the byte stream are content-dependent landmarks, just like hash-based boundaries, but without the cost of computing a hash.
-
-**AE — Asymmetric Extremum** (2015)<span class="cdc-cite"><a href="#ref-7">[7]</a></span> — Scans for the position of the maximum byte value within a sliding window. When the maximum is at the rightmost position of the window, it declares a boundary. "Asymmetric" because the check is one-sided: the maximum only needs to beat the preceding bytes, not the following ones.
-
-**RAM — Rapid Asymmetric Maximum** (2017)<span class="cdc-cite"><a href="#ref-8">[8]</a></span> — Improves on AE with an asymmetric window: a small lookback and a larger lookahead. This reduces the minimum distance between boundaries and improves re-synchronization after edits. RAM's simplicity — just byte comparisons, no arithmetic — makes it attractive for resource-constrained environments.
-
-**MII — Maximum of the Interval-Length Independent** (2019)<span class="cdc-cite"><a href="#ref-9">[9]</a></span> — Uses a larger context window than AE/RAM, making boundaries more stable but potentially slower to re-synchronize. The "interval-length independent" property means the boundary decision doesn't depend on the chunk size parameters in the same way BSW algorithms do.
-
-<div class="cdc-callout" data-label="No Hash Needed">
-Local Extrema algorithms use only byte comparisons — no multiplication, no XOR, no table lookups. This makes them inherently simple and, as we'll see shortly, naturally suited to hardware acceleration via SIMD vector instructions.
-</div>
-
-### Family 3: Statistical
-
-The Statistical family takes yet another approach: analyze the statistical properties of the data itself to find natural boundary points.
-
-**BFBC — Byte-Frequency Based Chunking** (2020)<span class="cdc-cite"><a href="#ref-11">[11]</a></span> — Pre-scans the data to find the most frequently occurring byte pairs (digrams), then uses the top-$k$ most common pairs as chunk boundaries. The idea is that common patterns serve as natural, content-dependent landmarks.
-
-BFBC's strength is its simplicity once the frequency table is built. Its weakness is fundamental: it requires a pre-scan pass, making it unsuitable for streaming data, and its effectiveness is **dataset-dependent**. On high-entropy data (compressed files, encrypted content), byte-pair frequencies flatten out and the algorithm struggles to find meaningful boundaries.
-
-### Orthogonal Optimizations
-
-Two important techniques cut across the family taxonomy. They don't define new families — they enhance existing ones.
-
-**Normalized Chunking (NC)** applies to BSW algorithms. The problem: basic mask-based boundary detection produces an exponential chunk size distribution — many small chunks and occasional very large ones. NC uses a **dual-mask strategy**: a stricter mask (more bits must match) near the target average size, and a looser mask (fewer bits) as chunks approach the maximum. This "squeezes" the distribution toward a bell curve, improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). FastCDC's most important contribution is combining Gear hashing with NC.<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span>
-
-**Hardware Acceleration (VectorCDC)** applies naturally to Local Extrema algorithms. A 2025 study by Udayashankar et al.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> demonstrated that algorithms like RAM can be accelerated **16-42×** using SSE/AVX vector instructions. The key insight: finding a local maximum across a window of bytes is essentially a parallel comparison — exactly what SIMD instructions are designed for. Hash-based algorithms resist this parallelization because each hash update depends sequentially on the previous one. VectorCDC's VRAM variant achieves throughput comparable to memory bandwidth while preserving identical deduplication ratios.
-
-### Comparing the Families
-
-| | **BSW** | **Local Extrema** | **Statistical** |
-|---|---------|-------------------|-----------------|
-| **Core operation** | Rolling hash + mask | Byte comparisons | Frequency analysis |
-| **Key algorithms** | Rabin, Buzhash, Gear, PCI | AE, RAM, MII | BFBC |
-| **Throughput** | Medium–High | High | Medium |
-| **Dedup ratio** | High | Comparable | Dataset-dependent |
-| **SIMD-friendly** | Limited | Excellent | Limited |
-| **Streaming** | Yes | Yes | No (pre-scan) |
-| **Chunk distribution** | Exponential (improved with NC) | Varies | Varies |
-| **Used in practice** | Restic, Borg, FastCDC | Research | Research |
-
-In the next section, we'll take a closer look at the BSW family through **FastCDC** — an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families — Basic Sliding Window, Local Extrema, and Statistical — and compared their tradeoffs. In this post, we take a closer look at one BSW implementation — FastCDC — exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
 
 ---
 
@@ -2403,130 +2195,8 @@ Notice how the dual-mask strategy keeps chunk sizes clustered around the target 
 
 ---
 
-## Deduplication in Action
-
-Let's see how all these pieces combine to enable efficient deduplication.
-
-<div class="cdc-dedup-viz" id="dedup-demo">
-  <!-- Populated dynamically by VersionedDedupDemo -->
+<div class="cdc-series-nav">
+&larr; <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Continue reading &rarr; <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
-
-### The Deduplication Pipeline
-
-1. **Chunk the data** using FastCDC (or another CDC algorithm)
-2. **Hash each chunk** using a cryptographic hash (SHA-256, BLAKE3, etc.)
-3. **Check if the chunk exists** in the content-addressable store
-4. **Store only new chunks** and keep references to existing ones
-
-For two versions of a document:
-- v1: chunks A, B, C, D, E
-- v2: chunks A, B, X, D, E (C was modified to X)
-
-Storage required: A, B, C, D, E, X (6 chunks total, not 10)
-
-### Why CDC Beats Fixed Chunking
-
-| Scenario | Fixed Chunking | CDC |
-|----------|---------------|-----|
-| 1 byte inserted at start | 0% dedup | ~95%+ dedup |
-| Middle section modified | ~50% dedup | ~90%+ dedup |
-| End section appended | 0% dedup (shifts all) | ~95%+ dedup |
-
----
-
-## Conclusion
-
-Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power:
-
-- **Locality**: Boundaries depend only on nearby content
-- **Determinism**: Same content always produces same boundaries
-- **Efficiency**: Modern implementations process gigabytes per second
-
-### Where CDC Lives Today
-
-Content-defined chunking has become infrastructure — often invisible but always essential.
-
-**Restic** uses Rabin fingerprints with ~1MB average chunks:
-```bash
-$ restic backup ~/Documents
-# Only changed chunks are uploaded to the repository
-```
-
-**Borg** uses Buzhash with a secret seed (preventing attackers from guessing chunk boundaries based on known content):
-```bash
-$ borg create ::backup-{now} ~/Documents
-# Chunks are deduplicated across all archives
-```
-
-**Dropbox** pioneered using CDC for efficient file sync. When you modify a document, only changed chunks traverse the network.
-
-While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
-
-### Beyond Deduplication: Structure-Aware Chunking
-
-The core insight behind CDC — that boundaries should be determined by content, not arbitrary positions — is finding new applications beyond storage deduplication. In retrieval-augmented code generation (RAG), **cAST** — chunking via Abstract Syntax Trees (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> — applies this principle to source code: instead of splitting files at fixed line counts, it parses code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
-
-This represents a broader trend: wherever data has inherent structure — whether byte-level patterns in binary files or syntactic structure in source code — content-aware chunking consistently outperforms naive fixed-size approaches.
-
-For Rust developers, the `fastcdc` crate provides production-ready implementations:
-
-{% highlight rust linenos %}
-use fastcdc::v2020::FastCDC;
-
-let data = std::fs::read("large_file.bin")?;
-let chunker = FastCDC::new(&data, 8192, 16384, 65535);
-
-for chunk in chunker {
-    println!("Chunk: {} bytes at offset {}",
-             chunk.length, chunk.offset);
-    // Hash the chunk, store it, etc.
-}
-{% endhighlight %}
-
-### Why I Care About This
-
-This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. The question driving the work: can syntax-aware chunk boundaries — aligned to functions, classes, and modules via AST parsing — outperform byte-level CDC for deduplicating code across versions?
-
-I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** (the approach Git uses today), **FastCDC** (byte-level content-defined chunking), and **cAST-style structural chunking** (AST-aware boundaries). Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking — or whether whole-file storage with delta compression remains the pragmatic choice.
-
-### Key Takeaways
-
-1. **Fixed-size chunking fails** because insertions shift all boundaries
-2. **CDC uses content** to determine boundaries, making them stable
-3. **Three families** of CDC algorithms exist: BSW (hash-based), Local Extrema (comparison-based), and Statistical (frequency-based)
-4. **Rolling hashes** (Rabin, Buzhash, Gear) power the BSW family
-5. **Normalized chunking** (dual masks) produces better chunk size distributions
-6. **Hardware acceleration** (SIMD) promises dramatic speedups, especially for hashless algorithms
-7. **The field is still evolving** — from Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration
-
-### References
-
-<div class="cdc-references">
-<ol>
-<li id="ref-1">M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report, 1981.</li>
-<li id="ref-2">A. Muthitacharoen, B. Chen & D. Mazieres, "A Low-Bandwidth Network File System," <em>ACM SOSP</em>, 2001.</li>
-<li id="ref-3">J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM TOIS</em>, vol. 15, no. 3, 1997.</li>
-<li id="ref-4">W. Xia et al., "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, 2014.</li>
-<li id="ref-5">W. Xia et al., <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia">"FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication,"</a> <em>USENIX ATC</em>, 2016.</li>
-<li id="ref-6">W. Xia et al., <a href="https://ranger.uta.edu/~jiang/publication/Journals/2020/2020-IEEE-TPDS(Wen%20Xia).pdf">"The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems,"</a> <em>IEEE TPDS</em>, vol. 31, no. 9, 2020.</li>
-<li id="ref-7">Y. Zhang et al., "AE: An Asymmetric Extremum Content Defined Chunking Algorithm," <em>IEEE INFOCOM</em>, 2015.</li>
-<li id="ref-8">R. N. Widodo, H. Lim & M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, 2017.</li>
-<li id="ref-9">C. Zhang et al., "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, 2019.</li>
-<li id="ref-10">C. Zhang et al., "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, 2020.</li>
-<li id="ref-11">A. S. M. Saeed & L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, 2020.</li>
-<li id="ref-12">M. Gregoriadis, L. Balduf, B. Scheuermann & J. Pouwelse, <a href="https://arxiv.org/abs/2409.06066">"A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication,"</a> <em>arXiv:2409.06066</em>, 2024.</li>
-<li id="ref-13">S. Udayashankar, A. Baba & A. Al-Kiswany, <a href="https://www.usenix.org/conference/fast25/presentation/udayashankar">"VectorCDC: Accelerating Data Deduplication with Vector Instructions,"</a> <em>USENIX FAST</em>, 2025.</li>
-<li id="ref-14">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei & T. Wu, <a href="https://arxiv.org/abs/2506.15655">"cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree,"</a> <em>arXiv:2506.15655</em>, 2025.</li>
-</ol>
-</div>
-
-**Tools & Implementations**
-- [fastcdc-rs on GitHub](https://github.com/nlfiedler/fastcdc-rs)
-- [Restic Foundation: CDC](https://restic.net/blog/2015-09-12/restic-foundation1-cdc/)
-- [Borg Internals](https://borgbackup.readthedocs.io/en/1.0-maint/internals.html)
-
----
-
-*The interactive animations in this post are available for experimentation. Try modifying the input text, adjusting chunk size parameters, and watching how CDC adapts to your changes.*
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

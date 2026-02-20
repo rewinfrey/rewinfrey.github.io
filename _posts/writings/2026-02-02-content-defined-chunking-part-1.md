@@ -1,0 +1,1814 @@
+---
+layout: writing
+group: Writings
+title: "Content-Defined Chunking, Part 1: From Problem to Taxonomy"
+summary: "An interactive introduction to content-defined chunking: why fixed-size splitting fails, how content-aware boundaries solve the deduplication problem, and a taxonomy of three CDC algorithm families."
+date: 2026-02-02 12:00:00
+categories:
+- writings
+---
+
+<style>
+/* ==========================================================================
+   CDC Animation Styles
+   ========================================================================== */
+
+/* Demo container */
+.cdc-demo {
+  margin: 2rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cdc-demo canvas {
+  display: block;
+  width: 100%;
+  background: #faf9f7;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Text/Block visualization container */
+.cdc-viz {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.cdc-viz-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.cdc-viz-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3d3a36;
+}
+
+/* View mode tabs (Text / Blocks / Hex) */
+.cdc-view-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(61, 58, 54, 0.05);
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.cdc-view-tab {
+  padding: 0.4rem 0.75rem;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.8rem;
+  color: #8b7355;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cdc-view-tab:hover {
+  color: #3d3a36;
+}
+
+.cdc-view-tab.active {
+  background: #fff;
+  color: #c45a3b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Content display area */
+.cdc-content {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #3d3a36;
+}
+
+/* Text view with chunk highlighting */
+.cdc-text-view {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cdc-text-view .chunk {
+  display: inline;
+  padding: 0.1rem 0;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+/* Chunk colors - warm palette matching site */
+.cdc-text-view .chunk-0 { background-color: rgba(196, 90, 59, 0.15); }
+.cdc-text-view .chunk-1 { background-color: rgba(212, 165, 116, 0.25); }
+.cdc-text-view .chunk-2 { background-color: rgba(139, 115, 85, 0.15); }
+.cdc-text-view .chunk-3 { background-color: rgba(196, 90, 59, 0.25); }
+.cdc-text-view .chunk-4 { background-color: rgba(212, 165, 116, 0.15); }
+.cdc-text-view .chunk-5 { background-color: rgba(139, 115, 85, 0.25); }
+
+/* Block view */
+.cdc-blocks-view {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.cdc-block {
+  height: 24px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cdc-block.chunk-0 { background-color: #c45a3b; }
+.cdc-block.chunk-1 { background-color: #d4a574; }
+.cdc-block.chunk-2 { background-color: #8b7355; }
+.cdc-block.chunk-3 { background-color: #c45a3b; opacity: 0.7; }
+.cdc-block.chunk-4 { background-color: #d4a574; opacity: 0.7; }
+.cdc-block.chunk-5 { background-color: #8b7355; opacity: 0.7; }
+
+.cdc-block:hover {
+  transform: scaleY(1.2);
+  z-index: 1;
+}
+
+/* Hex view */
+.cdc-hex-view {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.cdc-hex-byte {
+  padding: 0.15rem 0.3rem;
+  border-radius: 2px;
+}
+
+/* File icon visualization for fixed vs CDC comparison */
+.cdc-file-icon {
+  position: relative;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 1.5rem;
+  padding-top: 2.25rem;
+  margin: 0.75rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Folded corner effect */
+.cdc-file-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 24px 24px 0;
+  border-color: transparent #faf9f7 transparent transparent;
+  filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.cdc-file-corner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -24px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 24px 24px;
+  border-color: transparent transparent #e8e8e8 transparent;
+}
+
+.cdc-file-label {
+  position: absolute;
+  top: 0.6rem;
+  left: 1rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8b7355;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cdc-file-content {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 2.2;
+  color: #3d3a36;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cdc-chunk-explanation {
+  font-size: 0.8rem;
+  color: #8b7355;
+  margin: 0.25rem 0 0.5rem 0;
+  font-style: italic;
+}
+
+/* Chunk spans with box styling — matches CHUNK_SOLID_COLORS from cdc-animations.js */
+.cdc-chunk {
+  padding: 0.2rem 0.35rem;
+  border-radius: 3px;
+  border: 2px solid;
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.cdc-chunk.chunk-a {
+  background: rgba(196, 90, 59, 0.15);
+  border-color: #c45a3b;
+}
+
+.cdc-chunk.chunk-b {
+  background: rgba(90, 138, 90, 0.15);
+  border-color: #5a8a5a;
+}
+
+.cdc-chunk.chunk-c {
+  background: rgba(70, 110, 160, 0.15);
+  border-color: #466ea0;
+}
+
+.cdc-chunk.chunk-d {
+  background: rgba(160, 100, 50, 0.15);
+  border-color: #a06432;
+}
+
+.cdc-chunk.chunk-e {
+  background: rgba(130, 80, 150, 0.15);
+  border-color: #825096;
+}
+
+/* New chunk — terracotta accent to match interactive demos */
+.cdc-chunk.chunk-new {
+  background: rgba(196, 90, 59, 0.2);
+  border-color: #c45a3b;
+  border-style: solid;
+}
+
+/* Unchanged chunk — muted gray, matches shared/dedup style in animations */
+.cdc-chunk.unchanged {
+  background: rgba(61, 58, 54, 0.06);
+  border-color: rgba(61, 58, 54, 0.2);
+  color: #8b8178;
+}
+
+/* Changed chunk — dashed border to signal the chunk content shifted */
+.cdc-chunk.changed {
+  border-style: dashed;
+}
+
+/* Chunk Comparison Demo (JS-powered before/after) */
+.cdc-chunk-comparison-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8b7355;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.cdc-chunk-comparison-file {
+  margin-bottom: 0.75rem;
+}
+
+.cdc-chunk-comparison-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.75rem;
+  background: rgba(61, 58, 54, 0.02);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.cdc-cmp-chunk {
+  padding: 0.15rem 0.25rem;
+  border-radius: 3px;
+  border: 2px solid;
+  display: inline-block;
+  cursor: default;
+  transition: filter 0.1s ease;
+}
+
+.cdc-cmp-chunk.unchanged {
+  background: rgba(61, 58, 54, 0.06);
+  border-color: rgba(61, 58, 54, 0.2);
+  color: #8b8178;
+}
+
+.cdc-cmp-chunk.new {
+  border-style: solid;
+}
+
+.cdc-cmp-chunk.chunk-hover {
+  filter: brightness(0.82);
+  outline: 3px solid rgba(61, 58, 54, 0.5);
+  outline-offset: 0px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.cdc-cmp-chunk.unchanged.chunk-hover {
+  filter: brightness(0.85);
+  outline: 3px solid rgba(61, 58, 54, 0.4);
+  background: rgba(61, 58, 54, 0.15);
+}
+
+/* Chunk wrapper: label above, text below */
+.cdc-cmp-chunk-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top;
+  margin: 0.15rem 0.2rem;
+}
+
+.cdc-chunk-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  background: rgba(61, 58, 54, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+}
+
+.cdc-chunk-summary-stat {
+  text-align: center;
+}
+
+.cdc-chunk-summary-value {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cdc-chunk-summary-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #8b7355;
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cdc-cmp-chunk-label {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.15rem;
+}
+
+/* Edit indicator arrow */
+.cdc-edit-indicator {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8b7355;
+  padding: 0.5rem 0;
+}
+
+/* Deduplication result */
+.cdc-dedup-result {
+  text-align: center;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+}
+
+.cdc-dedup-result.bad {
+  background: rgba(196, 90, 59, 0.1);
+  color: #a84832;
+}
+
+.cdc-dedup-result.good {
+  background: rgba(90, 160, 90, 0.1);
+  color: #3d8b3d;
+}
+
+/* Rolling window indicator */
+.cdc-window {
+  position: absolute;
+  height: 100%;
+  background: rgba(196, 90, 59, 0.3);
+  border: 2px solid #c45a3b;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: left 0.1s ease;
+}
+
+/* Hash display */
+.cdc-hash-display {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.8rem;
+  color: #8b7355;
+  min-height: 1.4em;
+}
+
+.cdc-hash-display strong {
+  color: #c45a3b;
+}
+
+/* Controls panel */
+.cdc-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.cdc-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cdc-control-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #3d3a36;
+}
+
+.cdc-controls input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #d4a574, #c45a3b);
+  border-radius: 3px;
+  outline: none;
+}
+
+.cdc-controls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #c45a3b;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease;
+}
+
+.cdc-controls input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.cdc-controls input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #c45a3b;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Playback controls */
+.cdc-playback {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(61, 58, 54, 0.02);
+  border-top: 1px solid rgba(61, 58, 54, 0.08);
+}
+
+.cdc-playback-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #c45a3b;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.cdc-playback-btn:hover {
+  background: #a84832;
+  transform: scale(1.05);
+}
+
+.cdc-playback-btn.secondary {
+  background: rgba(61, 58, 54, 0.1);
+  color: #3d3a36;
+}
+
+.cdc-playback-btn.secondary:hover {
+  background: rgba(61, 58, 54, 0.2);
+}
+
+.cdc-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.cdc-speed-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  color: #8b7355;
+}
+
+/* Progress indicator */
+.cdc-progress {
+  flex: 1;
+  height: 4px;
+  background: rgba(61, 58, 54, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 0.5rem;
+}
+
+.cdc-progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #d4a574, #c45a3b);
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+/* Side-by-side comparison */
+.cdc-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 50em) {
+  .cdc-comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cdc-comparison-panel {
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+}
+
+.cdc-comparison-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3d3a36;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+/* Chunk boundary marker */
+.cdc-boundary-marker {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #c45a3b;
+  margin: 0 1px;
+  vertical-align: middle;
+  border-radius: 1px;
+}
+
+/* Stats display */
+.cdc-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(61, 58, 54, 0.02);
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.cdc-stat {
+  text-align: center;
+}
+
+.cdc-stat-value {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #c45a3b;
+}
+
+.cdc-stat-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin-top: 0.25rem;
+}
+
+/* Deduplication visualization */
+.cdc-dedup-viz {
+  margin: 2rem 0;
+}
+
+.cdc-dedup-files {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.cdc-dedup-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  color: #8b7355;
+  font-size: 1.5rem;
+}
+
+.cdc-dedup-storage {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(196, 90, 59, 0.05) 0%, rgba(212, 165, 116, 0.08) 100%);
+  border-radius: 8px;
+}
+
+.cdc-dedup-storage-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3d3a36;
+  margin-bottom: 0.75rem;
+}
+
+.cdc-dedup-chunks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cdc-dedup-chunk {
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.cdc-dedup-chunk.shared {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+}
+
+/* Versioned Dedup — Editor */
+.cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+
+.cdc-dedup-textarea {
+  width: 100%; min-height: 80px; padding: 0.75rem;
+  font-family: 'Source Serif 4', Georgia, serif; font-size: 0.9rem; line-height: 1.6;
+  color: #3d3a36; background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.2); border-radius: 6px;
+  resize: vertical; box-sizing: border-box;
+}
+.cdc-dedup-textarea:focus { outline: none; border-color: #c45a3b; box-shadow: 0 0 0 2px rgba(196, 90, 59, 0.15); }
+
+.cdc-dedup-save-btn {
+  align-self: flex-start; padding: 0.5rem 1.25rem;
+  font-family: 'Libre Baskerville', Georgia, serif; font-size: 0.85rem;
+  color: #fff; background: #c45a3b; border: none; border-radius: 6px;
+  cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+}
+.cdc-dedup-save-btn:hover { background: #a84832; transform: translateY(-1px); }
+.cdc-dedup-save-btn:active { transform: translateY(0); }
+
+/* Versioned Dedup — Timeline */
+.cdc-dedup-timeline { position: relative; margin-bottom: 1.5rem; }
+
+.cdc-version-entry { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
+
+.cdc-version-entry:not(:last-child)::before {
+  content: ''; position: absolute; top: 15px; left: 5px;
+  width: 2px; bottom: 0; background: rgba(61, 58, 54, 0.15);
+}
+
+.cdc-version-dot {
+  position: relative; flex-shrink: 0;
+  width: 12px; height: 12px; margin-top: 3px;
+  background: #c45a3b; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(61, 58, 54, 0.2);
+}
+
+.cdc-version-content { flex: 1; min-width: 0; }
+
+.cdc-version-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem; font-weight: 600; color: #3d3a36; margin-bottom: 0.5rem;
+}
+
+.cdc-version-cols { display: grid; grid-template-columns: 1fr 180px; gap: 1rem; align-items: start; }
+
+.cdc-version-text {
+  white-space: pre-wrap; word-break: break-word;
+  padding: 0.5rem; background: rgba(61, 58, 54, 0.02);
+  border-radius: 6px; border: 1px solid rgba(61, 58, 54, 0.06);
+}
+
+.cdc-version-blocks { display: flex; flex-direction: column; gap: 0.5rem; }
+.cdc-version-blocks .cdc-blocks-view { margin-top: 0; min-height: 24px; }
+
+.cdc-version-stats {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.7rem; color: #8b7355; line-height: 1.4;
+}
+
+.cdc-dedup-timeline-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem; font-weight: 600; color: #8b7355;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+[data-chunk-hash].hash-hover {
+  filter: brightness(0.85);
+  outline: 2px solid rgba(61, 58, 54, 0.4);
+  outline-offset: -1px;
+}
+
+@media (max-width: 42em) {
+  .cdc-version-cols { grid-template-columns: 1fr; }
+}
+
+/* Educational callouts */
+.cdc-callout {
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem 1.25rem 1.25rem;
+  background: linear-gradient(135deg, rgba(196, 90, 59, 0.06) 0%, rgba(212, 165, 116, 0.08) 100%);
+  border-left: 3px solid #c45a3b;
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  color: #3d3a36;
+  line-height: 1.6;
+}
+
+.cdc-callout::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -0.6rem;
+  left: 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c45a3b;
+  background: #faf9f7;
+  padding: 0 0.4rem;
+}
+
+/* Beginner breadcrumb */
+/* Table of Contents */
+.cdc-toc {
+  margin: 2rem 0;
+  padding: 1.25rem 1.5rem;
+  background: rgba(61, 58, 54, 0.03);
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+}
+
+.cdc-toc strong {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  color: #3d3a36;
+}
+
+.cdc-toc ol {
+  margin: 0.75rem 0 0 0;
+  padding-left: 1.25rem;
+}
+
+.cdc-toc li {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #5a564f;
+}
+
+.cdc-toc a {
+  color: #c45a3b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cdc-toc a:hover {
+  text-decoration: underline;
+}
+
+.cdc-toc ul {
+  margin: 0.25rem 0 0.25rem 0;
+  padding-left: 1.25rem;
+  list-style: none;
+}
+
+.cdc-toc ul li {
+  margin-bottom: 0.15rem;
+  font-size: 0.82rem;
+  color: #8b7355;
+}
+
+.cdc-toc ul li a {
+  font-weight: 400;
+  color: #8b7355;
+}
+
+.cdc-toc ul li a:hover {
+  color: #c45a3b;
+}
+
+/* Taxonomy tree diagram */
+.cdc-taxonomy {
+  padding: 1.25rem 1.5rem;
+  background: rgba(61, 58, 54, 0.03);
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+}
+
+.cdc-taxonomy strong {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  color: #3d3a36;
+}
+
+.cdc-taxonomy-tree {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Root node */
+.cdc-tax-root {
+  padding: 0.4rem 1rem;
+  background: #3d3a36;
+  color: #fff;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Vertical connector from root */
+.cdc-tax-vline {
+  width: 2px;
+  height: 16px;
+  background: rgba(61, 58, 54, 0.25);
+}
+
+/* Horizontal bar connecting the three families */
+.cdc-tax-hbar {
+  width: 80%;
+  height: 2px;
+  background: rgba(61, 58, 54, 0.25);
+  position: relative;
+}
+
+/* Three-column family layout */
+.cdc-tax-families {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0;
+}
+
+.cdc-tax-family {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Vertical connector from hbar to family label */
+.cdc-tax-family .cdc-tax-vline {
+  height: 12px;
+}
+
+.cdc-tax-family-label {
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cdc-tax-family-label.bsw {
+  background: rgba(196, 90, 59, 0.12);
+  color: #c45a3b;
+  border: 1px solid rgba(196, 90, 59, 0.25);
+}
+
+.cdc-tax-family-label.extrema {
+  background: rgba(42, 125, 79, 0.1);
+  color: #2a7d4f;
+  border: 1px solid rgba(42, 125, 79, 0.2);
+}
+
+.cdc-tax-family-label.statistical {
+  background: rgba(139, 115, 85, 0.12);
+  color: #8b7355;
+  border: 1px solid rgba(139, 115, 85, 0.25);
+}
+
+.cdc-tax-algorithms {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.cdc-tax-algo {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.65rem;
+  color: #5a564f;
+  line-height: 1.3;
+}
+
+.cdc-tax-algo .cdc-tax-year {
+  color: #a89b8c;
+}
+
+/* Citations */
+.cdc-cite {
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 1px;
+}
+
+.cdc-cite a {
+  color: #c45a3b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cdc-cite a:hover {
+  text-decoration: underline;
+}
+
+.cdc-references {
+  margin-top: 1.5rem;
+}
+
+.cdc-references ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0 0 0;
+}
+
+.cdc-references li {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #5a564f;
+  margin-bottom: 0.4rem;
+}
+
+.cdc-references li a {
+  color: #c45a3b;
+  text-decoration: none;
+}
+
+.cdc-references li a:hover {
+  text-decoration: underline;
+}
+
+.cdc-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(212, 165, 116, 0.15);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-style: normal;
+  color: #8b7355;
+}
+
+.cdc-learn-more::before {
+  content: "💡";
+}
+
+/* Hint text for viz sections */
+.cdc-viz-hint {
+  width: 100%;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Combined text + hex view */
+.cdc-combined-view {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+}
+
+.cdc-byte-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 2px;
+  padding: 0.15rem 0.1rem;
+}
+
+.cdc-byte-char {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #3d3a36;
+}
+
+.cdc-byte-hex {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: #8b7355;
+  margin-top: 1px;
+}
+
+/* Block annotation bar (below text/hex views) */
+.cdc-block-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cdc-block {
+  width: 100%;
+}
+
+.cdc-block-annotation {
+  width: 100%;
+  position: relative;
+  margin-top: 0.3rem;
+}
+
+.cdc-block-line {
+  width: 100%;
+  height: 0;
+  border-top: 1.5px solid #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 8px;
+  background: #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #8b7355;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+  text-align: center;
+  margin-top: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chunk hover highlights */
+.cdc-combined-view .cdc-byte-col.chunk-hover {
+  filter: brightness(0.85);
+  outline: 1px solid rgba(61, 58, 54, 0.25);
+  outline-offset: -1px;
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block {
+  filter: brightness(1.15);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block-label {
+  color: #3d3a36;
+  font-weight: 600;
+}
+
+.cdc-text-view .chunk.chunk-hover {
+  filter: brightness(0.9);
+  outline: 1px solid rgba(61, 58, 54, 0.3);
+  outline-offset: -1px;
+}
+
+/* GEAR Lookup Table grid */
+.gear-table-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  margin-top: 0.5rem;
+}
+
+.gear-table-cell {
+  height: 15px;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.gear-table-cell:hover {
+  transform: scale(1.4);
+  z-index: 2;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
+
+.gear-table-cell.active {
+  outline: 2px solid #c45a3b;
+  outline-offset: 0px;
+  box-shadow: 0 0 6px rgba(196, 90, 59, 0.5);
+  z-index: 3;
+  transform: scale(1.4);
+}
+
+.gear-table-readout {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.8rem;
+  color: #8b7355;
+  min-height: 1.4em;
+}
+
+.gear-table-readout strong {
+  color: #c45a3b;
+}
+
+/* Rolling hash window strip */
+.gear-hash-window {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  padding: 0.25rem 0;
+  margin-bottom: 0.5rem;
+  min-height: 3.2rem;
+}
+
+.gear-hw-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2rem;
+  padding: 0.2rem 0.15rem;
+  border-radius: 3px;
+  background: rgba(61, 58, 54, 0.04);
+  transition: background-color 0.15s ease;
+}
+
+.gear-hw-cell.current {
+  outline: 2px solid #c45a3b;
+  outline-offset: -1px;
+}
+
+.gear-hw-cell.boundary {
+  border-right: 2px solid #2a7d4f;
+}
+
+.gear-hw-char {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.8rem;
+  color: #3d3a36;
+  line-height: 1.2;
+}
+
+.gear-hw-hash {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.5rem;
+  color: #8b7355;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.gear-hw-hash.boundary {
+  color: #2a7d4f;
+  font-weight: 700;
+}
+
+/* Bit-shift visualization */
+.gear-shift-viz {
+  margin-bottom: 0.5rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+}
+
+.gear-shift-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 3px;
+}
+
+.gear-shift-label {
+  width: 4rem;
+  text-align: right;
+  color: #8b7355;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.gear-shift-hex {
+  width: 5.5rem;
+  text-align: right;
+  color: #3d3a36;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  padding-right: 0.3rem;
+}
+
+.gear-shift-bits {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+
+.gear-bit {
+  width: 7px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.45rem;
+  line-height: 1;
+  border-radius: 1px;
+}
+
+.gear-bit.b0,
+.gear-bit.b1 {
+  background: rgba(61, 58, 54, 0.06);
+  color: #3d3a36;
+}
+
+.gear-bit.dropped {
+  background: rgba(196, 90, 59, 0.25);
+  color: #c45a3b;
+  text-decoration: line-through;
+}
+
+.gear-bit.entering {
+  background: rgba(90, 138, 90, 0.25);
+  color: #5a8a5a;
+  font-weight: 700;
+}
+
+@keyframes gear-slide-left {
+  0% { transform: translateX(7px); opacity: 0.5; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.gear-shift-bits.animated .gear-bit {
+  animation: gear-slide-left 0.25s ease-out;
+}
+
+.gear-shift-box {
+  border: 1.5px solid rgba(196, 90, 59, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(196, 90, 59, 0.02);
+}
+
+.gear-shift-connector {
+  text-align: center;
+  color: #8b7355;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.15rem 0;
+}
+
+.gear-shift-add {
+  border: 1.5px solid rgba(61, 58, 54, 0.12);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(61, 58, 54, 0.02);
+}
+
+.gear-shift-separator {
+  width: calc(32 * 7px);
+  border-top: 1px solid rgba(61, 58, 54, 0.15);
+  margin: 2px 0;
+}
+
+/* Two-column layout: Operation panel + GEAR table */
+.gear-two-col {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+
+.gear-col-left {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.gear-col-right {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Chunk boundary marker (vertical separator) */
+.chunk-boundary-marker {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #c45a3b;
+  margin: 0 2px;
+  vertical-align: middle;
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+.chunk-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #8b7355;
+  background: rgba(61, 58, 54, 0.06);
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  margin-right: 2px;
+  vertical-align: top;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Parametric Chunking Explorer — distribution chart */
+.parametric-distribution-chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+}
+
+.parametric-dist-bar {
+  flex: 1;
+  min-width: 3px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.parametric-dist-bar:hover { opacity: 0.8; }
+
+.parametric-dist-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3d3a36;
+  color: #fff;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  margin-bottom: 4px;
+  z-index: 10;
+}
+
+.parametric-dist-bar:hover .parametric-dist-tooltip { display: block; }
+
+.parametric-dist-reference {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed rgba(196, 90, 59, 0.5);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.parametric-dist-reference-label {
+  position: absolute;
+  right: 0;
+  top: -1.1rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #c45a3b;
+  white-space: nowrap;
+}
+
+.parametric-dist-bar.chunk-hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Parametric slider control layout */
+.parametric-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.parametric-control-row input[type="range"] {
+  flex: 1;
+  min-width: 120px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #d4a574, #c45a3b);
+  border-radius: 3px;
+  outline: none;
+}
+
+.parametric-control-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #c45a3b;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease;
+}
+
+.parametric-control-row input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.parametric-control-row input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #c45a3b;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.parametric-control-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #3d3a36;
+  white-space: nowrap;
+}
+
+.parametric-derived-params {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  color: #8b7355;
+  white-space: nowrap;
+}
+
+/* Mobile responsive */
+@media (max-width: 42em) {
+  .cdc-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .cdc-dedup-files {
+    grid-template-columns: 1fr;
+  }
+
+  .cdc-dedup-arrow {
+    transform: rotate(90deg);
+    padding: 1rem 0;
+  }
+
+  .cdc-chunk-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cdc-hex-view {
+    font-size: 0.65rem;
+  }
+
+  .gear-two-col {
+    flex-direction: column;
+  }
+
+  .gear-table-grid {
+    gap: 0px;
+  }
+
+  .gear-table-cell {
+    border-radius: 0;
+    height: 12px;
+  }
+}
+
+/* Series navigation */
+.cdc-series-nav {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #8b7355;
+  padding: 0.75rem 1rem;
+  background: rgba(61, 58, 54, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+  margin: 1.5rem 0;
+}
+.cdc-series-nav a { color: #c45a3b; text-decoration: none; }
+.cdc-series-nav a:hover { text-decoration: underline; }
+</style>
+
+<!-- MathJax for rendering mathematical notation -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']]
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<div class="cdc-series-nav">
+Part 1 of 3 in a series on Content-Defined Chunking. Next: <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+</div>
+
+Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.
+
+<div class="cdc-toc">
+  <strong>Contents</strong>
+  <ol>
+    <li>
+      <a href="#motivating-the-problem">Motivating the Problem</a>
+      <ul>
+        <li><a href="#why-not-just-use-fixed-size-chunks">Why Not Just Use Fixed-Size Chunks?</a></li>
+        <li><a href="#the-core-idea-content-as-the-arbiter">The Core Idea: Content as the Arbiter</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#three-families-of-cdc">Three Families of CDC</a>
+      <ul>
+        <li><a href="#origins">Origins</a></li>
+        <li><a href="#family-1-basic-sliding-window-bsw">Family 1: Basic Sliding Window (BSW)</a></li>
+        <li><a href="#family-2-local-extrema">Family 2: Local Extrema</a></li>
+        <li><a href="#family-3-statistical">Family 3: Statistical</a></li>
+        <li><a href="#orthogonal-optimizations">Orthogonal Optimizations</a></li>
+        <li><a href="#comparing-the-families">Comparing the Families</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/writings/2026/02/09/content-defined-chunking-part-2#a-closer-look-at-bsw-via-fastcdc">A Closer Look at BSW via FastCDC</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 2)</em>
+      <ul>
+        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-gear-hash">The GEAR Hash</a></li>
+        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#finding-chunk-boundaries">Finding Chunk Boundaries</a></li>
+        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-2016-algorithm">The 2016 Algorithm</a></li>
+        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-2020-enhancement-rolling-two-bytes">The 2020 Enhancement: Rolling Two Bytes</a></li>
+        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#exploring-the-parameters">Exploring the Parameters</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/writings/2026/02/16/content-defined-chunking-part-3#deduplication-in-action">Deduplication in Action</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
+      <ul>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#the-deduplication-pipeline">The Deduplication Pipeline</a></li>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#why-cdc-beats-fixed-chunking">Why CDC Beats Fixed Chunking</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/writings/2026/02/16/content-defined-chunking-part-3#conclusion">Conclusion</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
+      <ul>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#where-cdc-lives-today">Where CDC Lives Today</a></li>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#beyond-deduplication-structure-aware-chunking">Beyond Deduplication: Structure-Aware Chunking</a></li>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#why-i-care-about-this">Why I Care About This</a></li>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#key-takeaways">Key Takeaways</a></li>
+        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#references">References</a></li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+---
+
+## Motivating the Problem
+
+Imagine you're building a backup system. A user stores a 500MB file, then modifies a single paragraph and saves it again. In a naive system, this results in two nearly identical copies of the same file. Despite the small change of a single paragraph, the storage system grew from 500MB to 1GB. Surely we can do better.
+
+This is the **deduplication problem**, and it shows up in many familiar places: cloud blob storage providers managing petabytes of user files (e.g. <a href="https://aws.amazon.com/s3/">Amazon S3</a> or <a href="https://azure.microsoft.com/en-us/products/storage/blobs">Azure Blob Storage</a>), cloud file servers like Google Drive or iCloud, and software backup tools like [Restic](https://restic.net/) and [Borg](https://www.borgbackup.org/).
+
+The simplest form of deduplication is whole-file comparison: hash the entire file, and if two files produce the same hash, store only one copy. This works well for exact duplicates, but falls apart with even the smallest edit. Change a single byte and the hash changes completely, so the system treats the original and the edited version as two entirely different files.
+
+One fix is to reduce the granularity of comparison. Instead of hashing a file as a single unit, split it into smaller segments called chunks and hash each chunk independently. A small edit now only affects the chunks near the change, leaving the rest unchanged. Those unchanged chunks can be recognized as duplicates and stored only once. The question then becomes: how should we decide where to split?
+
+### Why Not Just Use Fixed-Size Chunks?
+
+The naive approach to chunking is fixed-size splitting: choose a chunk size, say 4KB, and split the file at every 4KB boundary. A 1MB file becomes 256 chunks of 4KB each. This approach is conceptually simple, but is problematic if we want to prevent **change amplification**, or invalidating chunks of unchanged content when small edits occur. Using this naive chunking strategy, let's see what happens to unchanged chunks when a small edit occurs at the beginning of a file:
+
+<div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
+  <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
+  <!-- Populated dynamically by ChunkComparisonDemo -->
+</div>
+
+Inserting "NEW INTRO." at the beginning of the file causes every chunk boundary to shift, invalidating all five original chunks. The result is five new chunks and zero unchanged chunks, producing a deduplication ratio of 0%. In practice, this means the entire file would need to be stored again, even though most of its content did not change. We need a chunking strategy whose boundaries are not fixed in size, and that offers more flexibility to identify split points that better preserve unchanged chunks.
+
+### The Core Idea: Content as the Arbiter
+
+How does CDC decide where to split? The details vary across the various CDC algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
+
+Let's revisit the same example from before, but this time we split the text at sentence boundaries. Each sentence ending (a period, exclamation mark, or question mark followed by a space) defines a chunk boundary. Because the boundary is determined by the content itself, not by a fixed byte count, inserting text at the beginning of the file does not invalidate existing unchanged chunks.
+
+<div class="cdc-comparison-panel" id="cdc-chunking-demo" style="margin: 2rem 0;">
+  <div class="cdc-comparison-title">Content-Defined Chunking (sentence boundaries)</div>
+  <!-- Populated dynamically by ChunkComparisonDemo -->
+</div>
+
+Inserting "NEW INTRO." creates just one new chunk. The original five sentences are unchanged, so their chunks are identical to before. The result is a much higher deduplication ratio, meaning we only need to store the new chunk and can reference the existing chunks for the rest of the file.
+
+<div class="cdc-callout" data-label="Key Insight">
+When chunk boundaries are defined by the content itself rather than by fixed byte offsets, a small edit only affects the chunks near the change. The rest of the file's chunks remain identical and can be deduplicated.
+</div>
+
+---
+
+## Three Families of CDC
+
+### Origins
+
+The story begins with Turing Award winner **Michael Rabin**, who introduced polynomial fingerprinting in 1981.<span class="cdc-cite"><a href="#ref-1">[1]</a></span> His key insight: represent a sequence of bytes as a polynomial and evaluate it at a random point to get a "fingerprint" that uniquely identifies the content with high probability. More importantly, this fingerprint could be computed *incrementally* — a **rolling hash** — making it efficient to slide across data.
+
+For a sequence of bytes $b_0, b_1, \ldots, b_{n-1}$, the fingerprint is:
+
+$$f(x) = b_0 + b_1 \cdot x + b_2 \cdot x^2 + \ldots + b_{n-1} \cdot x^{n-1} \mod p$$
+
+where $p$ is an irreducible polynomial over $GF(2)$.
+
+<div class="cdc-learn-more">
+Ask your AI assistant about "Galois fields" and "polynomial arithmetic in GF(2)" to understand the mathematical foundations.
+</div>
+
+Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS used a 48-byte sliding window with Rabin fingerprints: when the low 13 bits equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was showing CDC could achieve dramatic bandwidth savings for real file workloads — modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
+
+{% highlight c linenos %}
+// Simplified LBFS boundary check
+if ((fingerprint % 8192) == 0x78) {
+    // This is a chunk boundary
+    emit_chunk(start, current_position);
+    start = current_position;
+}
+{% endhighlight %}
+
+The deduplication era of 2005-2015 drove an explosion of CDC research. Systems like **Data Domain**, **Dropbox**, and **Borg** all relied on CDC, and researchers responded with faster hash functions, better chunk size distributions, and entirely new approaches to finding boundaries. By the mid-2010s, what had been a single technique had branched into a family of algorithms with fundamentally different strategies.
+
+### A Taxonomy of CDC Algorithms
+
+A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href="#ref-12">[12]</a></span> organizes the landscape into **three distinct families** based on their core mechanism for finding chunk boundaries. This taxonomy clarifies a field that can otherwise feel like a confusing proliferation of acronyms.
+
+<div class="cdc-taxonomy">
+  <div class="cdc-taxonomy-tree">
+    <div class="cdc-tax-root">CDC Algorithms</div>
+    <div class="cdc-tax-vline"></div>
+    <div class="cdc-tax-hbar"></div>
+    <div class="cdc-tax-families">
+      <div class="cdc-tax-family">
+        <div class="cdc-tax-vline"></div>
+        <div class="cdc-tax-family-label bsw">BSW</div>
+        <div class="cdc-tax-algorithms">
+          <span class="cdc-tax-algo">Rabin <span class="cdc-tax-year">1981</span></span>
+          <span class="cdc-tax-algo">Buzhash <span class="cdc-tax-year">1997</span></span>
+          <span class="cdc-tax-algo">Gear <span class="cdc-tax-year">2014</span></span>
+          <span class="cdc-tax-algo">PCI <span class="cdc-tax-year">2020</span></span>
+        </div>
+      </div>
+      <div class="cdc-tax-family">
+        <div class="cdc-tax-vline"></div>
+        <div class="cdc-tax-family-label extrema">Local Extrema</div>
+        <div class="cdc-tax-algorithms">
+          <span class="cdc-tax-algo">AE <span class="cdc-tax-year">2015</span></span>
+          <span class="cdc-tax-algo">RAM <span class="cdc-tax-year">2017</span></span>
+          <span class="cdc-tax-algo">MII <span class="cdc-tax-year">2019</span></span>
+        </div>
+      </div>
+      <div class="cdc-tax-family">
+        <div class="cdc-tax-vline"></div>
+        <div class="cdc-tax-family-label statistical">Statistical</div>
+        <div class="cdc-tax-algorithms">
+          <span class="cdc-tax-algo">BFBC <span class="cdc-tax-year">2020</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top: 1rem; font-size: 0.72rem; color: #a89b8c; line-height: 1.4; text-align: center;">
+    Taxonomy from Gregoriadis et al. <a href="#ref-12" style="color: #c45a3b; text-decoration: none; font-weight: 600;">[12]</a>
+  </div>
+</div>
+
+### Family 1: Basic Sliding Window (BSW)
+
+The BSW family represents the original CDC paradigm: slide a window across the data, compute a **hash** (or hash-like function) of the window contents, and check whether the result satisfies a boundary condition.
+
+**Rabin** (1981)<span class="cdc-cite"><a href="#ref-1">[1]</a></span> — The original. Computes a polynomial fingerprint over a sliding window in $GF(2)$. Mathematically well-founded with strong uniformity guarantees, but relatively slow due to the polynomial arithmetic involved.
+
+**Buzhash** (1997)<span class="cdc-cite"><a href="#ref-3">[3]</a></span> — Replaces polynomial division with a **cyclic polynomial** (bitwise rotation + XOR). No multiplication needed, just table lookups and bit operations. Used by Borg backup with a secret seed for security (preventing attackers from predicting chunk boundaries based on known content).
+
+**Gear** (2014)<span class="cdc-cite"><a href="#ref-4">[4]</a></span> — Radically simplifies the hash: just `hash = (hash << 1) + GEAR_TABLE[byte]`. No need to remove outgoing bytes from the window, since the left-shift naturally discards old information. This makes it extremely fast — the basis for FastCDC.
+
+**PCI** (2020)<span class="cdc-cite"><a href="#ref-10">[10]</a></span> — Takes an unusual approach within the BSW family: instead of computing a hash, it counts the number of **1-bits** (popcount) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold $\theta$. Since the popcount of random bytes follows a binomial distribution, the threshold controls average chunk size. Modern CPUs have dedicated `POPCNT` instructions, making this surprisingly efficient.
+
+<div class="cdc-callout" data-label="Common Thread">
+All BSW algorithms share the same core loop: for each byte position, update a rolling value from the local window, then check if it meets a condition. They differ in <em>how</em> they compute that rolling value — polynomial division, cyclic shift, simple shift, or popcount — and how efficiently they can update it.
+</div>
+
+### Family 2: Local Extrema
+
+What if we skip hashing entirely? The Local Extrema family finds chunk boundaries by looking for bytes that are local maxima or minima within their neighborhood. The intuition: extreme values in the byte stream are content-dependent landmarks, just like hash-based boundaries, but without the cost of computing a hash.
+
+**AE — Asymmetric Extremum** (2015)<span class="cdc-cite"><a href="#ref-7">[7]</a></span> — Scans for the position of the maximum byte value within a sliding window. When the maximum is at the rightmost position of the window, it declares a boundary. "Asymmetric" because the check is one-sided: the maximum only needs to beat the preceding bytes, not the following ones.
+
+**RAM — Rapid Asymmetric Maximum** (2017)<span class="cdc-cite"><a href="#ref-8">[8]</a></span> — Improves on AE with an asymmetric window: a small lookback and a larger lookahead. This reduces the minimum distance between boundaries and improves re-synchronization after edits. RAM's simplicity — just byte comparisons, no arithmetic — makes it attractive for resource-constrained environments.
+
+**MII — Maximum of the Interval-Length Independent** (2019)<span class="cdc-cite"><a href="#ref-9">[9]</a></span> — Uses a larger context window than AE/RAM, making boundaries more stable but potentially slower to re-synchronize. The "interval-length independent" property means the boundary decision doesn't depend on the chunk size parameters in the same way BSW algorithms do.
+
+<div class="cdc-callout" data-label="No Hash Needed">
+Local Extrema algorithms use only byte comparisons — no multiplication, no XOR, no table lookups. This makes them inherently simple and, as we'll see shortly, naturally suited to hardware acceleration via SIMD vector instructions.
+</div>
+
+### Family 3: Statistical
+
+The Statistical family takes yet another approach: analyze the statistical properties of the data itself to find natural boundary points.
+
+**BFBC — Byte-Frequency Based Chunking** (2020)<span class="cdc-cite"><a href="#ref-11">[11]</a></span> — Pre-scans the data to find the most frequently occurring byte pairs (digrams), then uses the top-$k$ most common pairs as chunk boundaries. The idea is that common patterns serve as natural, content-dependent landmarks.
+
+BFBC's strength is its simplicity once the frequency table is built. Its weakness is fundamental: it requires a pre-scan pass, making it unsuitable for streaming data, and its effectiveness is **dataset-dependent**. On high-entropy data (compressed files, encrypted content), byte-pair frequencies flatten out and the algorithm struggles to find meaningful boundaries.
+
+### Orthogonal Optimizations
+
+Two important techniques cut across the family taxonomy. They don't define new families — they enhance existing ones.
+
+**Normalized Chunking (NC)** applies to BSW algorithms. The problem: basic mask-based boundary detection produces an exponential chunk size distribution — many small chunks and occasional very large ones. NC uses a **dual-mask strategy**: a stricter mask (more bits must match) near the target average size, and a looser mask (fewer bits) as chunks approach the maximum. This "squeezes" the distribution toward a bell curve, improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). FastCDC's most important contribution is combining Gear hashing with NC.<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span>
+
+**Hardware Acceleration (VectorCDC)** applies naturally to Local Extrema algorithms. A 2025 study by Udayashankar et al.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> demonstrated that algorithms like RAM can be accelerated **16-42×** using SSE/AVX vector instructions. The key insight: finding a local maximum across a window of bytes is essentially a parallel comparison — exactly what SIMD instructions are designed for. Hash-based algorithms resist this parallelization because each hash update depends sequentially on the previous one. VectorCDC's VRAM variant achieves throughput comparable to memory bandwidth while preserving identical deduplication ratios.
+
+### Comparing the Families
+
+| | **BSW** | **Local Extrema** | **Statistical** |
+|---|---------|-------------------|-----------------|
+| **Core operation** | Rolling hash + mask | Byte comparisons | Frequency analysis |
+| **Key algorithms** | Rabin, Buzhash, Gear, PCI | AE, RAM, MII | BFBC |
+| **Throughput** | Medium–High | High | Medium |
+| **Dedup ratio** | High | Comparable | Dataset-dependent |
+| **SIMD-friendly** | Limited | Excellent | Limited |
+| **Streaming** | Yes | Yes | No (pre-scan) |
+| **Chunk distribution** | Exponential (improved with NC) | Varies | Varies |
+| **Used in practice** | Restic, Borg, FastCDC | Research | Research |
+
+In the next section, we'll take a closer look at the BSW family through **FastCDC** — an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+
+---
+
+<div class="cdc-series-nav">
+Continue reading &rarr; <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+</div>
+
+<script type="module" src="/assets/js/cdc-animations.js"></script>
