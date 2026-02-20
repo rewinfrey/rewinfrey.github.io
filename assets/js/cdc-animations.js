@@ -223,6 +223,32 @@ function chunkDataFixed(data, chunkSize) {
 }
 
 /**
+ * Sentence-based chunking (split at sentence endings: . ! ?)
+ */
+function chunkDataSentence(text) {
+  const chunks = [];
+  let offset = 0;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if ((ch === '.' || ch === '!' || ch === '?') &&
+        (i + 1 >= text.length || text[i + 1] === ' ')) {
+      // Include the trailing space if present
+      const end = (i + 1 < text.length && text[i + 1] === ' ') ? i + 2 : i + 1;
+      chunks.push({ offset, length: end - offset });
+      offset = end;
+    }
+  }
+
+  // Remaining text (if no trailing punctuation)
+  if (offset < text.length) {
+    chunks.push({ offset, length: text.length - offset });
+  }
+
+  return chunks;
+}
+
+/**
  * Simple hash for chunk fingerprinting (demonstration only)
  */
 function hashChunk(data, offset, length) {
@@ -1026,6 +1052,241 @@ class GearHashDemo {
 }
 
 // =============================================================================
+// Chunk Comparison Demo (Before/After with hover cross-linking)
+// =============================================================================
+
+class ChunkComparisonDemo {
+  constructor(containerId, { mode = 'fixed', beforeText, afterText, fixedChunkSize = 48, cdcMin = 16, cdcAvg = 32, cdcMax = 64 } = {}) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.mode = mode;
+    this.fixedChunkSize = fixedChunkSize;
+    this.cdcMin = cdcMin;
+    this.cdcAvg = cdcAvg;
+    this.cdcMax = cdcMax;
+    this.encoder = new TextEncoder();
+
+    this.beforeText = beforeText || `The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump! Sphinx of black quartz, judge my vow. The jay, pig, fox, zebra and wolves quack!`;
+    this.afterText = afterText || `NEW INTRO. ${this.beforeText}`;
+
+    this.build();
+  }
+
+  chunkText(text) {
+    if (this.mode === 'sentence') {
+      const rawChunks = chunkDataSentence(text);
+      const data = this.encoder.encode(text);
+      return rawChunks.map(c => ({
+        offset: c.offset,
+        length: c.length,
+        text: text.slice(c.offset, c.offset + c.length),
+        hash: hashChunk(data, c.offset, c.length),
+      }));
+    }
+
+    const data = this.encoder.encode(text);
+    const rawChunks = this.mode === 'fixed'
+      ? chunkDataFixed(data, this.fixedChunkSize)
+      : chunkData(data, this.cdcMin, this.cdcAvg, this.cdcMax);
+
+    const decoder = new TextDecoder();
+    return rawChunks.map(c => ({
+      offset: c.offset,
+      length: c.length,
+      text: decoder.decode(data.slice(c.offset, c.offset + c.length)),
+      hash: hashChunk(data, c.offset, c.length),
+    }));
+  }
+
+  build() {
+    // Remove only the HTML comment placeholder, keep the title and explanation
+    const comment = this.container.lastChild;
+    if (comment && comment.nodeType === Node.COMMENT_NODE) {
+      this.container.removeChild(comment);
+    }
+
+    const beforeChunks = this.chunkText(this.beforeText);
+    const afterChunks = this.chunkText(this.afterText);
+
+    // Build a set of hashes from the "before" version
+    const beforeHashes = new Set(beforeChunks.map(c => c.hash));
+
+    // Classify after chunks as reused or new
+    afterChunks.forEach(c => {
+      c.reused = beforeHashes.has(c.hash);
+    });
+
+    // Original text (plain, readable)
+    const originalLabel = document.createElement('div');
+    originalLabel.className = 'cdc-chunk-comparison-label';
+    originalLabel.textContent = 'Example text to chunk';
+    this.container.appendChild(originalLabel);
+
+    const originalText = document.createElement('div');
+    originalText.className = 'cdc-chunk-comparison-text';
+    originalText.textContent = this.beforeText;
+    this.container.appendChild(originalText);
+
+    // Chunked indicator
+    const chunkIndicator = document.createElement('div');
+    chunkIndicator.className = 'cdc-edit-indicator';
+    chunkIndicator.textContent = '\u2193 Split into chunks \u2193';
+    this.container.appendChild(chunkIndicator);
+
+    // Before file (chunked)
+    const beforeSection = this.buildFileSection('Before edit (chunked)', beforeChunks, false);
+    this.container.appendChild(beforeSection);
+
+    // Compute byte totals
+    const beforeBytes = beforeChunks.reduce((sum, c) => sum + c.length, 0);
+    const afterBytes = afterChunks.reduce((sum, c) => sum + c.length, 0);
+    const newAfterChunks = afterChunks.filter(c => !c.reused);
+    const reusedAfterChunks = afterChunks.filter(c => c.reused);
+    const newCount = newAfterChunks.length;
+    const reusedCount = reusedAfterChunks.length;
+    const newBytes = newAfterChunks.reduce((sum, c) => sum + c.length, 0);
+
+    // Unique bytes stored = before bytes + only the new bytes from the after version
+    const uniqueBytesStored = beforeBytes + newBytes;
+    const deltaPercent = beforeBytes > 0 ? Math.round((newBytes / beforeBytes) * 100) : 0;
+
+    // Before summary (baseline)
+    this.container.appendChild(
+      this.buildSummaryTable(beforeChunks.length, 0, beforeChunks.length, true, beforeBytes)
+    );
+
+    // Edit indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'cdc-edit-indicator';
+    indicator.textContent = '\u2193 Insert \'NEW INTRO.\' at beginning \u2193';
+    this.container.appendChild(indicator);
+
+    // After file
+    const afterSection = this.buildFileSection('After edit', afterChunks, true);
+    this.container.appendChild(afterSection);
+
+    // After summary (colored by dedup quality)
+    this.container.appendChild(
+      this.buildSummaryTable(newCount, reusedCount, afterChunks.length, false, uniqueBytesStored, beforeBytes + afterBytes, deltaPercent)
+    );
+  }
+
+  buildFileSection(label, chunks, showReuse) {
+    const section = document.createElement('div');
+    section.className = 'cdc-chunk-comparison-file';
+
+    // Label
+    const labelEl = document.createElement('div');
+    labelEl.className = 'cdc-chunk-comparison-label';
+    labelEl.textContent = label;
+    section.appendChild(labelEl);
+
+    // Text view with labeled chunk spans
+    const textView = document.createElement('div');
+    textView.className = 'cdc-chunk-comparison-text';
+
+    chunks.forEach((chunk, i) => {
+      // Wrapper: label on top, chunk text below
+      const wrapper = document.createElement('span');
+      wrapper.className = 'cdc-cmp-chunk-wrapper';
+
+      // Chunk info label above the text
+      const chunkLabel = document.createElement('span');
+      chunkLabel.className = 'cdc-cmp-chunk-label';
+      if (showReuse && chunk.reused) {
+        chunkLabel.textContent = `${chunk.length}B`;
+      } else {
+        chunkLabel.textContent = `NEW ${chunk.length}B`;
+      }
+      chunkLabel.style.color = (showReuse && chunk.reused)
+        ? '#8b8178'
+        : CHUNK_SOLID_COLORS[i % 6];
+      wrapper.appendChild(chunkLabel);
+
+      // Chunk text span
+      const span = document.createElement('span');
+
+      if (showReuse && chunk.reused) {
+        span.className = 'cdc-cmp-chunk unchanged';
+      } else if (showReuse && !chunk.reused) {
+        span.className = 'cdc-cmp-chunk new';
+        span.style.backgroundColor = CHUNK_COLORS[i % 6];
+        span.style.borderColor = CHUNK_SOLID_COLORS[i % 6];
+      } else {
+        span.className = 'cdc-cmp-chunk';
+        span.style.backgroundColor = CHUNK_COLORS[i % 6];
+        span.style.borderColor = CHUNK_SOLID_COLORS[i % 6];
+      }
+
+      span.textContent = chunk.text;
+      wrapper.appendChild(span);
+
+      textView.appendChild(wrapper);
+    });
+
+    section.appendChild(textView);
+
+    return section;
+  }
+
+  buildSummaryTable(newCount, unchangedCount, total, isBaseline, bytesStored, totalBytes, deltaPercent) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cdc-chunk-summary';
+
+    const good = '#3d8b3d';
+    const bad = '#a84832';
+    const muted = '#8b7355';
+    const ratio = total > 0 ? Math.round((unchangedCount / total) * 100) : 0;
+
+    // For bytes stored: baseline shows file size, after shows unique bytes + delta %
+    const bytesValue = isBaseline
+      ? `${bytesStored}B`
+      : `${bytesStored}B (+${deltaPercent}%)`;
+    const bytesColor = isBaseline ? muted : (deltaPercent >= 100 ? bad : good);
+
+    const stats = [
+      { label: 'New Chunks', value: `${newCount}/${total}`, color: good },
+      {
+        label: 'Unchanged Chunks',
+        value: isBaseline ? 'N/A' : `${unchangedCount}/${total}`,
+        color: isBaseline ? muted : (unchangedCount === 0 ? bad : good),
+      },
+      {
+        label: 'Deduplication %',
+        value: isBaseline ? 'N/A' : `${ratio}%`,
+        color: isBaseline ? muted : (ratio === 0 ? bad : good),
+      },
+      {
+        label: isBaseline ? 'File Size' : 'Bytes Stored',
+        value: bytesValue,
+        color: bytesColor,
+      },
+    ];
+
+    stats.forEach(({ label, value, color }) => {
+      const stat = document.createElement('div');
+      stat.className = 'cdc-chunk-summary-stat';
+
+      const valueEl = document.createElement('div');
+      valueEl.className = 'cdc-chunk-summary-value';
+      valueEl.textContent = value;
+      valueEl.style.color = color;
+      stat.appendChild(valueEl);
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'cdc-chunk-summary-label';
+      labelEl.textContent = label;
+      stat.appendChild(labelEl);
+
+      wrapper.appendChild(stat);
+    });
+
+    return wrapper;
+  }
+}
+
+// =============================================================================
 // Deduplication Demo
 // =============================================================================
 
@@ -1593,6 +1854,10 @@ function initCDCAnimations() {
   // Fixed vs CDC comparison
   new FixedVsCDCDemo('fixed-vs-cdc-demo');
 
+  // Chunk comparison demos (before/after with hover)
+  new ChunkComparisonDemo('fixed-chunking-demo', { mode: 'fixed', fixedChunkSize: 48 });
+  new ChunkComparisonDemo('cdc-chunking-demo', { mode: 'sentence' });
+
   // GEAR hash rolling window
   new GearHashDemo('gear-hash-demo');
 
@@ -1611,4 +1876,4 @@ if (document.readyState === 'loading') {
 }
 
 // Export for module usage
-export { FixedVsCDCDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, chunkData, chunkDataFixed, findChunkBoundary };
+export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, chunkData, chunkDataFixed, findChunkBoundary };
