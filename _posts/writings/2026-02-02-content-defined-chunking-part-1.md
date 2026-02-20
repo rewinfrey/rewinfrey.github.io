@@ -1587,7 +1587,7 @@ categories:
   position: relative;
   padding: 0.6rem 0 0.6rem calc(var(--line-x) + 20px);
   font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #a89b8c;
   letter-spacing: 0.03em;
@@ -1640,15 +1640,15 @@ categories:
 }
 
 .cdc-tl-card .cdc-tax-family-label {
-  font-size: 0.6rem;
-  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
   display: inline-block;
   margin-bottom: 0.25rem;
 }
 
 .cdc-tl-year {
   font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #a89b8c;
   margin-bottom: 0.1rem;
@@ -1656,7 +1656,7 @@ categories:
 
 .cdc-tl-name {
   font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 1.15em;
   font-weight: 700;
   color: #3d3a36;
   margin-bottom: 0.3rem;
@@ -1664,10 +1664,34 @@ categories:
 }
 
 .cdc-tl-desc {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.78rem;
+  font-size: inherit;
   color: #5a5550;
-  line-height: 1.55;
+  line-height: 1.7em;
+}
+
+.cdc-tl-perf {
+  font-size: 0.9em;
+  color: #8b7355;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(139, 115, 85, 0.06);
+  border-radius: 4px;
+  border-left: 2px solid rgba(139, 115, 85, 0.25);
+}
+.cdc-tl-perf > div + div {
+  margin-top: 0.2rem;
+}
+
+.cdc-tl-card .highlight {
+  margin: 0.5rem 0 0 0;
+  border-radius: 5px;
+  border: 1px solid rgba(61, 58, 54, 0.08);
+  overflow-x: auto;
+}
+.cdc-tl-card .highlight pre {
+  line-height: 1.5;
+  margin: 0;
 }
 </style>
 
@@ -1862,8 +1886,20 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">1981</div>
-      <div class="cdc-tl-name">Rabin<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
-      <div class="cdc-tl-desc">The original. Computes a polynomial fingerprint over a sliding window in <em>GF(2)</em>. Mathematically well-founded with strong uniformity guarantees, but relatively slow due to the polynomial arithmetic involved.</div>
+      <div class="cdc-tl-name">Rabin Fingerprint<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
+      <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> — the Galois field with two elements — where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity — the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
+{% highlight c linenos %}
+// Rabin fingerprint: rolling hash over GF(2)
+uint64_t fp = 0;
+for (size_t i = 0; i < len; i++) {
+    fp ^= shift_table[window[i % w]]; // remove outgoing byte
+    fp = (fp << 8) | data[i];           // shift in new byte
+    if (fp & HIGH_BIT) fp ^= poly;      // reduce mod irreducible poly
+    window[i % w] = data[i];
+    if ((fp % D) == r) return i;       // boundary!
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte (one XOR to remove, one shift + XOR to add, one polynomial reduction).</div><div><strong>Space:</strong> <em>O(w + 256)</em> — sliding window buffer plus a precomputed byte-shift table.</div></div>
     </div>
   </div>
 
@@ -1877,7 +1913,21 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">1997</div>
       <div class="cdc-tl-name">Buzhash<span class="cdc-cite"><a href="#ref-3">[3]</a></span></div>
-      <div class="cdc-tl-desc">Replaces polynomial division with a <strong>cyclic polynomial</strong> (bitwise rotation + XOR). No multiplication needed, just table lookups and bit operations. Used by Borg backup with a secret seed for security.</div>
+      <div class="cdc-tl-desc">Replaces Rabin's polynomial division with a <strong>cyclic polynomial</strong> — each byte maps to a random value via a lookup table, and the hash is maintained by cyclically rotating (barrel shifting) the current value and XORing in the new byte's table entry. Removing the outgoing byte uses the same table but rotated by the window size. This eliminates the polynomial reduction step entirely: no multiplication, just rotations and XORs. The result is significantly faster than Rabin in practice while providing comparable distribution properties for boundary detection. Used by Borg backup, which seeds the table with a secret value to prevent attackers from predicting chunk boundaries from known content.</div>
+{% highlight c linenos %}
+// Buzhash: cyclic polynomial rolling hash
+uint32_t table[256]; // random values, initialized once
+
+uint32_t h = 0;
+for (size_t i = 0; i < len; i++) {
+    h = ROTATE_LEFT(h, 1);                // cyclic shift by 1
+    h ^= ROTATE_LEFT(table[window[i % w]], w); // remove outgoing
+    h ^= table[data[i]];                   // add incoming
+    window[i % w] = data[i];
+    if ((h % D) == r) return i;            // boundary!
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one table lookup, one rotate, two XORs.</div><div><strong>Space:</strong> <em>O(w + 256)</em> — window buffer plus the random lookup table.</div></div>
     </div>
   </div>
 
@@ -1891,7 +1941,19 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">2014</div>
       <div class="cdc-tl-name">Gear<span class="cdc-cite"><a href="#ref-4">[4]</a></span></div>
-      <div class="cdc-tl-desc">Radically simplifies the hash: just <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. No need to remove outgoing bytes — the left-shift naturally discards old information. The basis for FastCDC.</div>
+      <div class="cdc-tl-desc">Radically simplifies the rolling hash by eliminating the sliding window entirely. There is no outgoing byte to remove — the hash is purely feedforward. Each step left-shifts the hash by 1 bit and adds a random table lookup for the incoming byte: <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. Since older bits naturally shift out of a 64-bit register, the hash is dominated by the most recent ~64 bytes. The insight is that for CDC purposes, you don't need a true sliding window hash — an approximate one where old bytes decay away is sufficient, since boundary decisions are local. One shift + one add gives the tightest inner loop of any CDC hash, roughly 2-3&times; faster than Buzhash. This became the hash of choice for FastCDC.</div>
+{% highlight c linenos %}
+// Gear hash: feedforward, no window needed
+uint64_t gear_table[256]; // random 64-bit values
+
+uint64_t hash = 0;
+for (size_t i = min_size; i < len; i++) {
+    hash = (hash << 1) + gear_table[data[i]];
+    if ((hash & mask) == 0)
+        return i; // boundary!
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one left-shift, one table lookup, one addition.</div><div><strong>Space:</strong> <em>O(256)</em> for the lookup table. No window buffer needed.</div></div>
     </div>
   </div>
 
@@ -1902,8 +1964,21 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2015</div>
-      <div class="cdc-tl-name">AE<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
-      <div class="cdc-tl-desc">Asymmetric Extremum. Scans for the maximum byte value in a sliding window; declares a boundary when the maximum is at the rightmost position. No hash needed — just byte comparisons.</div>
+      <div class="cdc-tl-name">AE &mdash; Asymmetric Extremum<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
+      <div class="cdc-tl-desc">A complete departure from the hash-based lineage. AE finds chunk boundaries by scanning for the <strong>maximum byte value</strong> within a sliding window of size <em>w</em>. A boundary is declared when the maximum is at the rightmost position of the window — "asymmetric" because the check is one-sided: the max only needs to beat the preceding bytes, not the following ones. This naturally produces chunks whose sizes center around the window size. The approach eliminates all hash computation — no multiplication, no XOR, no table lookups — using only byte comparisons. The trade-off: a naive implementation rescans the entire window for each byte position, giving <em>O(w)</em> per byte, though a monotonic deque can reduce this to <em>O(1)</em> amortized.</div>
+{% highlight c linenos %}
+// AE: boundary when max byte is at window's right edge
+for (size_t i = min_size; i < len; i++) {
+    uint8_t max_val = 0;
+    size_t max_pos = 0;
+    for (int j = i - w + 1; j <= i; j++) {
+        if (data[j] >= max_val)
+            { max_val = data[j]; max_pos = j; }
+    }
+    if (max_pos == i) return i; // boundary!
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(w)</em> per byte naive, <em>O(1)</em> amortized with monotonic deque.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window.</div></div>
     </div>
   </div>
 
@@ -1913,7 +1988,22 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">2016</div>
       <div class="cdc-tl-name">FastCDC<span class="cdc-cite"><a href="#ref-5">[5]</a></span><span class="cdc-cite"><a href="#ref-6">[6]</a></span></div>
-      <div class="cdc-tl-desc">Combines Gear hashing with <strong>Normalized Chunking</strong> — a dual-mask strategy that uses a stricter mask near the target size and a looser mask as chunks grow. This squeezes the chunk size distribution toward a bell curve, improving deduplication.</div>
+      <div class="cdc-tl-desc">Builds directly on Gear (2014) and addresses a fundamental weakness of all single-threshold CDC: the exponential chunk-size distribution that produces many tiny chunks and occasional very large ones. FastCDC's key contribution is <strong>Normalized Chunking</strong> — a dual-mask strategy that uses a stricter mask (more bits must be zero) for positions below the expected average, and a looser mask (fewer bits) for positions above it. This "squeezes" the distribution toward a bell curve, dramatically improving deduplication by reducing both tiny chunks (which waste metadata) and huge chunks (which reduce sharing). The inner loop remains identical to Gear — one shift, one add, one mask check — so the dual-mask adds zero per-byte overhead. Combined with cut-point skipping (jumping past <code>min_size</code> bytes), FastCDC reported 10&times; throughput over Rabin-based CDC while matching or exceeding its deduplication ratio.</div>
+{% highlight c linenos %}
+// FastCDC: Gear hash + normalized chunking
+uint64_t hash = 0;
+size_t i = min;
+for (; i < avg && i < len; i++) {     // phase 1: strict mask
+    hash = (hash << 1) + gear_table[data[i]];
+    if (!(hash & mask_s)) return i;
+}
+for (; i < max && i < len; i++) {     // phase 2: loose mask
+    hash = (hash << 1) + gear_table[data[i]];
+    if (!(hash & mask_l)) return i;
+}
+return i; // hit max chunk size
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — identical to Gear. The dual-mask is a branch on position, not a per-byte cost.</div><div><strong>Space:</strong> <em>O(256)</em> for the Gear table.</div></div>
     </div>
   </div>
 
@@ -1922,8 +2012,24 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2017</div>
-      <div class="cdc-tl-name">RAM<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
-      <div class="cdc-tl-desc">Rapid Asymmetric Maximum. Uses an asymmetric window — small lookback, larger lookahead — for faster re-synchronization. Just byte comparisons, no arithmetic, making it suited to resource-constrained environments.</div>
+      <div class="cdc-tl-name">RAM &mdash; Rapid Asymmetric Maximum<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
+      <div class="cdc-tl-desc">Refines AE's extremum approach with a critical performance optimization. RAM uses an <strong>asymmetric window</strong>: a small lookback (e.g., 256 bytes) and a larger lookahead (roughly the target chunk size). A boundary is declared when the current byte is the maximum of both windows combined. The key insight is the <strong>skip optimization</strong>: when a byte is <em>not</em> the maximum in the lookahead, the algorithm jumps directly to the position of the actual maximum, bypassing all intermediate positions. This provides sublinear average-case behavior — bytes examined per boundary is roughly proportional to chunk size, not chunk size times window size. Like AE, RAM uses only byte comparisons with no arithmetic, making it attractive for resource-constrained environments.</div>
+{% highlight c linenos %}
+// RAM: skip to the max, don't scan past it
+size_t i = min;
+while (i < len) {
+    size_t max_pos = i;
+    for (size_t j = i+1; j <= i+ahead; j++) // scan lookahead
+        if (data[j] >= data[max_pos]) max_pos = j;
+    if (max_pos != i) { i = max_pos; continue; } // skip!
+    bool ok = 1;
+    for (size_t j = i-back; j < i; j++)        // check lookback
+        if (data[j] > data[i]) { ok = 0; break; }
+    if (ok) return i; // boundary!
+    i++;
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> amortized per byte due to skip optimization (worst case <em>O(w)</em>).</div><div><strong>Space:</strong> <em>O(w<sub>back</sub> + w<sub>ahead</sub>)</em> for the window buffers.</div></div>
     </div>
   </div>
 
@@ -1932,8 +2038,23 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2019</div>
-      <div class="cdc-tl-name">MII<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
-      <div class="cdc-tl-desc">Maximum of the Interval-Length Independent. Uses a larger context window for more stable boundaries. The boundary decision is independent of chunk size parameters, unlike BSW algorithms.</div>
+      <div class="cdc-tl-name">MII &mdash; Maximum of Interval-length Independent<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
+      <div class="cdc-tl-desc">Builds on AE and RAM but solves a practical problem: in AE/RAM, changing the target chunk size parameters changes which positions are boundary candidates, destroying deduplication against previously stored data. MII <strong>decouples</strong> the context window from the chunk size parameters. It uses a larger window <em>W</em> (often 2&times; the target) and identifies all positions that are the maximum of their <em>W</em>-neighborhood as boundary <em>candidates</em>. Separately, it filters these candidates to respect min/max chunk constraints. This "interval-length independent" property means the same byte positions will be candidates regardless of configuration — enabling stable deduplication across different chunk size settings and even multi-resolution deduplication.</div>
+{% highlight c linenos %}
+// MII: boundary candidates are independent of chunk size
+size_t last = 0;
+for (size_t i = 0; i < len; i++) {
+    bool is_max = 1;
+    for (int j = -W/2; j <= W/2; j++)      // large symmetric window
+        if (data[i+j] > data[i]) { is_max = 0; break; }
+    if (!is_max) continue;
+    if (i - last >= min) {              // filter by min chunk size
+        last = i;
+        emit_boundary(i);               // boundary!
+    }
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(W)</em> per byte naive, <em>O(1)</em> amortized with monotonic deque.</div><div><strong>Space:</strong> <em>O(W)</em> for the context window, where <em>W &gt; w</em>.</div></div>
     </div>
   </div>
 
@@ -1944,8 +2065,20 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">PCI<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
-      <div class="cdc-tl-desc">Counts <strong>1-bits</strong> (popcount) in a sliding window of raw bytes. A boundary fires when the popcount exceeds a threshold. Modern CPUs have dedicated <code>POPCNT</code> instructions, making this surprisingly efficient.</div>
+      <div class="cdc-tl-name">PCI &mdash; Popcount Independence<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
+      <div class="cdc-tl-desc">Takes an unusual approach within the BSW family: instead of computing a hash, PCI counts the number of <strong>1-bits</strong> (Hamming weight) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold &theta;. Since the popcount of random bytes follows a binomial distribution, the threshold directly controls the average chunk size. What makes this surprisingly practical is hardware support: modern x86 and ARM CPUs have dedicated <code>POPCNT</code> instructions that count bits in a single cycle. No hash tables, no polynomial arithmetic, no random lookup tables — just counting bits in the raw data. The sliding window update is also simple: add the incoming byte's popcount, subtract the outgoing byte's.</div>
+{% highlight c linenos %}
+// PCI: boundary when bit-population exceeds threshold
+int pop_sum = 0;
+for (size_t i = 0; i < len; i++) {
+    pop_sum += __builtin_popcount(data[i]);       // add incoming
+    if (i >= w)
+        pop_sum -= __builtin_popcount(data[i-w]); // remove outgoing
+    if (i >= min && pop_sum >= threshold)
+        return i; // boundary!
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one hardware POPCNT for the incoming byte, one subtraction for the outgoing.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window buffer.</div></div>
     </div>
   </div>
 
@@ -1954,8 +2087,22 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label statistical">Statistical</span>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">BFBC<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
-      <div class="cdc-tl-desc">Byte-Frequency Based Chunking. Pre-scans data for the most common byte pairs, then uses them as boundary markers. Simple once built, but requires a pre-scan pass — unsuitable for streaming — and struggles on high-entropy data.</div>
+      <div class="cdc-tl-name">BFBC &mdash; Byte-Frequency Based Chunking<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
+      <div class="cdc-tl-desc">A fundamentally different two-pass approach. In the first pass, BFBC scans the data and builds a frequency table of all <strong>byte pairs</strong> (digrams), then selects the top-<em>k</em> most common pairs. In the second pass, it scans linearly and declares a boundary whenever one of these high-frequency digrams appears (subject to min/max constraints). The insight: common digrams are inherently content-defined — they recur consistently regardless of insertions or deletions elsewhere, serving as natural landmarks. Once the frequency table is built, the boundary detection pass is a simple table lookup per position. The fundamental trade-off: the pre-scan makes it <strong>unsuitable for streaming</strong>, and on high-entropy data (compressed files, encrypted content) the digram frequencies flatten out, destroying the algorithm's ability to find meaningful boundaries.</div>
+{% highlight c linenos %}
+// BFBC Phase 1: build digram frequency table
+uint32_t freq[256][256] = {0};
+for (size_t i = 0; i + 1 < len; i++)
+    freq[data[i]][data[i+1]]++;
+bool is_cut[256][256] = select_top_k(freq, k);
+
+// Phase 2: chunk using frequent digrams as boundaries
+for (size_t i = min; i < len - 1; i++) {
+    if (is_cut[data[i]][data[i+1]])
+        return i + 1; // boundary after digram
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(n)</em> pre-scan + <em>O(1)</em> per byte for boundary detection.</div><div><strong>Space:</strong> <em>O(256&times;256)</em> for the digram frequency table.</div></div>
     </div>
   </div>
 
@@ -1967,7 +2114,21 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2025</div>
       <div class="cdc-tl-name">VectorCDC<span class="cdc-cite"><a href="#ref-13">[13]</a></span></div>
-      <div class="cdc-tl-desc">Demonstrates <strong>16-42&times;</strong> speedup for Local Extrema algorithms using SSE/AVX SIMD instructions. Finding a local max across a byte window is inherently parallel — unlike hash updates, which are sequential. Achieves throughput near memory bandwidth.</div>
+      <div class="cdc-tl-desc">Demonstrates that Local Extrema algorithms are <strong>inherently SIMD-parallel</strong> in a way hash-based algorithms are not. Finding a local maximum across a window of bytes is a parallel comparison — exactly what SSE/AVX packed-max and packed-compare instructions are designed for. VectorCDC loads 16 bytes (SSE) or 32 bytes (AVX2) into a vector register and uses <code>_mm256_max_epu8</code> to compare all bytes simultaneously, extracting boundary candidates via <code>movemask</code>. Hash-based algorithms resist this because each hash update depends sequentially on the previous one. The VRAM variant (vectorized RAM) achieves <strong>16-42&times;</strong> throughput over scalar implementations, approaching memory bandwidth limits (~10-15 GB/s). Deduplication ratios remain identical since the boundary decisions are mathematically equivalent.</div>
+{% highlight c linenos %}
+// VectorCDC: SIMD-accelerated local max (AVX2)
+for (; i + 32 <= len; i += 32) {
+    __m256i curr = _mm256_loadu_si256(data + i);
+    __m256i prev = _mm256_loadu_si256(data + i - 1);
+    __m256i next = _mm256_loadu_si256(data + i + 1);
+    __m256i is_max = _mm256_and_si256(
+        _mm256_cmpeq_epi8(curr, _mm256_max_epu8(curr, prev)),
+        _mm256_cmpeq_epi8(curr, _mm256_max_epu8(curr, next)));
+    uint32_t mask = _mm256_movemask_epi8(is_max);
+    if (mask) return i + __builtin_ctz(mask); // first local max
+}
+{% endhighlight %}
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1/32)</em> per byte with AVX2 — 32 bytes per instruction, approaching memory bandwidth.</div><div><strong>Space:</strong> <em>O(1)</em> beyond the data — a few vector registers, no tables or buffers.</div></div>
     </div>
   </div>
 
