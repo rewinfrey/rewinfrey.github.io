@@ -222,7 +222,7 @@ categories:
   font-style: italic;
 }
 
-/* Chunk spans with box styling — matches CHUNK_SOLID_COLORS from cdc-animations.js */
+/* Chunk spans with box styling - matches CHUNK_SOLID_COLORS from cdc-animations.js */
 .cdc-chunk {
   padding: 0.2rem 0.35rem;
   border-radius: 3px;
@@ -257,21 +257,21 @@ categories:
   border-color: #825096;
 }
 
-/* New chunk — terracotta accent to match interactive demos */
+/* New chunk - terracotta accent to match interactive demos */
 .cdc-chunk.chunk-new {
   background: rgba(196, 90, 59, 0.2);
   border-color: #c45a3b;
   border-style: solid;
 }
 
-/* Unchanged chunk — muted gray, matches shared/dedup style in animations */
+/* Unchanged chunk - muted gray, matches shared/dedup style in animations */
 .cdc-chunk.unchanged {
   background: rgba(61, 58, 54, 0.06);
   border-color: rgba(61, 58, 54, 0.2);
   color: #8b8178;
 }
 
-/* Changed chunk — dashed border to signal the chunk content shifted */
+/* Changed chunk - dashed border to signal the chunk content shifted */
 .cdc-chunk.changed {
   border-style: dashed;
 }
@@ -690,7 +690,7 @@ categories:
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
 }
 
-/* Versioned Dedup — Editor */
+/* Versioned Dedup - Editor */
 .cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 
 .cdc-dedup-textarea {
@@ -711,7 +711,7 @@ categories:
 .cdc-dedup-save-btn:hover { background: #a84832; transform: translateY(-1px); }
 .cdc-dedup-save-btn:active { transform: translateY(0); }
 
-/* Versioned Dedup — Timeline */
+/* Versioned Dedup - Timeline */
 .cdc-dedup-timeline { position: relative; margin-bottom: 1.5rem; }
 
 .cdc-version-entry { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
@@ -1380,7 +1380,7 @@ categories:
   user-select: none;
 }
 
-/* Parametric Chunking Explorer — distribution chart */
+/* Parametric Chunking Explorer - distribution chart */
 .parametric-distribution-chart {
   position: relative;
   display: flex;
@@ -1611,7 +1611,7 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
 
 ### Where CDC Lives Today
 
-Content-defined chunking has become infrastructure — often invisible but always essential.
+Content-defined chunking has become infrastructure, often invisible but always essential.
 
 **Restic** uses Rabin fingerprints with ~1MB average chunks:
 ```bash
@@ -1631,9 +1631,9 @@ While Git doesn't use traditional CDC (it stores complete object snapshots), the
 
 ### Beyond Deduplication: Structure-Aware Chunking
 
-The core insight behind CDC — that boundaries should be determined by content, not arbitrary positions — is finding new applications beyond storage deduplication. In retrieval-augmented code generation (RAG), **cAST** — chunking via Abstract Syntax Trees (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> — applies this principle to source code: instead of splitting files at fixed line counts, it parses code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
+The core insight behind CDC (that boundaries should be determined by content, not arbitrary positions) is finding new applications beyond storage deduplication. In retrieval-augmented code generation (RAG), **cAST**, which performs chunking via Abstract Syntax Trees (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span>, applies this principle to source code: instead of splitting files at fixed line counts, it parses code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
 
-This represents a broader trend: wherever data has inherent structure — whether byte-level patterns in binary files or syntactic structure in source code — content-aware chunking consistently outperforms naive fixed-size approaches.
+This represents a broader trend: wherever data has inherent structure, whether byte-level patterns in binary files or syntactic structure in source code, content-aware chunking consistently outperforms naive fixed-size approaches.
 
 For Rust developers, the `fastcdc` crate provides production-ready implementations:
 
@@ -1652,9 +1652,9 @@ for chunk in chunker {
 
 ### Why I Care About This
 
-This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. The question driving the work: can syntax-aware chunk boundaries — aligned to functions, classes, and modules via AST parsing — outperform byte-level CDC for deduplicating code across versions?
+This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. The question driving the work: can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions?
 
-I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** (the approach Git uses today), **FastCDC** (byte-level content-defined chunking), and **cAST-style structural chunking** (AST-aware boundaries). Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking — or whether whole-file storage with delta compression remains the pragmatic choice.
+I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** (the approach Git uses today), **FastCDC** (byte-level content-defined chunking), and **cAST-style structural chunking** (AST-aware boundaries). Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
 
 ### Key Takeaways
 
@@ -1664,7 +1664,7 @@ I'm comparing three approaches along a granularity spectrum: **whole-file conten
 4. **Rolling hashes** (Rabin, Buzhash, Gear) power the BSW family
 5. **Normalized chunking** (dual masks) produces better chunk size distributions
 6. **Hardware acceleration** (SIMD) promises dramatic speedups, especially for hashless algorithms
-7. **The field is still evolving** — from Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration
+7. **The field is still evolving**, from Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration
 
 ### References
 

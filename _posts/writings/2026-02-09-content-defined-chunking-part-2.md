@@ -2,7 +2,7 @@
 layout: writing
 group: Writings
 title: "Content-Defined Chunking, Part 2: A Deep Dive into FastCDC"
-summary: "An interactive exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization — with code in pseudocode, Rust, and TypeScript."
+summary: "An interactive exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization, with code in pseudocode, Rust, and TypeScript."
 date: 2026-02-09 12:00:00
 categories:
 - writings
@@ -222,7 +222,7 @@ categories:
   font-style: italic;
 }
 
-/* Chunk spans with box styling — matches CHUNK_SOLID_COLORS from cdc-animations.js */
+/* Chunk spans with box styling - matches CHUNK_SOLID_COLORS from cdc-animations.js */
 .cdc-chunk {
   padding: 0.2rem 0.35rem;
   border-radius: 3px;
@@ -257,21 +257,21 @@ categories:
   border-color: #825096;
 }
 
-/* New chunk — terracotta accent to match interactive demos */
+/* New chunk - terracotta accent to match interactive demos */
 .cdc-chunk.chunk-new {
   background: rgba(196, 90, 59, 0.2);
   border-color: #c45a3b;
   border-style: solid;
 }
 
-/* Unchanged chunk — muted gray, matches shared/dedup style in animations */
+/* Unchanged chunk - muted gray, matches shared/dedup style in animations */
 .cdc-chunk.unchanged {
   background: rgba(61, 58, 54, 0.06);
   border-color: rgba(61, 58, 54, 0.2);
   color: #8b8178;
 }
 
-/* Changed chunk — dashed border to signal the chunk content shifted */
+/* Changed chunk - dashed border to signal the chunk content shifted */
 .cdc-chunk.changed {
   border-style: dashed;
 }
@@ -690,7 +690,7 @@ categories:
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
 }
 
-/* Versioned Dedup — Editor */
+/* Versioned Dedup - Editor */
 .cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 
 .cdc-dedup-textarea {
@@ -711,7 +711,7 @@ categories:
 .cdc-dedup-save-btn:hover { background: #a84832; transform: translateY(-1px); }
 .cdc-dedup-save-btn:active { transform: translateY(0); }
 
-/* Versioned Dedup — Timeline */
+/* Versioned Dedup - Timeline */
 .cdc-dedup-timeline { position: relative; margin-bottom: 1.5rem; }
 
 .cdc-version-entry { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
@@ -1380,7 +1380,7 @@ categories:
   user-select: none;
 }
 
-/* Parametric Chunking Explorer — distribution chart */
+/* Parametric Chunking Explorer - distribution chart */
 .parametric-distribution-chart {
   position: relative;
   display: flex;
@@ -1577,7 +1577,7 @@ MathJax = {
 Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
-In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families — Basic Sliding Window, Local Extrema, and Statistical — and compared their tradeoffs. In this post, we take a closer look at one BSW implementation — FastCDC — exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
+In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their tradeoffs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
 
 ---
 
@@ -1783,9 +1783,9 @@ With the GEAR hash updating for each byte, how do we decide where to cut?
 
 The classic approach: check if the low N bits of the hash are zero. If we want an average chunk size of 8KB, we check if `hash & 0x1FFF == 0` (the low 13 bits).
 
-Why does this work? The GEAR hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$ — meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits means larger average chunks, fewer bits means smaller ones.
+Why does this work? The GEAR hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$, meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits means larger average chunks, fewer bits means smaller ones.
 
-This is the heart of FastCDC. The algorithm doesn't search for patterns in the content directly — it feeds each byte through the GEAR table, lets the rolling hash mix the values together, and checks whether the result happens to land on a specific bit pattern. The content determines the hash, the hash determines the boundary, and the mask determines how often boundaries occur.
+This is the heart of FastCDC. The algorithm doesn't search for patterns in the content directly. Instead, it feeds each byte through the GEAR table, lets the rolling hash mix the values together, and checks whether the result happens to land on a specific bit pattern. The content determines the hash, the hash determines the boundary, and the mask determines how often boundaries occur.
 
 But basic masking has a problem, and FastCDC does something cleverer: **normalized chunking** with dual masks.
 

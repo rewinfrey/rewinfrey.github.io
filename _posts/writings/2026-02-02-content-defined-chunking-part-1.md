@@ -222,7 +222,7 @@ categories:
   font-style: italic;
 }
 
-/* Chunk spans with box styling — matches CHUNK_SOLID_COLORS from cdc-animations.js */
+/* Chunk spans with box styling - matches CHUNK_SOLID_COLORS from cdc-animations.js */
 .cdc-chunk {
   padding: 0.2rem 0.35rem;
   border-radius: 3px;
@@ -257,21 +257,21 @@ categories:
   border-color: #825096;
 }
 
-/* New chunk — terracotta accent to match interactive demos */
+/* New chunk - terracotta accent to match interactive demos */
 .cdc-chunk.chunk-new {
   background: rgba(196, 90, 59, 0.2);
   border-color: #c45a3b;
   border-style: solid;
 }
 
-/* Unchanged chunk — muted gray, matches shared/dedup style in animations */
+/* Unchanged chunk - muted gray, matches shared/dedup style in animations */
 .cdc-chunk.unchanged {
   background: rgba(61, 58, 54, 0.06);
   border-color: rgba(61, 58, 54, 0.2);
   color: #8b8178;
 }
 
-/* Changed chunk — dashed border to signal the chunk content shifted */
+/* Changed chunk - dashed border to signal the chunk content shifted */
 .cdc-chunk.changed {
   border-style: dashed;
 }
@@ -690,7 +690,7 @@ categories:
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
 }
 
-/* Versioned Dedup — Editor */
+/* Versioned Dedup - Editor */
 .cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 
 .cdc-dedup-textarea {
@@ -711,7 +711,7 @@ categories:
 .cdc-dedup-save-btn:hover { background: #a84832; transform: translateY(-1px); }
 .cdc-dedup-save-btn:active { transform: translateY(0); }
 
-/* Versioned Dedup — Timeline */
+/* Versioned Dedup - Timeline */
 .cdc-dedup-timeline { position: relative; margin-bottom: 1.5rem; }
 
 .cdc-version-entry { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
@@ -1380,7 +1380,7 @@ categories:
   user-select: none;
 }
 
-/* Parametric Chunking Explorer — distribution chart */
+/* Parametric Chunking Explorer - distribution chart */
 .parametric-distribution-chart {
   position: relative;
   display: flex;
@@ -1807,7 +1807,7 @@ When chunk boundaries are defined by the content itself rather than by fixed byt
 
 ### Origins
 
-The story begins with Turing Award winner **Michael Rabin**, who introduced polynomial fingerprinting in 1981.<span class="cdc-cite"><a href="#ref-1">[1]</a></span> His key insight: represent a sequence of bytes as a polynomial and evaluate it at a random point to get a "fingerprint" that uniquely identifies the content with high probability. More importantly, this fingerprint could be computed *incrementally* — a **rolling hash** — making it efficient to slide across data.
+The story begins with Turing Award winner **Michael Rabin**, who introduced polynomial fingerprinting in 1981.<span class="cdc-cite"><a href="#ref-1">[1]</a></span> His key insight: represent a sequence of bytes as a polynomial and evaluate it at a random point to get a "fingerprint" that uniquely identifies the content with high probability. More importantly, this fingerprint could be computed *incrementally* as a **rolling hash**, making it efficient to slide across data.
 
 For a sequence of bytes $b_0, b_1, \ldots, b_{n-1}$, the fingerprint is:
 
@@ -1819,7 +1819,7 @@ where $p$ is an irreducible polynomial over $GF(2)$.
 Ask your AI assistant about "Galois fields" and "polynomial arithmetic in GF(2)" to understand the mathematical foundations.
 </div>
 
-Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS used a 48-byte sliding window with Rabin fingerprints: when the low 13 bits equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was showing CDC could achieve dramatic bandwidth savings for real file workloads — modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
+Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS used a 48-byte sliding window with Rabin fingerprints: when the low 13 bits equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was showing CDC could achieve dramatic bandwidth savings for real file workloads: modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
 
 {% highlight c linenos %}
 // Simplified LBFS boundary check
@@ -1887,7 +1887,7 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">1981</div>
       <div class="cdc-tl-name">Rabin Fingerprint<span class="cdc-cite"><a href="#ref-1">[1]</a></span></div>
-      <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> — the Galois field with two elements — where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity — the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
+      <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> (the Galois field with two elements) where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity: the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
 {% highlight c linenos %}
 // Rabin fingerprint: rolling hash over GF(2)
 uint64_t fp = 0;
@@ -1899,7 +1899,7 @@ for (size_t i = 0; i < len; i++) {
     if ((fp % D) == r) return i;       // boundary!
 }
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte (one XOR to remove, one shift + XOR to add, one polynomial reduction).</div><div><strong>Space:</strong> <em>O(w + 256)</em> — sliding window buffer plus a precomputed byte-shift table.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte (one XOR to remove, one shift + XOR to add, one polynomial reduction).</div><div><strong>Space:</strong> <em>O(w + 256)</em>, sliding window buffer plus a precomputed byte-shift table.</div></div>
     </div>
   </div>
 
@@ -1913,7 +1913,7 @@ for (size_t i = 0; i < len; i++) {
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">1997</div>
       <div class="cdc-tl-name">Buzhash<span class="cdc-cite"><a href="#ref-3">[3]</a></span></div>
-      <div class="cdc-tl-desc">Replaces Rabin's polynomial division with a <strong>cyclic polynomial</strong> — each byte maps to a random value via a lookup table, and the hash is maintained by cyclically rotating (barrel shifting) the current value and XORing in the new byte's table entry. Removing the outgoing byte uses the same table but rotated by the window size. This eliminates the polynomial reduction step entirely: no multiplication, just rotations and XORs. The result is significantly faster than Rabin in practice while providing comparable distribution properties for boundary detection. Used by Borg backup, which seeds the table with a secret value to prevent attackers from predicting chunk boundaries from known content.</div>
+      <div class="cdc-tl-desc">Replaces Rabin's polynomial division with a <strong>cyclic polynomial</strong> where each byte maps to a random value via a lookup table, and the hash is maintained by cyclically rotating (barrel shifting) the current value and XORing in the new byte's table entry. Removing the outgoing byte uses the same table but rotated by the window size. This eliminates the polynomial reduction step entirely: no multiplication, just rotations and XORs. The result is significantly faster than Rabin in practice while providing comparable distribution properties for boundary detection. Used by Borg backup, which seeds the table with a secret value to prevent attackers from predicting chunk boundaries from known content.</div>
 {% highlight c linenos %}
 // Buzhash: cyclic polynomial rolling hash
 uint32_t table[256]; // random values, initialized once
@@ -1927,7 +1927,7 @@ for (size_t i = 0; i < len; i++) {
     if ((h % D) == r) return i;            // boundary!
 }
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one table lookup, one rotate, two XORs.</div><div><strong>Space:</strong> <em>O(w + 256)</em> — window buffer plus the random lookup table.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one table lookup, one rotate, and two XORs.</div><div><strong>Space:</strong> <em>O(w + 256)</em>, window buffer plus the random lookup table.</div></div>
     </div>
   </div>
 
@@ -1941,7 +1941,7 @@ for (size_t i = 0; i < len; i++) {
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">2014</div>
       <div class="cdc-tl-name">Gear<span class="cdc-cite"><a href="#ref-4">[4]</a></span></div>
-      <div class="cdc-tl-desc">Radically simplifies the rolling hash by eliminating the sliding window entirely. There is no outgoing byte to remove — the hash is purely feedforward. Each step left-shifts the hash by 1 bit and adds a random table lookup for the incoming byte: <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. Since older bits naturally shift out of a 64-bit register, the hash is dominated by the most recent ~64 bytes. The insight is that for CDC purposes, you don't need a true sliding window hash — an approximate one where old bytes decay away is sufficient, since boundary decisions are local. One shift + one add gives the tightest inner loop of any CDC hash, roughly 2-3&times; faster than Buzhash. This became the hash of choice for FastCDC.</div>
+      <div class="cdc-tl-desc">Radically simplifies the rolling hash by eliminating the sliding window entirely. There is no outgoing byte to remove because the hash is purely feedforward. Each step left-shifts the hash by 1 bit and adds a random table lookup for the incoming byte: <code>hash = (hash &lt;&lt; 1) + table[byte]</code>. Since older bits naturally shift out of a 64-bit register, the hash is dominated by the most recent ~64 bytes. The insight is that for CDC purposes, you don't need a true sliding window hash; an approximate one where old bytes decay away is sufficient, since boundary decisions are local. One shift + one add gives the tightest inner loop of any CDC hash, roughly 2-3&times; faster than Buzhash. This became the hash of choice for FastCDC.</div>
 {% highlight c linenos %}
 // Gear hash: feedforward, no window needed
 uint64_t gear_table[256]; // random 64-bit values
@@ -1953,7 +1953,7 @@ for (size_t i = min_size; i < len; i++) {
         return i; // boundary!
 }
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one left-shift, one table lookup, one addition.</div><div><strong>Space:</strong> <em>O(256)</em> for the lookup table. No window buffer needed.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one left-shift, one table lookup, and one addition.</div><div><strong>Space:</strong> <em>O(256)</em> for the lookup table. No window buffer needed.</div></div>
     </div>
   </div>
 
@@ -1964,8 +1964,8 @@ for (size_t i = min_size; i < len; i++) {
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2015</div>
-      <div class="cdc-tl-name">AE &mdash; Asymmetric Extremum<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
-      <div class="cdc-tl-desc">A complete departure from the hash-based lineage. AE finds chunk boundaries by scanning for the <strong>maximum byte value</strong> within a sliding window of size <em>w</em>. A boundary is declared when the maximum is at the rightmost position of the window — "asymmetric" because the check is one-sided: the max only needs to beat the preceding bytes, not the following ones. This naturally produces chunks whose sizes center around the window size. The approach eliminates all hash computation — no multiplication, no XOR, no table lookups — using only byte comparisons. The trade-off: a naive implementation rescans the entire window for each byte position, giving <em>O(w)</em> per byte, though a monotonic deque can reduce this to <em>O(1)</em> amortized.</div>
+      <div class="cdc-tl-name">AE - Asymmetric Extremum<span class="cdc-cite"><a href="#ref-7">[7]</a></span></div>
+      <div class="cdc-tl-desc">A complete departure from the hash-based lineage. AE finds chunk boundaries by scanning for the <strong>maximum byte value</strong> within a sliding window of size <em>w</em>. A boundary is declared when the maximum is at the rightmost position of the window. It is called "asymmetric" because the check is one-sided: the max only needs to beat the preceding bytes, not the following ones. This naturally produces chunks whose sizes center around the window size. The approach eliminates all hash computation (no multiplication, no XOR, no table lookups), using only byte comparisons. The trade-off: a naive implementation rescans the entire window for each byte position, giving <em>O(w)</em> per byte, though a monotonic deque can reduce this to <em>O(1)</em> amortized.</div>
 {% highlight c linenos %}
 // AE: boundary when max byte is at window's right edge
 for (size_t i = min_size; i < len; i++) {
@@ -2003,7 +2003,7 @@ for (; i < max && i < len; i++) {     // phase 2: loose mask
 }
 return i; // hit max chunk size
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — identical to Gear. The dual-mask is a branch on position, not a per-byte cost.</div><div><strong>Space:</strong> <em>O(256)</em> for the Gear table.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, identical to Gear. The dual-mask is a branch on position, not a per-byte cost.</div><div><strong>Space:</strong> <em>O(256)</em> for the Gear table.</div></div>
     </div>
   </div>
 
@@ -2012,7 +2012,7 @@ return i; // hit max chunk size
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2017</div>
-      <div class="cdc-tl-name">RAM &mdash; Rapid Asymmetric Maximum<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
+      <div class="cdc-tl-name">RAM - Rapid Asymmetric Maximum<span class="cdc-cite"><a href="#ref-8">[8]</a></span></div>
       <div class="cdc-tl-desc">Refines AE's extremum approach with a critical performance optimization. RAM uses an <strong>asymmetric window</strong>: a small lookback (e.g., 256 bytes) and a larger lookahead (roughly the target chunk size). A boundary is declared when the current byte is the maximum of both windows combined. The key insight is the <strong>skip optimization</strong>: when a byte is <em>not</em> the maximum in the lookahead, the algorithm jumps directly to the position of the actual maximum, bypassing all intermediate positions. This provides sublinear average-case behavior — bytes examined per boundary is roughly proportional to chunk size, not chunk size times window size. Like AE, RAM uses only byte comparisons with no arithmetic, making it attractive for resource-constrained environments.</div>
 {% highlight c linenos %}
 // RAM: skip to the max, don't scan past it
@@ -2038,7 +2038,7 @@ while (i < len) {
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label extrema">Extrema</span>
       <div class="cdc-tl-year">2019</div>
-      <div class="cdc-tl-name">MII &mdash; Maximum of Interval-length Independent<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
+      <div class="cdc-tl-name">MII - Maximum of Interval-length Independent<span class="cdc-cite"><a href="#ref-9">[9]</a></span></div>
       <div class="cdc-tl-desc">Builds on AE and RAM but solves a practical problem: in AE/RAM, changing the target chunk size parameters changes which positions are boundary candidates, destroying deduplication against previously stored data. MII <strong>decouples</strong> the context window from the chunk size parameters. It uses a larger window <em>W</em> (often 2&times; the target) and identifies all positions that are the maximum of their <em>W</em>-neighborhood as boundary <em>candidates</em>. Separately, it filters these candidates to respect min/max chunk constraints. This "interval-length independent" property means the same byte positions will be candidates regardless of configuration — enabling stable deduplication across different chunk size settings and even multi-resolution deduplication.</div>
 {% highlight c linenos %}
 // MII: boundary candidates are independent of chunk size
@@ -2065,7 +2065,7 @@ for (size_t i = 0; i < len; i++) {
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label bsw">BSW</span>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">PCI &mdash; Popcount Independence<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
+      <div class="cdc-tl-name">PCI - Popcount Independence<span class="cdc-cite"><a href="#ref-10">[10]</a></span></div>
       <div class="cdc-tl-desc">Takes an unusual approach within the BSW family: instead of computing a hash, PCI counts the number of <strong>1-bits</strong> (Hamming weight) in a sliding window of raw bytes. A boundary is declared when the popcount exceeds a threshold &theta;. Since the popcount of random bytes follows a binomial distribution, the threshold directly controls the average chunk size. What makes this surprisingly practical is hardware support: modern x86 and ARM CPUs have dedicated <code>POPCNT</code> instructions that count bits in a single cycle. No hash tables, no polynomial arithmetic, no random lookup tables — just counting bits in the raw data. The sliding window update is also simple: add the incoming byte's popcount, subtract the outgoing byte's.</div>
 {% highlight c linenos %}
 // PCI: boundary when bit-population exceeds threshold
@@ -2078,7 +2078,7 @@ for (size_t i = 0; i < len; i++) {
         return i; // boundary!
 }
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte — one hardware POPCNT for the incoming byte, one subtraction for the outgoing.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window buffer.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1)</em> per byte, consisting of one hardware POPCNT for the incoming byte and one subtraction for the outgoing.</div><div><strong>Space:</strong> <em>O(w)</em> for the sliding window buffer.</div></div>
     </div>
   </div>
 
@@ -2087,7 +2087,7 @@ for (size_t i = 0; i < len; i++) {
     <div class="cdc-tl-card">
       <span class="cdc-tax-family-label statistical">Statistical</span>
       <div class="cdc-tl-year">2020</div>
-      <div class="cdc-tl-name">BFBC &mdash; Byte-Frequency Based Chunking<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
+      <div class="cdc-tl-name">BFBC - Byte-Frequency Based Chunking<span class="cdc-cite"><a href="#ref-11">[11]</a></span></div>
       <div class="cdc-tl-desc">A fundamentally different two-pass approach. In the first pass, BFBC scans the data and builds a frequency table of all <strong>byte pairs</strong> (digrams), then selects the top-<em>k</em> most common pairs. In the second pass, it scans linearly and declares a boundary whenever one of these high-frequency digrams appears (subject to min/max constraints). The insight: common digrams are inherently content-defined — they recur consistently regardless of insertions or deletions elsewhere, serving as natural landmarks. Once the frequency table is built, the boundary detection pass is a simple table lookup per position. The fundamental trade-off: the pre-scan makes it <strong>unsuitable for streaming</strong>, and on high-entropy data (compressed files, encrypted content) the digram frequencies flatten out, destroying the algorithm's ability to find meaningful boundaries.</div>
 {% highlight c linenos %}
 // BFBC Phase 1: build digram frequency table
@@ -2128,7 +2128,7 @@ for (; i + 32 <= len; i += 32) {
     if (mask) return i + __builtin_ctz(mask); // first local max
 }
 {% endhighlight %}
-      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1/32)</em> per byte with AVX2 — 32 bytes per instruction, approaching memory bandwidth.</div><div><strong>Space:</strong> <em>O(1)</em> beyond the data — a few vector registers, no tables or buffers.</div></div>
+      <div class="cdc-tl-perf"><div><strong>Time:</strong> <em>O(1/32)</em> per byte with AVX2, processing 32 bytes per instruction and approaching memory bandwidth.</div><div><strong>Space:</strong> <em>O(1)</em> beyond the data, requiring only a few vector registers with no tables or buffers.</div></div>
     </div>
   </div>
 
@@ -2147,7 +2147,7 @@ for (; i + 32 <= len; i += 32) {
 | **Chunk distribution** | Exponential (improved with NC) | Varies | Varies |
 | **Used in practice** | Restic, Borg, FastCDC | Research | Research |
 
-In the next section, we'll take a closer look at the BSW family through **FastCDC** — an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+In the next section, we'll take a closer look at the BSW family through **FastCDC**, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
 
 ---
 
