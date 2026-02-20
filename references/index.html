@@ -1,0 +1,124 @@
+---
+layout: default
+group: References
+title: References
+---
+
+<style>
+  .references-header {
+    padding: 2rem 0 1rem;
+  }
+
+  .references-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .references-subtitle {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 2rem;
+  }
+
+  .references-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  @media (max-width: 42em) {
+    .references-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .references-card {
+    padding: 1.5rem;
+    border: 1px solid rgba(61, 58, 54, 0.08);
+    border-radius: 6px;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    display: block;
+  }
+
+  .references-card:hover {
+    border-color: rgba(196, 90, 59, 0.3);
+    background: rgba(250, 249, 247, 0.7);
+    box-shadow: 0 4px 20px rgba(61, 58, 54, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .references-card:hover .references-card-title {
+    color: #c45a3b;
+  }
+
+  .references-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(196, 90, 59, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #c45a3b;
+  }
+
+  .references-card-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+    transition: color 0.25s ease;
+  }
+
+  .references-card-description {
+    font-size: 0.9rem;
+    color: #8b7355;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .references-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .references-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(196, 90, 59, 0.08);
+    color: #c45a3b;
+    border-radius: 3px;
+  }
+</style>
+
+<div class="references-header">
+  <h1 class="references-title">References</h1>
+  <p class="references-subtitle">Papers and research behind the writing on this site.</p>
+</div>
+
+<div class="references-grid">
+  <a href="/references/cdc" class="references-card">
+    <div class="references-card-icon">
+      <span class="fa-solid fa-scissors"></span>
+    </div>
+    <div class="references-card-title">Content-Defined Chunking</div>
+    <p class="references-card-description">
+      13 papers spanning 1981-2025: rolling hashes, local extrema, statistical chunking, and SIMD acceleration for data deduplication.
+    </p>
+    <div class="references-card-tags">
+      <span class="references-tag">Deduplication</span>
+      <span class="references-tag">Algorithms</span>
+      <span class="references-tag">Systems</span>
+    </div>
+  </a>
+</div>

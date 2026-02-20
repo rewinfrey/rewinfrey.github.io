@@ -1,0 +1,372 @@
+---
+layout: default
+group: References
+title: "CDC Research Bibliography"
+---
+
+<style>
+  .bib-header {
+    padding: 2rem 0 0.5rem;
+  }
+
+  .bib-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .bib-subtitle {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .bib-back {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: #c45a3b;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    border: none;
+  }
+
+  .bib-back:hover {
+    text-decoration: underline;
+  }
+
+  .bib-section-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin: 2.5rem 0 1rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  }
+
+  .bib-entry {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(61, 58, 54, 0.06);
+  }
+
+  .bib-entry:last-child {
+    border-bottom: none;
+  }
+
+  .bib-number {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #c45a3b;
+    margin-bottom: 0.3rem;
+  }
+
+  .bib-citation {
+    font-size: 0.95rem;
+    color: #3d3a36;
+    line-height: 1.7;
+  }
+
+  .bib-citation em {
+    color: #5a5550;
+  }
+
+  .bib-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .bib-link {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+  }
+
+  .bib-link.pdf {
+    background: rgba(196, 90, 59, 0.1);
+    color: #c45a3b;
+  }
+
+  .bib-link.pdf:hover {
+    background: rgba(196, 90, 59, 0.2);
+  }
+
+  .bib-link.external {
+    background: rgba(61, 58, 54, 0.06);
+    color: #5a5550;
+  }
+
+  .bib-link.external:hover {
+    background: rgba(61, 58, 54, 0.12);
+  }
+
+  .bib-note {
+    font-size: 0.85rem;
+    color: #8b7355;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .bib-family-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  .bib-family-tag.bsw {
+    background: rgba(196, 90, 59, 0.1);
+    color: #c45a3b;
+  }
+
+  .bib-family-tag.extrema {
+    background: rgba(42, 125, 79, 0.1);
+    color: #2a7d4f;
+  }
+
+  .bib-family-tag.statistical {
+    background: rgba(139, 115, 85, 0.1);
+    color: #8b7355;
+  }
+
+  .bib-family-tag.survey {
+    background: rgba(90, 85, 80, 0.1);
+    color: #5a5550;
+  }
+
+  .bib-posts {
+    margin-top: 2.5rem;
+    padding: 1rem 1.2rem;
+    background: rgba(61, 58, 54, 0.03);
+    border: 1px solid rgba(61, 58, 54, 0.08);
+    border-radius: 6px;
+  }
+
+  .bib-posts-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin-bottom: 0.6rem;
+  }
+
+  .bib-posts a {
+    display: block;
+    font-size: 0.9rem;
+    color: #c45a3b;
+    text-decoration: none;
+    border: none;
+    padding: 0.2rem 0;
+    line-height: 1.5;
+  }
+
+  .bib-posts a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="bib-header">
+  <h1 class="bib-title">Content-Defined Chunking</h1>
+  <p class="bib-subtitle">
+    Research bibliography for the CDC post series. Papers are organized chronologically within each category. Where available, PDFs are hosted locally for convenience.
+  </p>
+  <a href="/references" class="bib-back">&larr; All references</a>
+</div>
+
+<div class="bib-section-title">Foundations</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[1]</div>
+  <div class="bib-citation">
+    M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report TR-15-81, Center for Research in Computing Technology, Harvard University, 1981.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Introduced polynomial fingerprinting over GF(2) as a rolling hash with provable collision bounds. The foundational technique behind all BSW-family CDC algorithms.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/rabin-1981-fingerprinting.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://scholar.google.com/scholar?q=rabin+fingerprinting+random+polynomials+1981" class="bib-link external"><i class="fa-solid fa-magnifying-glass"></i> Google Scholar</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[2]</div>
+  <div class="bib-citation">
+    A. Muthitacharoen, B. Chen &amp; D. Mazieres, "A Low-Bandwidth Network File System," <em>Proceedings of the 18th ACM Symposium on Operating Systems Principles (SOSP)</em>, 2001.
+  </div>
+  <div class="bib-note">First major system to use CDC in practice. LBFS used a 48-byte sliding window with Rabin fingerprints to achieve dramatic bandwidth savings for file synchronization.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/lbfs-2001-muthitacharoen.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://dl.acm.org/doi/10.1145/502034.502052" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[3]</div>
+  <div class="bib-citation">
+    J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM Transactions on Information Systems</em>, vol. 15, no. 3, pp. 291-320, 1997.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Introduced the cyclic polynomial (Buzhash) rolling hash. Replaces Rabin's polynomial division with barrel shifts and XORs, significantly improving throughput while maintaining comparable distribution properties.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/buzhash-1997-cohen.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://dl.acm.org/doi/10.1145/256163.256168" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<div class="bib-section-title">BSW Family</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[4]</div>
+  <div class="bib-citation">
+    W. Xia, H. Jiang, D. Feng &amp; L. Tian, "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, pp. 258-272, 2014.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Introduced the Gear hash, a feedforward rolling hash that eliminates the sliding window entirely. Demonstrated 2x throughput over Rabin by reducing per-byte operations from 7 (Rabin) to 3 (one shift, one add, one table lookup).</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ddelta-2014-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0166531614000790" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ScienceDirect</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[5]</div>
+  <div class="bib-citation">
+    W. Xia, H. Jiang, D. Feng, L. Tian, M. Fu &amp; Y. Zhou, "FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication," <em>Proceedings of the USENIX Annual Technical Conference (ATC)</em>, 2016.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Combined Gear hashing with normalized chunking (dual-mask strategy) and cut-point skipping. Reported 10x throughput over Rabin-based CDC and 3x over standalone Gear and AE, while matching or exceeding deduplication ratios.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2016-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[6]</div>
+  <div class="bib-citation">
+    W. Xia, Y. Zhou, H. Jiang, D. Feng, Y. Hua, Y. Hu, Q. Liu &amp; Y. Zhang, "The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems," <em>IEEE Transactions on Parallel and Distributed Systems</em>, vol. 31, no. 9, pp. 2017-2031, 2020.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Extended FastCDC with a "rolling two bytes per iteration" optimization, adding 30-40% throughput over the 2016 version. Adopted as the default chunker in open-source projects including Rdedup.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/fastcdc-2020-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/9055082" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[10]</div>
+  <div class="bib-citation">
+    C. Zhang, D. Qi, W. Li &amp; J. Guo, "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, pp. 5316-5330, 2020.
+    <span class="bib-family-tag bsw">BSW</span>
+  </div>
+  <div class="bib-note">Introduced PCI (Popcount Independence), which uses the Hamming weight of a sliding window for boundary detection. Targets incremental synchronization: improved Rsync calculation speed by up to 70% and reduced detected incremental data by 32-57%.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/pci-2020-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/8949536" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-section-title">Local Extrema Family</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[7]</div>
+  <div class="bib-citation">
+    Y. Zhang, H. Jiang, D. Feng, W. Xia, M. Fu, F. Huang &amp; Y. Zhou, "AE: An Asymmetric Extremum Content Defined Chunking Algorithm for Fast and Bandwidth-Efficient Data Deduplication," <em>Proceedings of IEEE INFOCOM</em>, 2015.
+    <span class="bib-family-tag extrema">Extrema</span>
+  </div>
+  <div class="bib-note">First hashless CDC algorithm. Finds boundaries by locating the maximum byte value in an asymmetric local range. Reported 3x throughput over Rabin-based CDC while achieving comparable deduplication ratios.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ae-2015-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/7218510" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[8]</div>
+  <div class="bib-citation">
+    R. N. Widodo, H. Lim &amp; M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, pp. 145-156, 2017.
+    <span class="bib-family-tag extrema">Extrema</span>
+  </div>
+  <div class="bib-note">Introduced RAM (Rapid Asymmetric Maximum) with a skip optimization that jumps directly to the actual maximum when the current byte is not the maximum, giving sublinear average-case behavior.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/ram-2017-widodo.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0167739X16305829" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ScienceDirect</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[9]</div>
+  <div class="bib-citation">
+    C. Zhang, D. Qi, W. Li &amp; J. Guo, "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, pp. 86862-86875, 2019.
+    <span class="bib-family-tag extrema">Extrema</span>
+  </div>
+  <div class="bib-note">Decouples the context window from chunk size parameters, so boundary candidates remain stable when parameters change. Reduced incremental data by 13-34% compared to other algorithms, targeting backup and data synchronization workloads.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/mii-2019-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://ieeexplore.ieee.org/document/8752387" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[13]</div>
+  <div class="bib-citation">
+    S. Udayashankar, A. Baba &amp; A. Al-Kiswany, "VectorCDC: Accelerating Data Deduplication with Vector Instructions," <em>Proceedings of the 23rd USENIX Conference on File and Storage Technologies (FAST)</em>, 2025.
+    <span class="bib-family-tag extrema">Extrema</span>
+  </div>
+  <div class="bib-note">Demonstrated that local-extrema algorithms are inherently SIMD-parallelizable. VRAM (vectorized RAM) achieved 6.5-30 GB/s with AVX-512, a 17x speedup over scalar RAM. Tested across 10 workloads from VM backups to web archives.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/vectorcdc-2025-udayashankar.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.usenix.org/conference/fast25/presentation/udayashankar" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-section-title">Statistical Family</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[11]</div>
+  <div class="bib-citation">
+    A. S. M. Saeed &amp; L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, article 1841, 2020.
+    <span class="bib-family-tag statistical">Statistical</span>
+  </div>
+  <div class="bib-note">Two-pass algorithm that builds a digram frequency table and uses the most common byte pairs as chunk boundaries. Reported 10x faster chunking than Rabin-based BSW and 3x faster than TTTD.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/bfbc-2020-saeed.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://www.mdpi.com/2073-8994/12/11/1841" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> MDPI</a>
+  </div>
+</div>
+
+<div class="bib-section-title">Survey</div>
+
+<div class="bib-entry">
+  <div class="bib-number">[12]</div>
+  <div class="bib-citation">
+    M. Gregoriadis, L. Balduf, B. Scheuermann &amp; J. Pouwelse, "A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication," <em>arXiv:2409.06066</em>, 2024.
+    <span class="bib-family-tag survey">Survey</span>
+  </div>
+  <div class="bib-note">Comprehensive survey organizing CDC algorithms into three families (BSW, Local Extrema, Statistical). Provides the taxonomic framework used in the CDC post series and includes systematic benchmarks across algorithms and datasets.</div>
+  <div class="bib-links">
+    <a href="/assets/papers/cdc/gregoriadis-2024-survey.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a href="https://arxiv.org/abs/2409.06066" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-posts">
+  <div class="bib-posts-title">Related posts</div>
+  <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: Three Families of CDC</a>
+  <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+  <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+</div>
