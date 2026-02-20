@@ -2195,6 +2195,17 @@ Notice how the dual-mask strategy keeps chunk sizes clustered around the target 
 
 ---
 
+### References
+
+<div class="cdc-references">
+<ol start="5">
+<li id="ref-5">W. Xia et al., <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia">"FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication,"</a> <em>USENIX ATC</em>, 2016.</li>
+<li id="ref-6">W. Xia et al., <a href="https://ranger.uta.edu/~jiang/publication/Journals/2020/2020-IEEE-TPDS(Wen%20Xia).pdf">"The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems,"</a> <em>IEEE TPDS</em>, vol. 31, no. 9, 2020.</li>
+</ol>
+</div>
+
+---
+
 <div class="cdc-series-nav">
 &larr; <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Continue reading &rarr; <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>

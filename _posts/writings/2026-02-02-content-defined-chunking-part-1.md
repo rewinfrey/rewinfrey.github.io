@@ -1807,6 +1807,28 @@ In the next section, we'll take a closer look at the BSW family through **FastCD
 
 ---
 
+### References
+
+<div class="cdc-references">
+<ol>
+<li id="ref-1">M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report, 1981.</li>
+<li id="ref-2">A. Muthitacharoen, B. Chen & D. Mazieres, "A Low-Bandwidth Network File System," <em>ACM SOSP</em>, 2001.</li>
+<li id="ref-3">J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM TOIS</em>, vol. 15, no. 3, 1997.</li>
+<li id="ref-4">W. Xia et al., "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, 2014.</li>
+<li id="ref-5">W. Xia et al., <a href="https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia">"FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication,"</a> <em>USENIX ATC</em>, 2016.</li>
+<li id="ref-6">W. Xia et al., <a href="https://ranger.uta.edu/~jiang/publication/Journals/2020/2020-IEEE-TPDS(Wen%20Xia).pdf">"The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems,"</a> <em>IEEE TPDS</em>, vol. 31, no. 9, 2020.</li>
+<li id="ref-7">Y. Zhang et al., "AE: An Asymmetric Extremum Content Defined Chunking Algorithm," <em>IEEE INFOCOM</em>, 2015.</li>
+<li id="ref-8">R. N. Widodo, H. Lim & M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, 2017.</li>
+<li id="ref-9">C. Zhang et al., "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, 2019.</li>
+<li id="ref-10">C. Zhang et al., "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, 2020.</li>
+<li id="ref-11">A. S. M. Saeed & L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, 2020.</li>
+<li id="ref-12">M. Gregoriadis, L. Balduf, B. Scheuermann & J. Pouwelse, <a href="https://arxiv.org/abs/2409.06066">"A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication,"</a> <em>arXiv:2409.06066</em>, 2024.</li>
+<li id="ref-13">S. Udayashankar, A. Baba & A. Al-Kiswany, <a href="https://www.usenix.org/conference/fast25/presentation/udayashankar">"VectorCDC: Accelerating Data Deduplication with Vector Instructions,"</a> <em>USENIX FAST</em>, 2025.</li>
+</ol>
+</div>
+
+---
+
 <div class="cdc-series-nav">
 Continue reading &rarr; <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
