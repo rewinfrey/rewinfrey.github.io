@@ -1603,10 +1603,10 @@ categories:
 </style>
 
 <div class="cdc-series-nav">
-Part 3 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Part 3 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
-In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/2026/02/09/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and parameter tuning. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
+In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and parameter tuning. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
 
 ---
 
@@ -1730,7 +1730,7 @@ I'm comparing three approaches along a granularity spectrum: **whole-file conten
 *The interactive animations in this post are available for experimentation. Try modifying the input text, adjusting chunk size parameters, and watching how CDC adapts to your changes.*
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Back to <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
+&larr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Back to <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

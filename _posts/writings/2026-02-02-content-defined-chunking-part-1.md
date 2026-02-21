@@ -1803,7 +1803,7 @@ MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
 <div class="cdc-series-nav">
-Part 1 of 3 in a series on Content-Defined Chunking. Next: <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Part 1 of 3 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
 Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.
@@ -1827,30 +1827,30 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       </ul>
     </li>
     <li>
-      <a href="/writings/2026/02/09/content-defined-chunking-part-2#a-closer-look-at-bsw-via-fastcdc">A Closer Look at BSW via FastCDC</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 2)</em>
+      <a href="/writings/content-defined-chunking-part-2#a-closer-look-at-bsw-via-fastcdc">A Closer Look at BSW via FastCDC</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 2)</em>
       <ul>
-        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-gear-hash">The GEAR Hash</a></li>
-        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#finding-chunk-boundaries">Finding Chunk Boundaries</a></li>
-        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-2016-algorithm">The 2016 Algorithm</a></li>
-        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#the-2020-enhancement-rolling-two-bytes">The 2020 Enhancement: Rolling Two Bytes</a></li>
-        <li><a href="/writings/2026/02/09/content-defined-chunking-part-2#exploring-the-parameters">Exploring the Parameters</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#the-gear-hash">The GEAR Hash</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#finding-chunk-boundaries">Finding Chunk Boundaries</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#the-2016-algorithm">The 2016 Algorithm</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#the-2020-enhancement-rolling-two-bytes">The 2020 Enhancement: Rolling Two Bytes</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#exploring-the-parameters">Exploring the Parameters</a></li>
       </ul>
     </li>
     <li>
-      <a href="/writings/2026/02/16/content-defined-chunking-part-3#deduplication-in-action">Deduplication in Action</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
+      <a href="/writings/content-defined-chunking-part-3#deduplication-in-action">Deduplication in Action</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
       <ul>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#the-deduplication-pipeline">The Deduplication Pipeline</a></li>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#why-cdc-beats-fixed-chunking">Why CDC Beats Fixed Chunking</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#the-deduplication-pipeline">The Deduplication Pipeline</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#why-cdc-beats-fixed-chunking">Why CDC Beats Fixed Chunking</a></li>
       </ul>
     </li>
     <li>
-      <a href="/writings/2026/02/16/content-defined-chunking-part-3#conclusion">Conclusion</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
+      <a href="/writings/content-defined-chunking-part-3#conclusion">Conclusion</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
       <ul>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#where-cdc-lives-today">Where CDC Lives Today</a></li>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#beyond-deduplication-structure-aware-chunking">Beyond Deduplication: Structure-Aware Chunking</a></li>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#why-i-care-about-this">Why I Care About This</a></li>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#key-takeaways">Key Takeaways</a></li>
-        <li><a href="/writings/2026/02/16/content-defined-chunking-part-3#references">References</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#where-cdc-lives-today">Where CDC Lives Today</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#beyond-deduplication-structure-aware-chunking">Beyond Deduplication: Structure-Aware Chunking</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#why-i-care-about-this">Why I Care About This</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#key-takeaways">Key Takeaways</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#references">References</a></li>
       </ul>
     </li>
   </ol>
@@ -2484,7 +2484,7 @@ for (; i + 32 <= len; i += 32) {
 
 </div>
 
-In the next post, [Part 2: A Deep Dive into FastCDC](/writings/2026/02/09/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+In the next post, [Part 2: A Deep Dive into FastCDC](/writings/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
 
 ---
 
@@ -2614,7 +2614,7 @@ In the next post, [Part 2: A Deep Dive into FastCDC](/writings/2026/02/09/conten
 ---
 
 <div class="cdc-series-nav">
-Continue reading &rarr; <a href="/writings/2026/02/09/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Continue reading &rarr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

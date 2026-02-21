@@ -1614,10 +1614,10 @@ MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
 <div class="cdc-series-nav">
-Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
-In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their trade-offs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
+In [Part 1](/writings/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their trade-offs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
 
 ---
 
@@ -2260,7 +2260,7 @@ Notice how the dual-mask strategy keeps chunk sizes clustered around the target 
 ---
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Continue reading &rarr; <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+&larr; <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Continue reading &rarr; <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

@@ -7,7 +7,7 @@ url: "https://rickwinfrey.com"
 baseurl: "/"
 
 markdown: kramdown
-permalinks: /:categories/:title
+permalink: /:categories/:title
 
 # http://en.wikipedia.org/wiki/Words_per_minute#Reading_and_comprehension
 words_per_minute: 180
