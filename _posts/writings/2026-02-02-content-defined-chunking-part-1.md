@@ -1936,7 +1936,7 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <thead>
       <tr>
         <th></th>
-        <th class="bsw">BSW (Byte-Sliding Window)</th>
+        <th class="bsw">BSW (Basic Sliding Window)</th>
         <th class="extrema">Local Extrema</th>
         <th class="statistical">Statistical</th>
       </tr>
@@ -2484,7 +2484,7 @@ for (; i + 32 <= len; i += 32) {
 
 </div>
 
-In the next post, [Part 2: A Deep Dive into FastCDC](/writings/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+In the next post, [Part 2: A Deep Dive into FastCDC](/writings/2026/02/09/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
 
 ---
 

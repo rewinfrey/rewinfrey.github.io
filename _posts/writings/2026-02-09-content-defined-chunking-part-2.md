@@ -1617,7 +1617,7 @@ MathJax = {
 Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/2026/02/02/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/2026/02/16/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
-In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their tradeoffs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
+In [Part 1](/writings/2026/02/02/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their trade-offs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
 
 ---
 
@@ -1829,13 +1829,11 @@ This is the heart of FastCDC. The algorithm doesn't search for patterns in the c
 
 But basic masking has a problem, and FastCDC does something cleverer: **normalized chunking** with dual masks.
 
-<!-- TODO: Animation 3 - Chunk boundary detection -->
-
 The problem with basic masking: chunk sizes follow an exponential distribution. You get many small chunks and occasional very large ones. This hurts deduplication because small chunks waste metadata overhead, and large chunks reduce sharing opportunities.
 
 FastCDC's solution:
-1. **Near the average size**: Use a **stricter mask** (more bits must be zero)
-2. **Approaching maximum size**: Use a **looser mask** (fewer bits must be zero)
+1. **Below the average size**: Use a **stricter mask** (more bits must be zero)
+2. **Above the average size**: Use a **looser mask** (fewer bits must be zero)
 
 This "squeezes" chunks toward the average size:
 
@@ -2011,7 +2009,7 @@ hash = (hash << 2) + GEAR_LS[byte1]  // Left-shifted GEAR table
 hash = hash + GEAR[byte2]            // Regular GEAR table
 ```
 
-This reduces loop iterations by 50%, and the CPU branch predictor loves the more regular access pattern.
+This halves the number of loop iterations, reducing per-byte loop overhead and improving instruction-level parallelism.
 
 <div class="code-tabs" id="fastcdc-2020-code">
   <div class="code-tab-buttons">
