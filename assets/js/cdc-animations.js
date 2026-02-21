@@ -317,6 +317,10 @@ function clearElement(element) {
   }
 }
 
+function createSVGElement(tag) {
+  return document.createElementNS('http://www.w3.org/2000/svg', tag);
+}
+
 /**
  * Create a text span with optional styling
  */
@@ -1912,17 +1916,89 @@ function generateComparisonData(size, seed) {
   return data;
 }
 
+/**
+ * Compute visually clean tick values for a chart axis.
+ * Returns an array of tick values that are multiples of 1, 2, or 5 × 10^n.
+ */
+function niceAxisTicks(max, targetCount) {
+  if (max <= 0 || targetCount <= 0) return [0];
+  const roughStep = max / targetCount;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+  const candidates = [1, 2, 5, 10];
+  let niceStep = candidates[candidates.length - 1] * magnitude;
+  for (const c of candidates) {
+    if (c * magnitude >= roughStep) {
+      niceStep = c * magnitude;
+      break;
+    }
+  }
+  const ticks = [0];
+  let v = niceStep;
+  while (v < max) {
+    ticks.push(v);
+    v += niceStep;
+  }
+  ticks.push(v); // include a ceiling tick >= max
+  return ticks;
+}
+
+/**
+ * Compute a Kernel Density Estimate over chunk sizes.
+ * Returns an array of {x, y} points tracing the density curve.
+ */
+function computeKDE(sizes, numPoints, xMin, xMax, bandwidth) {
+  const n = sizes.length;
+  if (n === 0) return [];
+
+  const h = bandwidth;
+  const step = (xMax - xMin) / (numPoints - 1);
+  const coeff = 1 / (h * Math.sqrt(2 * Math.PI));
+  const points = [];
+
+  for (let i = 0; i < numPoints; i++) {
+    const x = xMin + i * step;
+    let density = 0;
+    for (let j = 0; j < n; j++) {
+      const z = (x - sizes[j]) / h;
+      density += coeff * Math.exp(-0.5 * z * z);
+    }
+    density /= n;
+    points.push({ x, y: density });
+  }
+
+  return points;
+}
+
+/**
+ * Silverman's rule bandwidth with a floor for small samples.
+ */
+function silvermanBandwidth(sizes, avgSize) {
+  const n = sizes.length;
+  if (n < 2) return avgSize * 0.15;
+
+  const mean = sizes.reduce((a, b) => a + b, 0) / n;
+  const variance = sizes.reduce((sum, s) => sum + (s - mean) ** 2, 0) / (n - 1);
+  const stddev = Math.sqrt(variance);
+
+  const h = 0.9 * stddev * Math.pow(n, -0.2);
+  return Math.max(h, avgSize * 0.15);
+}
+
 class ComparisonDemo {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
     this.data = generateComparisonData(8192, 0xdeadbeef);
-    this.avgSize = 32;
+    this.avgSize = 88;
 
     this.slider = document.getElementById('comparison-slider');
     this.sliderValue = document.getElementById('comparison-slider-value');
     this.derivedParams = document.getElementById('comparison-derived-params');
+
+    // Fixed x-axis: max chunk size at the slider's upper bound
+    const sliderMax = parseInt(this.slider?.max || '128');
+    this.fixedXMax = sliderMax * 3;
 
     this.slider?.addEventListener('input', () => this.update());
     this.update();
@@ -1939,19 +2015,32 @@ class ComparisonDemo {
     const basicChunks = chunkDataBasic(this.data, minSize, this.avgSize, maxSize);
     const normalizedChunks = chunkData(this.data, minSize, this.avgSize, maxSize);
 
-    // Shared scale so both charts are visually comparable
-    const sharedMaxLen = Math.max(
-      ...basicChunks.map(c => c.length),
-      ...normalizedChunks.map(c => c.length)
+    // Fixed X range: largest possible chunk is max slider (128) * 3 = 384
+    const sharedMaxLen = this.fixedXMax;
+
+    // Compute KDE for both distributions
+    const basicSizes = basicChunks.map(c => c.length);
+    const normalizedSizes = normalizedChunks.map(c => c.length);
+
+    const basicBandwidth = silvermanBandwidth(basicSizes, this.avgSize);
+    const normBandwidth = silvermanBandwidth(normalizedSizes, this.avgSize);
+
+    const basicKDE = computeKDE(basicSizes, 100, 0, sharedMaxLen, basicBandwidth);
+    const normalizedKDE = computeKDE(normalizedSizes, 100, 0, sharedMaxLen, normBandwidth);
+
+    // Shared Y scale so density magnitudes are comparable
+    const sharedMaxDensity = Math.max(
+      ...basicKDE.map(p => p.y),
+      ...normalizedKDE.map(p => p.y)
     );
 
-    this.renderColumn(basicChunks, 'comparison-basic', sharedMaxLen);
-    this.renderColumn(normalizedChunks, 'comparison-normalized', sharedMaxLen);
+    this.renderColumn(basicChunks, 'comparison-basic', sharedMaxLen, basicKDE, sharedMaxDensity);
+    this.renderColumn(normalizedChunks, 'comparison-normalized', sharedMaxLen, normalizedKDE, sharedMaxDensity);
   }
 
-  renderColumn(chunks, prefix, sharedMaxLen) {
+  renderColumn(chunks, prefix, sharedMaxLen, kdePoints, sharedMaxDensity) {
     this.renderBlocks(chunks, document.getElementById(`${prefix}-blocks`));
-    this.renderDistribution(chunks, document.getElementById(`${prefix}-distribution`), sharedMaxLen);
+    this.renderDistribution(chunks, document.getElementById(`${prefix}-distribution`), kdePoints, sharedMaxDensity, sharedMaxLen);
     this.renderStats(chunks, prefix);
   }
 
@@ -1959,75 +2048,160 @@ class ComparisonDemo {
     if (!container) return;
     clearElement(container);
 
+    const fixedMax = this.fixedXMax;
+    const maxBlockHeight = 64;
+
     chunks.forEach((chunk, i) => {
       const wrapper = document.createElement('div');
       wrapper.className = 'cdc-block-wrapper';
-      wrapper.style.flex = `${chunk.length} 0 0`;
+      wrapper.style.flex = `${chunk.length} 1 0`;
 
       const block = document.createElement('div');
       block.className = 'cdc-block';
       block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.style.height = `${Math.max(3, (chunk.length / fixedMax) * maxBlockHeight)}px`;
       block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
       wrapper.appendChild(block);
 
-      const annotation = document.createElement('div');
-      annotation.className = 'cdc-block-annotation';
-
-      const line = document.createElement('div');
-      line.className = 'cdc-block-line';
-      annotation.appendChild(line);
-
-      const tick = document.createElement('div');
-      tick.className = 'cdc-block-tick';
-      annotation.appendChild(tick);
-
-      const label = document.createElement('div');
-      label.className = 'cdc-block-label';
-      label.textContent = `${chunk.length}B`;
-      annotation.appendChild(label);
-
-      wrapper.appendChild(annotation);
       container.appendChild(wrapper);
     });
+
+    // Horizontal dashed target line across all blocks
+    const targetLine = document.createElement('div');
+    targetLine.className = 'cdc-blocks-target-line';
+    const targetBlockHeight = (this.avgSize / fixedMax) * maxBlockHeight;
+    // 8px = container bottom padding (0.5rem)
+    targetLine.style.bottom = `${8 + targetBlockHeight}px`;
+    container.appendChild(targetLine);
   }
 
-  renderDistribution(chunks, container, sharedMaxLen) {
+  renderDistribution(chunks, container, kdePoints, sharedMaxDensity, sharedMaxLen) {
     if (!container) return;
     clearElement(container);
 
-    if (chunks.length === 0) return;
+    if (chunks.length === 0 || kdePoints.length === 0) return;
 
-    const maxLen = sharedMaxLen || Math.max(...chunks.map(c => c.length));
-    const chartHeight = 120;
+    // Add kde-specific class to override parametric-distribution-chart defaults
+    container.classList.add('kde-distribution-chart');
 
-    // Dashed reference line at target avg height
-    const refFraction = Math.min(this.avgSize / maxLen, 1);
-    const refBottom = refFraction * chartHeight;
-    const refLine = document.createElement('div');
-    refLine.className = 'parametric-dist-reference';
-    refLine.style.bottom = `${refBottom}px`;
+    // Create wrapper div for the plot area (margins leave room for axis labels)
+    const wrapper = document.createElement('div');
+    wrapper.className = 'kde-chart-wrapper';
+    container.appendChild(wrapper);
 
-    const refLabel = document.createElement('span');
-    refLabel.className = 'parametric-dist-reference-label';
-    refLabel.textContent = `target: ${this.avgSize}B`;
-    refLine.appendChild(refLabel);
-    container.appendChild(refLine);
+    const svgW = 400;
+    const svgH = 120;
 
-    // One bar per chunk
-    chunks.forEach((chunk, i) => {
-      const bar = document.createElement('div');
-      bar.className = 'parametric-dist-bar';
-      const fraction = chunk.length / maxLen;
-      bar.style.height = `${Math.max(fraction * 100, 2)}%`;
-      bar.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+    const svg = createSVGElement('svg');
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.classList.add('kde-chart-svg');
 
-      const tooltip = document.createElement('div');
-      tooltip.className = 'parametric-dist-tooltip';
-      tooltip.textContent = `${chunk.length} bytes`;
-      bar.appendChild(tooltip);
+    // Compute nice axis ticks, then use the last tick as the axis extent
+    // so the data sits within clean axis bounds
+    const dataMaxDensity = sharedMaxDensity || Math.max(...kdePoints.map(p => p.y));
+    const dataXMax = sharedMaxLen || Math.max(...kdePoints.map(p => p.x));
 
-      container.appendChild(bar);
+    const xTicks = niceAxisTicks(dataXMax, 6);
+    const yTicks = niceAxisTicks(dataMaxDensity, 3);
+
+    const xMax = xTicks[xTicks.length - 1];
+    const maxDensity = yTicks[yTicks.length - 1];
+
+    // Build the filled area path under the KDE curve
+    let d = `M 0 ${svgH}`;
+    kdePoints.forEach(p => {
+      const px = (p.x / xMax) * svgW;
+      const py = svgH - (p.y / maxDensity) * svgH;
+      d += ` L ${px.toFixed(2)} ${py.toFixed(2)}`;
     });
+    d += ` L ${((kdePoints[kdePoints.length - 1]?.x || 0) / xMax * svgW).toFixed(2)} ${svgH} Z`;
+
+    const path = createSVGElement('path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'rgba(196, 90, 59, 0.15)');
+    path.setAttribute('stroke', '#c45a3b');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('vector-effect', 'non-scaling-stroke');
+    svg.appendChild(path);
+
+    // Dashed vertical reference line at target average
+    const refX = (this.avgSize / xMax) * svgW;
+    const refLine = createSVGElement('line');
+    refLine.setAttribute('x1', refX.toFixed(2));
+    refLine.setAttribute('y1', '0');
+    refLine.setAttribute('x2', refX.toFixed(2));
+    refLine.setAttribute('y2', String(svgH));
+    refLine.setAttribute('stroke', 'rgba(196, 90, 59, 0.5)');
+    refLine.setAttribute('stroke-width', '2');
+    refLine.setAttribute('stroke-dasharray', '6 4');
+    refLine.setAttribute('vector-effect', 'non-scaling-stroke');
+    svg.appendChild(refLine);
+
+    // SVG tick marks at axis edges
+    xTicks.forEach(v => {
+      const tx = (v / xMax) * svgW;
+      const tick = createSVGElement('line');
+      tick.setAttribute('x1', tx.toFixed(2));
+      tick.setAttribute('y1', String(svgH - 4));
+      tick.setAttribute('x2', tx.toFixed(2));
+      tick.setAttribute('y2', String(svgH));
+      tick.setAttribute('stroke', 'rgba(196, 90, 59, 0.3)');
+      tick.setAttribute('stroke-width', '1');
+      tick.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(tick);
+    });
+
+    yTicks.forEach(v => {
+      const ty = svgH - (v / maxDensity) * svgH;
+      const tick = createSVGElement('line');
+      tick.setAttribute('x1', '0');
+      tick.setAttribute('y1', ty.toFixed(2));
+      tick.setAttribute('x2', '4');
+      tick.setAttribute('y2', ty.toFixed(2));
+      tick.setAttribute('stroke', 'rgba(196, 90, 59, 0.3)');
+      tick.setAttribute('stroke-width', '1');
+      tick.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(tick);
+    });
+
+    wrapper.appendChild(svg);
+
+    // X-axis tick labels (HTML to avoid SVG text distortion)
+    xTicks.forEach(v => {
+      const label = document.createElement('span');
+      label.className = 'kde-tick kde-tick-x';
+      label.textContent = String(Math.round(v));
+      label.style.left = `${(v / xMax) * 100}%`;
+      wrapper.appendChild(label);
+    });
+
+    // Y-axis tick labels
+    yTicks.forEach(v => {
+      const label = document.createElement('span');
+      label.className = 'kde-tick kde-tick-y';
+      label.textContent = v === 0 ? '0' : parseFloat(v.toPrecision(2));
+      label.style.top = `${(1 - v / maxDensity) * 100}%`;
+      wrapper.appendChild(label);
+    });
+
+    // Axis title labels
+    const xTitle = document.createElement('span');
+    xTitle.className = 'kde-axis-title kde-axis-title-x';
+    xTitle.textContent = 'chunk size (bytes)';
+    wrapper.appendChild(xTitle);
+
+    const yTitle = document.createElement('span');
+    yTitle.className = 'kde-axis-title kde-axis-title-y';
+    yTitle.textContent = 'density';
+    wrapper.appendChild(yTitle);
+
+    // Reference label inside wrapper
+    const refLabel = document.createElement('span');
+    refLabel.className = 'kde-ref-label';
+    refLabel.textContent = `target: ${this.avgSize}B`;
+    refLabel.style.left = `${(this.avgSize / xMax) * 100}%`;
+    wrapper.appendChild(refLabel);
   }
 
   renderStats(chunks, prefix) {

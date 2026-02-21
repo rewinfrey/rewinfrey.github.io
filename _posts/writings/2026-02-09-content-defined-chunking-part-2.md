@@ -1420,6 +1420,103 @@ categories:
   user-select: none;
 }
 
+/* KDE density curve (ComparisonDemo) */
+
+/* Override container when used for KDE */
+.kde-distribution-chart {
+  display: block;
+  height: 170px;
+  padding: 0;
+  margin-top: 0.75rem;
+}
+
+/* Plot area wrapper */
+.kde-chart-wrapper {
+  position: absolute;
+  top: 0;
+  left: 52px;
+  right: 5px;
+  bottom: 30px;
+  overflow: visible;
+}
+
+/* SVG fills the wrapper */
+.kde-chart-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tick labels (shared) */
+.kde-tick {
+  position: absolute;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* X-axis ticks: below the chart */
+.kde-tick-x {
+  bottom: 0;
+  transform: translate(-50%, calc(100% + 2px));
+}
+
+/* Y-axis ticks: left of the chart */
+.kde-tick-y {
+  left: 0;
+  transform: translate(calc(-100% - 4px), -50%);
+  text-align: right;
+}
+
+/* Axis title labels */
+.kde-axis-title {
+  position: absolute;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* X-axis title: centered below ticks */
+.kde-axis-title-x {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, calc(100% + 16px));
+}
+
+/* Y-axis title: rotated, centered left of ticks */
+.kde-axis-title-y {
+  top: 50%;
+  left: 0;
+  transform: translate(calc(-100% - 30px), -50%) rotate(-90deg);
+  transform-origin: center center;
+}
+
+/* Caption below charts explaining density */
+.kde-caption {
+  font-size: 0.78rem;
+  color: #8b7355;
+  text-align: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+/* Reference label inside wrapper */
+.kde-ref-label {
+  position: absolute;
+  top: 0;
+  margin-left: 5px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #c45a3b;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* Parametric Chunking Explorer - distribution chart */
 .parametric-distribution-chart {
   position: relative;
@@ -1558,6 +1655,9 @@ categories:
 }
 
 .comparison-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 0.95rem;
   font-weight: 600;
@@ -1565,6 +1665,10 @@ categories:
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(61, 58, 54, 0.1);
   margin-bottom: 0.75rem;
+}
+
+.comparison-label-text {
+  white-space: nowrap;
 }
 
 .comparison-sublabel {
@@ -1575,13 +1679,52 @@ categories:
 
 .comparison-col {
   min-width: 0;
+  overflow: visible;
+}
+
+.comparison-col .cdc-blocks-view {
+  overflow: hidden;
+  height: 76px;
+  position: relative;
+}
+
+.comparison-col .cdc-block-wrapper {
+  min-width: 0;
   overflow: hidden;
 }
 
-.comparison-stats {
-  grid-template-columns: repeat(4, 1fr);
-  width: 100%;
-  box-sizing: border-box;
+.comparison-col .cdc-block {
+  margin-top: auto;
+}
+
+.cdc-blocks-target-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed rgba(61, 58, 54, 0.7);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.comparison-summary {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #8b7355;
+}
+
+.comparison-summary span {
+  color: #c45a3b;
+  font-weight: 600;
+}
+
+.comparison-blocks-hint {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #a09080;
+  margin-top: 0.35rem;
+  line-height: 1.35;
 }
 
 /* Mobile responsive */
@@ -2224,6 +2367,10 @@ The 2020 optimization increases chunking throughput by 30-40% over the 2016 vers
 The target average chunk size is the primary parameter when configuring FastCDC. A smaller average means more chunks (better deduplication granularity but more metadata), while a larger average means fewer chunks (less overhead but coarser deduplication). Drag the slider below to see how FastCDC re-chunks the same text at different target sizes:
 
 <div class="cdc-viz" id="parametric-demo">
+  <div class="cdc-viz-header">
+    <div class="cdc-viz-title">Parametric Chunking Explorer</div>
+    <p class="cdc-viz-hint">See how target average size affects chunk boundaries and size distribution.</p>
+  </div>
   <!-- Slider control -->
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -2275,68 +2422,50 @@ Notice how the dual-mask strategy keeps chunk sizes clustered around the target 
 
 To see why normalization matters, consider what a single mask does. Basic CDC checks the same bit pattern from minimum size all the way to maximum size. Each byte after the minimum has an independent 1/avgSize probability of triggering a boundary. Because the algorithm cuts at the *first* match, most chunks end early: the chance of reaching any given byte without a match drops exponentially. This produces a geometric distribution skewed toward small chunks, with a few chunks surviving long enough to reach the maximum size. The FastCDC paper addresses this with normalization levels (NC1 through NC3), which control how aggressively the two masks differ from the base probability. At NC2 (the paper's recommended level), the strict mask is 4x harder to trigger than the single-mask baseline, suppressing early cuts below the target average, while the loose mask is 4x easier, catching chunks shortly after they pass it. The result is a tight cluster around the target rather than a skewed spread.
 
-Compare the two approaches below. Both chunk the same 8 KB of pseudo-random bytes (generated from a fixed seed), using the same Gear hash and the same target parameters. The only difference is how the mask is applied. Random data makes the statistical properties of each algorithm clearly visible because natural language text has too much structure to reveal the distribution shapes at this scale:
+Compare the two approaches below. Both chunk the same 8 KB of pseudo-random bytes (generated from a fixed seed), using the same Gear hash and the same target parameters. The only difference is how the mask is applied. Random data makes the statistical properties of each algorithm clearly visible because natural language text has too much structure to reveal the distribution shapes at this scale.
+
+The density curve beneath each chunked block view shows the distribution of chunk sizes: the horizontal axis is chunk size in bytes, the vertical axis is how likely a chunk of that size is, and the dashed line marks the target average. A tall, narrow peak means most chunks land near the same size; a long tail trailing to the right means many chunks end up much larger than the target:
 
 <div class="cdc-viz" id="comparison-demo">
+  <div class="cdc-viz-header">
+    <div class="cdc-viz-title">Basic vs Normalized Chunk Size Distribution</div>
+    <p class="cdc-viz-hint">Compare how single-mask and dual-mask strategies distribute chunk sizes across the same data.</p>
+  </div>
   <!-- Shared slider -->
   <div class="parametric-control-row">
     <span class="parametric-control-label">
-      Target Average: <strong id="comparison-slider-value">32</strong> bytes
+      Target Average: <strong id="comparison-slider-value">88</strong> bytes
     </span>
-    <input type="range" id="comparison-slider" min="16" max="128" value="32" step="2">
-    <span class="parametric-derived-params" id="comparison-derived-params">(min: 16, max: 96)</span>
+    <input type="range" id="comparison-slider" min="48" max="128" value="88" step="2">
+    <span class="parametric-derived-params" id="comparison-derived-params">(min: 44, max: 264)</span>
   </div>
 
   <!-- Two-column comparison -->
   <div class="comparison-columns">
     <!-- Left: Basic CDC -->
     <div class="comparison-col">
-      <div class="comparison-label">Basic CDC <span class="comparison-sublabel">(Single Mask)</span></div>
-      <div id="comparison-basic-blocks" class="cdc-blocks-view"></div>
-      <div id="comparison-basic-distribution" class="parametric-distribution-chart"></div>
-      <div id="comparison-basic-stats" class="cdc-stats comparison-stats">
-        <div class="cdc-stat">
-          <div id="comparison-basic-stat-count" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Chunks</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-basic-stat-actual" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Actual Avg</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-basic-stat-min" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Smallest</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-basic-stat-max" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Largest</div>
-        </div>
+      <div class="comparison-label"><span class="comparison-label-text">Basic CDC <span class="comparison-sublabel">(Single Mask)</span></span>
+        <span class="comparison-summary" id="comparison-basic-stats">
+          <span id="comparison-basic-stat-count">--</span> chunks · avg <span id="comparison-basic-stat-actual">--</span> · min <span id="comparison-basic-stat-min">--</span> · max <span id="comparison-basic-stat-max">--</span>
+        </span>
       </div>
+      <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
+      <div id="comparison-basic-blocks" class="cdc-blocks-view"></div>
+      <div class="comparison-blocks-hint">Density curve: higher peaks mean more chunks of that size. Dashed line marks the target average.</div>
+      <div id="comparison-basic-distribution" class="parametric-distribution-chart"></div>
     </div>
 
     <!-- Right: Normalized CDC -->
     <div class="comparison-col">
-      <div class="comparison-label">Normalized CDC <span class="comparison-sublabel">(Dual Mask)</span></div>
-      <div id="comparison-normalized-blocks" class="cdc-blocks-view"></div>
-      <div id="comparison-normalized-distribution" class="parametric-distribution-chart"></div>
-      <div id="comparison-normalized-stats" class="cdc-stats comparison-stats">
-        <div class="cdc-stat">
-          <div id="comparison-normalized-stat-count" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Chunks</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-normalized-stat-actual" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Actual Avg</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-normalized-stat-min" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Smallest</div>
-        </div>
-        <div class="cdc-stat">
-          <div id="comparison-normalized-stat-max" class="cdc-stat-value">--</div>
-          <div class="cdc-stat-label">Largest</div>
-        </div>
+      <div class="comparison-label"><span class="comparison-label-text">Normalized CDC <span class="comparison-sublabel">(Dual Mask)</span></span>
+        <span class="comparison-summary" id="comparison-normalized-stats">
+          <span id="comparison-normalized-stat-count">--</span> chunks · avg <span id="comparison-normalized-stat-actual">--</span> · min <span id="comparison-normalized-stat-min">--</span> · max <span id="comparison-normalized-stat-max">--</span>
+        </span>
       </div>
+      <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
+      <div id="comparison-normalized-blocks" class="cdc-blocks-view"></div>
+      <div class="comparison-blocks-hint">Density curve: higher peaks mean more chunks of that size. Dashed line marks the target average.</div>
+      <div id="comparison-normalized-distribution" class="parametric-distribution-chart"></div>
     </div>
   </div>
 </div>
