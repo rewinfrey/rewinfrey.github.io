@@ -1870,18 +1870,18 @@ One fix is to reduce the granularity of comparison. Instead of hashing a file as
 
 ### Why Not Just Use Fixed-Size Chunks?
 
-The naive approach to chunking is fixed-size splitting: choose a chunk size, say 4KB, and split the file at every 4KB boundary. A 1MB file becomes 256 chunks of 4KB each. This approach is conceptually simple, but is problematic if we want to prevent **change amplification**, or invalidating chunks of unchanged content when small edits occur. Using this naive chunking strategy, let's see what happens to unchanged chunks when a small edit occurs at the beginning of a file:
+The naive approach to chunking is fixed-size splitting: choose a chunk size, say 4KB, and split the file at every 4KB boundary. A 1MB file becomes 256 chunks of 4KB each. This approach is conceptually simple, but is problematic if we want to prevent **change amplification** -- the invalidation of unchanged chunks when small edits occur. Using this naive chunking strategy, let's see what happens to unchanged chunks when a small edit occurs at the beginning of a file:
 
 <div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
   <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
   <!-- Populated dynamically by ChunkComparisonDemo -->
 </div>
 
-Inserting "NEW INTRO." at the beginning of the file causes every chunk boundary to shift, invalidating all five original chunks. The result is five new chunks and zero unchanged chunks, producing a deduplication ratio of 0%. In practice, this means the entire file would need to be stored again, even though most of its content did not change. We need a chunking strategy whose boundaries are not fixed in size, and that offers more flexibility to identify split points that better preserve unchanged chunks.
+Inserting "NEW INTRO." at the beginning of the file causes every chunk boundary to shift, invalidating all five original chunks. The result is five new chunks and zero unchanged chunks, producing a deduplication ratio of 0%. In practice, this means the entire file would need to be stored again, even though most of its content did not change. We need a chunking strategy whose boundaries are not determined by fixed byte offsets, and that offers more flexibility to identify split points that better preserve unchanged chunks.
 
 ### The Core Idea: Content as the Arbiter
 
-How does CDC decide where to split? The details vary across the various CDC algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
+How does CDC decide where to split? The details vary across CDC algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
 
 Let's revisit the same example from before, but this time we split the text at sentence boundaries. Each sentence ending (a period, exclamation mark, or question mark followed by a space) defines a chunk boundary. Because the boundary is determined by the content itself, not by a fixed byte count, inserting text at the beginning of the file does not invalidate existing unchanged chunks.
 
@@ -1925,7 +1925,7 @@ if ((fingerprint % 8192) == 0x78) {
 }
 {% endhighlight %}
 
-The deduplication era of 2005-2015 drove an explosion of CDC research. Systems like **Data Domain**, **Dropbox**, and **Borg** all relied on CDC, and researchers responded with faster hash functions, better chunk size distributions, and entirely new approaches to finding boundaries. By the mid-2010s, what had been a single technique had branched into a family of algorithms with fundamentally different strategies.
+The deduplication era of 2005-2015 drove an explosion of CDC research. Systems like **Data Domain**, **Dropbox**, and **Borg** all relied on CDC, and researchers responded with faster hash functions, better chunk size distributions, and entirely new approaches to finding boundaries. By the mid-2010s, what had been a single technique branched into a family of algorithms with fundamentally different strategies.
 
 ### A Taxonomy of CDC Algorithms
 
@@ -1936,7 +1936,7 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <thead>
       <tr>
         <th></th>
-        <th class="bsw">BSW</th>
+        <th class="bsw">BSW (Byte-Sliding Window)</th>
         <th class="extrema">Local Extrema</th>
         <th class="statistical">Statistical</th>
       </tr>
@@ -1944,8 +1944,8 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
     <tbody>
       <tr>
         <td class="row-label">Algorithms</td>
-        <td>Rabin <span class="algo-year">1981</span>, Buzhash <span class="algo-year">1997</span>, Gear <span class="algo-year">2014</span>, PCI <span class="algo-year">2020</span></td>
-        <td>AE <span class="algo-year">2015</span>, RAM <span class="algo-year">2017</span>, MII <span class="algo-year">2019</span></td>
+        <td>Rabin <span class="algo-year">1981</span>, Buzhash <span class="algo-year">1997</span>, Gear <span class="algo-year">2014</span>, FastCDC <span class="algo-year">2016</span>, PCI <span class="algo-year">2020</span></td>
+        <td>AE <span class="algo-year">2015</span>, RAM <span class="algo-year">2017</span>, MII <span class="algo-year">2019</span>, VectorCDC <span class="algo-year">2025</span></td>
         <td>BFBC <span class="algo-year">2020</span></td>
       </tr>
       <tr>
@@ -2020,10 +2020,10 @@ A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href=
         <label for="tab-rabin-4">Analysis</label>
         <div class="cdc-tl-tab-content">
           <div class="cdc-tl-tab-panel">
-            <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> (the Galois field with two elements) where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity: the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
+            <div class="cdc-tl-desc">The foundational rolling hash for CDC. Rabin's fingerprint operates over <em>GF(2)</em> (the Galois field with two elements) where all arithmetic reduces to XOR and carry-less multiplication. The key insight: the hash of a sliding window can be updated in <em>O(1)</em> by removing the outgoing byte's contribution and adding the incoming byte's, without recomputing from scratch. This was the first practical rolling hash with provable uniformity: the probability of two distinct <em>k</em>-byte strings colliding is at most <em>k/2<sup>d</sup></em> for an irreducible polynomial of degree <em>d</em>. The polynomial arithmetic makes it slower than later alternatives, but its mathematical foundation remains unmatched.</div>
           </div>
           <div class="cdc-tl-tab-panel">
-            <div class="cdc-tl-desc">Used in <strong>Restic</strong> backup and <strong>LBFS</strong>.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> Restic generates a random irreducible polynomial of degree 53 per repository, so that chunk boundaries cannot be predicted from known content. Rabin's provable collision bound -- at most <em>k/p</em> for an irreducible polynomial of degree <em>p</em> -- makes it the choice when formal hash uniformity guarantees are needed.</div>
+            <div class="cdc-tl-desc">Used in <strong>Restic</strong> backup and <strong>LBFS</strong>.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> Restic generates a random irreducible polynomial of degree 53 per repository, so that chunk boundaries cannot be predicted from known content. Rabin's provable collision bound -- at most <em>k/2<sup>d</sup></em> for an irreducible polynomial of degree <em>d</em> -- makes it the choice when formal hash uniformity guarantees are needed.</div>
           </div>
           <div class="cdc-tl-tab-panel">
 {% highlight c linenos %}
@@ -2408,7 +2408,7 @@ for (size_t i = 0; i < len; i++) {
             <div class="cdc-tl-desc">A fundamentally different two-pass approach. In the first pass, BFBC scans the data and builds a frequency table of all <strong>byte pairs</strong> (digrams), then selects the top-<em>k</em> most common pairs. In the second pass, it scans linearly and declares a boundary whenever one of these high-frequency digrams appears (subject to min/max constraints). The insight: common digrams are inherently content-defined and recur consistently regardless of insertions or deletions elsewhere, serving as natural landmarks. Once the frequency table is built, the boundary detection pass is a simple table lookup per position. The fundamental trade-off: the pre-scan makes it <strong>unsuitable for streaming</strong>, and on high-entropy data (compressed files, encrypted content) the digram frequencies flatten out, destroying the algorithm's ability to find meaningful boundaries.</div>
           </div>
           <div class="cdc-tl-tab-panel">
-            <div class="cdc-tl-desc">Reported 10&times; faster chunking than Rabin-based BSW and 3&times; faster than TTTD (Two Thresholds Two Divisors).<span class="cdc-cite"><a href="#ref-11">[11]</a></span> Best suited for batch processing of known file types where the two-pass cost is acceptable. Works well when digram distributions are stable and distinctive, such as structured documents or source code. Unsuitable for streaming or encrypted/compressed data where digram frequencies flatten out.</div>
+            <div class="cdc-tl-desc">Reported 10&times; faster chunking than Rabin-based BSW and 3&times; faster than TTTD (Two Thresholds Two Divisors).<span class="cdc-cite"><a href="#ref-11">[11]</a></span> Best suited for batch processing of known file types where the two-pass cost is acceptable. Works well when digram distributions are stable and distinctive, such as structured documents or source code.</div>
           </div>
           <div class="cdc-tl-tab-panel">
 {% highlight c linenos %}
@@ -2457,7 +2457,7 @@ for (size_t i = min; i < len - 1; i++) {
             <div class="cdc-tl-desc">Demonstrates that Local Extrema algorithms are <strong>inherently SIMD-parallel</strong> in a way hash-based algorithms are not. Finding a local maximum across a window of bytes is a parallel comparison, exactly what SSE/AVX packed-max and packed-compare instructions are designed for. VectorCDC loads 16 bytes (SSE) or 32 bytes (AVX2) into a vector register and uses <code>_mm256_max_epu8</code> to compare all bytes simultaneously, extracting boundary candidates via <code>movemask</code>. Hash-based algorithms resist this because each hash update depends sequentially on the previous one. The VRAM variant (vectorized RAM) achieves <strong>16-42&times;</strong> throughput over scalar implementations, approaching memory bandwidth limits (~10-15 GB/s). Deduplication ratios remain identical since the boundary decisions are mathematically equivalent.</div>
           </div>
           <div class="cdc-tl-tab-panel">
-            <div class="cdc-tl-desc">VRAM (vectorized RAM) achieves <strong>6.5-30 GB/s</strong> with AVX-512, a 17&times; speedup over scalar RAM, approaching memory bandwidth limits.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> Tested across 10 workloads spanning VM backups, database snapshots, source code repositories, and web archives. Deduplication ratios remain identical since the boundary decisions are mathematically equivalent to the scalar algorithms.</div>
+            <div class="cdc-tl-desc">VRAM (vectorized RAM) achieves <strong>6.5-30 GB/s</strong> with AVX-512, a 17&times; speedup over scalar RAM, approaching memory bandwidth limits.<span class="cdc-cite"><a href="#ref-13">[13]</a></span> Tested across 10 workloads spanning VM backups, database snapshots, source code repositories, and web archives. Because the boundary decisions are mathematically identical to the scalar algorithms, VectorCDC is a drop-in replacement that trades only wider SIMD hardware requirements for higher throughput.</div>
           </div>
           <div class="cdc-tl-tab-panel">
 {% highlight c linenos %}
