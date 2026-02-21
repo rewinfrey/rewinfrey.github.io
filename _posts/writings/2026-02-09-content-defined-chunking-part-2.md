@@ -1719,6 +1719,50 @@ categories:
   font-weight: 600;
 }
 
+.parametric-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.parametric-section-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3d3a36;
+  white-space: nowrap;
+}
+
+#parametric-blocks-bar {
+  height: 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block-wrapper {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block {
+  margin-top: auto;
+}
+
+.parametric-summary {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin-bottom: 0.5rem;
+}
+
+.parametric-summary span {
+  color: #c45a3b;
+  font-weight: 600;
+}
+
 .comparison-blocks-hint {
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 0.65rem;
@@ -2374,48 +2418,24 @@ The target average chunk size is the primary parameter when configuring FastCDC.
   <!-- Slider control -->
   <div class="parametric-control-row">
     <span class="parametric-control-label">
-      Target Average: <strong id="parametric-slider-value">32</strong> bytes
+      Target Average: <strong id="parametric-slider-value">88</strong> bytes
     </span>
-    <input type="range" id="parametric-slider" min="16" max="128" value="32" step="2">
-    <span class="parametric-derived-params" id="parametric-derived-params">(min: 16, max: 96)</span>
+    <input type="range" id="parametric-slider" min="48" max="128" value="88" step="2">
+    <span class="parametric-derived-params" id="parametric-derived-params">(min: 44, max: 264)</span>
   </div>
 
   <!-- Text with chunk highlighting -->
   <div id="parametric-text-display" class="cdc-content cdc-text-view"></div>
 
-  <!-- Proportional blocks bar -->
+  <!-- Chunk summary section -->
+  <div class="parametric-section-header">
+    <div class="parametric-section-title">Chunk Summary</div>
+    <div class="parametric-summary">
+      <span id="parametric-stat-count">--</span> chunks · target <span id="parametric-stat-target">--</span> · avg <span id="parametric-stat-actual">--</span> · min <span id="parametric-stat-min">--</span> · max <span id="parametric-stat-max">--</span>
+    </div>
+  </div>
+  <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
   <div id="parametric-blocks-bar" class="cdc-blocks-view"></div>
-
-  <!-- Vertical bar distribution chart -->
-  <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-    <div class="cdc-viz-title">Chunk Size Distribution</div>
-    <p class="cdc-viz-hint">Each bar is one chunk. Height shows relative size. Dashed line marks the target average.</p>
-  </div>
-  <div id="parametric-distribution" class="parametric-distribution-chart"></div>
-
-  <!-- Stats -->
-  <div id="parametric-stats" class="cdc-stats">
-    <div class="cdc-stat">
-      <div id="parametric-stat-count" class="cdc-stat-value">--</div>
-      <div class="cdc-stat-label">Chunks</div>
-    </div>
-    <div class="cdc-stat">
-      <div id="parametric-stat-target" class="cdc-stat-value">--</div>
-      <div class="cdc-stat-label">Target Avg</div>
-    </div>
-    <div class="cdc-stat">
-      <div id="parametric-stat-actual" class="cdc-stat-value">--</div>
-      <div class="cdc-stat-label">Actual Avg</div>
-    </div>
-    <div class="cdc-stat">
-      <div id="parametric-stat-min" class="cdc-stat-value">--</div>
-      <div class="cdc-stat-label">Smallest</div>
-    </div>
-    <div class="cdc-stat">
-      <div id="parametric-stat-max" class="cdc-stat-value">--</div>
-      <div class="cdc-stat-label">Largest</div>
-    </div>
-  </div>
 </div>
 
 Notice how the dual-mask strategy keeps chunk sizes clustered around the target average. At small targets (16-32 bytes) you get many chunks, and the distribution chart reveals the normalized shape. At large targets (96-128 bytes) the entire text may collapse into just a few chunks.
@@ -2471,6 +2491,10 @@ The density curve beneath each chunked block view shows the distribution of chun
 </div>
 
 Basic CDC's single mask produces chunks that follow an exponential distribution: many small chunks and a long tail of large ones. FastCDC's dual-mask normalization clusters chunks tightly around the target average, reducing both extremes. This narrower distribution means less wasted metadata on tiny chunks and fewer oversized chunks that dilute deduplication.
+
+FastCDC gives us a chunking algorithm that is fast, produces well-distributed chunk sizes, and, most importantly, generates stable boundaries that survive local edits. But chunking is only the first stage of a deduplication pipeline. Once data is split into chunks, each chunk needs a cryptographic fingerprint, those fingerprints need to be indexed and looked up efficiently, and duplicate chunks need to be eliminated during storage or transmission. The choices made at each stage (hash function, index structure, storage layout) interact with the chunking layer in ways that matter for real-world performance.
+
+In the next post, [Part 3: Deduplication in Action](/writings/content-defined-chunking-part-3), we'll build on FastCDC to walk through a complete deduplication pipeline: from fingerprinting chunks and detecting duplicates, to managing chunk references and reclaiming storage when data is deleted.
 
 ---
 

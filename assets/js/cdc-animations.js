@@ -1723,7 +1723,7 @@ class ParametricChunkingDemo {
     this.encoder = new TextEncoder();
     this.inputText = PARAMETRIC_INPUT_TEXT;
     this.data = this.encoder.encode(this.inputText);
-    this.avgSize = 32;
+    this.avgSize = 88;
     this.hoveredChunk = null;
 
     this.init();
@@ -1731,11 +1731,12 @@ class ParametricChunkingDemo {
 
   init() {
     this.slider = document.getElementById('parametric-slider');
+    const sliderMax = parseInt(this.slider?.max || '128');
+    this.fixedXMax = sliderMax * 3;
     this.sliderValue = document.getElementById('parametric-slider-value');
     this.derivedParams = document.getElementById('parametric-derived-params');
     this.textDisplay = document.getElementById('parametric-text-display');
     this.blocksBar = document.getElementById('parametric-blocks-bar');
-    this.distributionChart = document.getElementById('parametric-distribution');
     this.statCount = document.getElementById('parametric-stat-count');
     this.statTarget = document.getElementById('parametric-stat-target');
     this.statActual = document.getElementById('parametric-stat-actual');
@@ -1784,7 +1785,6 @@ class ParametricChunkingDemo {
 
     this.renderText(chunks);
     this.renderBlocks(chunks);
-    this.renderDistribution(chunks);
     this.renderStats(chunks);
   }
 
@@ -1806,15 +1806,20 @@ class ParametricChunkingDemo {
     if (!this.blocksBar) return;
     clearElement(this.blocksBar);
 
+    const fixedMax = this.fixedXMax;
+    const maxBlockHeight = 36;
+    const annotationHeight = 26;
+
     chunks.forEach((chunk, i) => {
       const wrapper = document.createElement('div');
       wrapper.className = 'cdc-block-wrapper';
       wrapper.dataset.chunkIndex = i;
-      wrapper.style.flex = `${chunk.length} 0 0`;
+      wrapper.style.flex = `${chunk.length} 1 0`;
 
       const block = document.createElement('div');
       block.className = 'cdc-block';
       block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.style.height = `${Math.max(3, (chunk.length / fixedMax) * maxBlockHeight)}px`;
       block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
       wrapper.appendChild(block);
 
@@ -1837,6 +1842,13 @@ class ParametricChunkingDemo {
       wrapper.appendChild(annotation);
       this.blocksBar.appendChild(wrapper);
     });
+
+    // Horizontal dashed target line
+    const targetLine = document.createElement('div');
+    targetLine.className = 'cdc-blocks-target-line';
+    const targetBlockHeight = (this.avgSize / fixedMax) * maxBlockHeight;
+    targetLine.style.bottom = `${8 + annotationHeight + targetBlockHeight}px`;
+    this.blocksBar.appendChild(targetLine);
   }
 
   renderDistribution(chunks) {
