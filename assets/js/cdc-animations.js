@@ -155,8 +155,8 @@ function findChunkBoundary(data, minSize, avgSize, maxSize) {
   }
 
   const bits = Math.floor(Math.log2(avgSize));
-  const maskS = MASKS[Math.min(bits + 1, MASKS.length - 1)];
-  const maskL = MASKS[Math.max(bits - 1, 0)];
+  const maskS = (1n << BigInt(bits + 2)) - 1n;
+  const maskL = (1n << BigInt(Math.max(bits - 2, 1))) - 1n;
 
   let remaining = Math.min(data.length, maxSize);
   let center = Math.min(avgSize, remaining);
@@ -182,6 +182,51 @@ function findChunkBoundary(data, minSize, avgSize, maxSize) {
   }
 
   return remaining;
+}
+
+/**
+ * Find chunk boundary using basic (non-normalized) CDC algorithm.
+ * Single mask applied from minSize to maxSize — produces an exponential
+ * chunk-size distribution, used here for comparison with FastCDC.
+ */
+function findChunkBoundaryBasic(data, minSize, avgSize, maxSize) {
+  if (data.length <= minSize) {
+    return data.length;
+  }
+
+  const bits = Math.floor(Math.log2(avgSize));
+  const mask = (1n << BigInt(bits)) - 1n;
+
+  let remaining = Math.min(data.length, maxSize);
+  let index = minSize;
+  let hash = 0n;
+
+  while (index < remaining) {
+    hash = ((hash << 1n) + GEAR[data[index] % 256]) & 0xffffffffn;
+    if ((hash & mask) === 0n) {
+      return index;
+    }
+    index++;
+  }
+
+  return remaining;
+}
+
+/**
+ * Chunk data using basic (non-normalized) CDC algorithm
+ */
+function chunkDataBasic(data, minSize, avgSize, maxSize) {
+  const chunks = [];
+  let offset = 0;
+
+  while (offset < data.length) {
+    const remaining = data.slice(offset);
+    const boundary = findChunkBoundaryBasic(remaining, minSize, avgSize, maxSize);
+    chunks.push({ offset, length: boundary });
+    offset += boundary;
+  }
+
+  return chunks;
 }
 
 /**
@@ -1847,6 +1892,166 @@ class ParametricChunkingDemo {
 }
 
 // =============================================================================
+// Basic vs Normalized CDC Comparison
+// =============================================================================
+
+/**
+ * Generate deterministic pseudo-random bytes using a simple xorshift32 PRNG.
+ * High entropy data makes the statistical difference between basic and
+ * normalized CDC much more visible than natural language text.
+ */
+function generateComparisonData(size, seed) {
+  let state = seed >>> 0 || 1;
+  const data = new Uint8Array(size);
+  for (let i = 0; i < size; i++) {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    data[i] = (state >>> 0) & 0xff;
+  }
+  return data;
+}
+
+class ComparisonDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.data = generateComparisonData(8192, 0xdeadbeef);
+    this.avgSize = 32;
+
+    this.slider = document.getElementById('comparison-slider');
+    this.sliderValue = document.getElementById('comparison-slider-value');
+    this.derivedParams = document.getElementById('comparison-derived-params');
+
+    this.slider?.addEventListener('input', () => this.update());
+    this.update();
+  }
+
+  update() {
+    this.avgSize = parseInt(this.slider.value);
+    const minSize = Math.max(4, Math.floor(this.avgSize / 2));
+    const maxSize = this.avgSize * 3;
+
+    if (this.sliderValue) this.sliderValue.textContent = this.avgSize;
+    if (this.derivedParams) this.derivedParams.textContent = `(min: ${minSize}, max: ${maxSize})`;
+
+    const basicChunks = chunkDataBasic(this.data, minSize, this.avgSize, maxSize);
+    const normalizedChunks = chunkData(this.data, minSize, this.avgSize, maxSize);
+
+    // Shared scale so both charts are visually comparable
+    const sharedMaxLen = Math.max(
+      ...basicChunks.map(c => c.length),
+      ...normalizedChunks.map(c => c.length)
+    );
+
+    this.renderColumn(basicChunks, 'comparison-basic', sharedMaxLen);
+    this.renderColumn(normalizedChunks, 'comparison-normalized', sharedMaxLen);
+  }
+
+  renderColumn(chunks, prefix, sharedMaxLen) {
+    this.renderBlocks(chunks, document.getElementById(`${prefix}-blocks`));
+    this.renderDistribution(chunks, document.getElementById(`${prefix}-distribution`), sharedMaxLen);
+    this.renderStats(chunks, prefix);
+  }
+
+  renderBlocks(chunks, container) {
+    if (!container) return;
+    clearElement(container);
+
+    chunks.forEach((chunk, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cdc-block-wrapper';
+      wrapper.style.flex = `${chunk.length} 0 0`;
+
+      const block = document.createElement('div');
+      block.className = 'cdc-block';
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
+      wrapper.appendChild(block);
+
+      const annotation = document.createElement('div');
+      annotation.className = 'cdc-block-annotation';
+
+      const line = document.createElement('div');
+      line.className = 'cdc-block-line';
+      annotation.appendChild(line);
+
+      const tick = document.createElement('div');
+      tick.className = 'cdc-block-tick';
+      annotation.appendChild(tick);
+
+      const label = document.createElement('div');
+      label.className = 'cdc-block-label';
+      label.textContent = `${chunk.length}B`;
+      annotation.appendChild(label);
+
+      wrapper.appendChild(annotation);
+      container.appendChild(wrapper);
+    });
+  }
+
+  renderDistribution(chunks, container, sharedMaxLen) {
+    if (!container) return;
+    clearElement(container);
+
+    if (chunks.length === 0) return;
+
+    const maxLen = sharedMaxLen || Math.max(...chunks.map(c => c.length));
+    const chartHeight = 120;
+
+    // Dashed reference line at target avg height
+    const refFraction = Math.min(this.avgSize / maxLen, 1);
+    const refBottom = refFraction * chartHeight;
+    const refLine = document.createElement('div');
+    refLine.className = 'parametric-dist-reference';
+    refLine.style.bottom = `${refBottom}px`;
+
+    const refLabel = document.createElement('span');
+    refLabel.className = 'parametric-dist-reference-label';
+    refLabel.textContent = `target: ${this.avgSize}B`;
+    refLine.appendChild(refLabel);
+    container.appendChild(refLine);
+
+    // One bar per chunk
+    chunks.forEach((chunk, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'parametric-dist-bar';
+      const fraction = chunk.length / maxLen;
+      bar.style.height = `${Math.max(fraction * 100, 2)}%`;
+      bar.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'parametric-dist-tooltip';
+      tooltip.textContent = `${chunk.length} bytes`;
+      bar.appendChild(tooltip);
+
+      container.appendChild(bar);
+    });
+  }
+
+  renderStats(chunks, prefix) {
+    if (chunks.length === 0) return;
+
+    const sizes = chunks.map(c => c.length);
+    const actualAvg = (sizes.reduce((a, b) => a + b, 0) / sizes.length).toFixed(1);
+    const minChunk = Math.min(...sizes);
+    const maxChunk = Math.max(...sizes);
+
+    const el = (id) => document.getElementById(id);
+    const countEl = el(`${prefix}-stat-count`);
+    const actualEl = el(`${prefix}-stat-actual`);
+    const minEl = el(`${prefix}-stat-min`);
+    const maxEl = el(`${prefix}-stat-max`);
+
+    if (countEl) countEl.textContent = chunks.length;
+    if (actualEl) actualEl.textContent = `${actualAvg}B`;
+    if (minEl) minEl.textContent = `${minChunk}B`;
+    if (maxEl) maxEl.textContent = `${maxChunk}B`;
+  }
+}
+
+// =============================================================================
 // Initialize on page load
 // =============================================================================
 
@@ -1866,6 +2071,9 @@ function initCDCAnimations() {
 
   // Parametric chunking explorer
   new ParametricChunkingDemo('parametric-demo');
+
+  // Basic vs Normalized comparison
+  new ComparisonDemo('comparison-demo');
 }
 
 // Auto-init when DOM is ready
@@ -1876,4 +2084,4 @@ if (document.readyState === 'loading') {
 }
 
 // Export for module usage
-export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, chunkData, chunkDataFixed, findChunkBoundary };
+export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, ComparisonDemo, chunkData, chunkDataBasic, chunkDataFixed, findChunkBoundary, findChunkBoundaryBasic };

@@ -1550,6 +1550,40 @@ categories:
   white-space: nowrap;
 }
 
+/* Basic vs Normalized Comparison */
+.comparison-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.comparison-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3d3a36;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  margin-bottom: 0.75rem;
+}
+
+.comparison-sublabel {
+  font-weight: 400;
+  color: #8b7355;
+  font-size: 0.85rem;
+}
+
+.comparison-col {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.comparison-stats {
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Mobile responsive */
 @media (max-width: 42em) {
   .cdc-controls {
@@ -1585,6 +1619,7 @@ categories:
     border-radius: 0;
     height: 12px;
   }
+
 }
 
 /* Series navigation */
@@ -1617,18 +1652,18 @@ MathJax = {
 Part 2 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
-In [Part 1](/writings/content-defined-chunking-part-1), we saw why fixed-size chunking fails for deduplication and how content-defined chunking solves the problem by letting the data itself determine chunk boundaries. We also surveyed three algorithm families (Basic Sliding Window, Local Extrema, and Statistical) and compared their trade-offs. In this post, we take a closer look at one BSW implementation, FastCDC, exploring its GEAR hash, boundary detection strategy, and tunable parameters through interactive demos.
+[Part 1](/writings/content-defined-chunking-part-1) introduced the deduplication problem, showed why fixed-size chunking fails, and surveyed three CDC algorithm families: Basic Sliding Window (BSW), Local Extrema, and Statistical. This post focuses on **FastCDC**, the most widely adopted BSW algorithm, exploring its Gear hash, normalized chunking strategy, and tunable parameters through interactive demos.
 
 ---
 
 ## A Closer Look at BSW via FastCDC
 
-FastCDC belongs to the **Basic Sliding Window** family, but it represents the modern state of the art within that lineage. Where Rabin used polynomial arithmetic and Buzhash used cyclic shifts, FastCDC's Gear hash strips the rolling hash down to its simplest possible form. Let's explore both the 2016<span class="cdc-cite"><a href="#ref-5">[5]</a></span> and 2020<span class="cdc-cite"><a href="#ref-6">[6]</a></span> versions in detail through the lens of the excellent `fastcdc-rs` Rust crate.
+FastCDC belongs to the **Basic Sliding Window** family, but it is the most refined algorithm in that lineage. Where Rabin used polynomial arithmetic and Buzhash used cyclic shifts, FastCDC's Gear hash strips the rolling hash down to its simplest possible form. We'll explore both the 2016<span class="cdc-cite"><a href="#ref-5">[5]</a></span> and 2020<span class="cdc-cite"><a href="#ref-6">[6]</a></span> versions in detail, using the <a href="https://github.com/nlfiedler/fastcdc-rs"><code>fastcdc-rs</code></a> Rust crate as our reference implementation.
 
 ### The GEAR Hash
 
-At FastCDC's core is the **Gear hash**, a remarkably simple rolling hash. For each byte, you:
-1. Left-shift the current hash
+At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations. For each byte, you:
+1. Left-shift the current hash by one bit
 2. Add a pre-computed random value for that byte
 
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
@@ -1685,7 +1720,7 @@ That's it. No XOR with outgoing bytes, no polynomial division. Just shift and ad
   </div>
 </div>
 
-The GEAR table is 256 pre-computed 64-bit random values, one for each possible byte value. Here's how it looks:
+The GEAR table maps each of the 256 possible byte values to a pre-computed 64-bit random number:
 
 <div class="code-tabs" id="gear-table-code">
   <div class="code-tab-buttons">
@@ -1823,19 +1858,23 @@ With the GEAR hash updating for each byte, how do we decide where to cut?
 
 The classic approach: check if the low N bits of the hash are zero. If we want an average chunk size of 8KB, we check if `hash & 0x1FFF == 0` (the low 13 bits).
 
-Why does this work? The GEAR hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$, meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits means larger average chunks, fewer bits means smaller ones.
+Why does this work? The GEAR hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$, meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits mean larger average chunks, fewer bits mean smaller ones.
 
-This is the heart of FastCDC. The algorithm doesn't search for patterns in the content directly. Instead, it feeds each byte through the GEAR table, lets the rolling hash mix the values together, and checks whether the result happens to land on a specific bit pattern. The content determines the hash, the hash determines the boundary, and the mask determines how often boundaries occur.
+This is the heart of every BSW algorithm. The algorithm doesn't search for patterns in the content directly. Instead, it feeds each byte through the GEAR table, lets the rolling hash mix the values together, and checks whether certain bits of the result happen to be zero. The content determines the hash, the mask selects which bits to check, and a boundary is placed wherever those bits are all zero.
 
-But basic masking has a problem, and FastCDC does something cleverer: **normalized chunking** with dual masks.
+But basic masking has a problem, and FastCDC does something more clever: **normalized chunking** with dual masks.
 
-The problem with basic masking: chunk sizes follow an exponential distribution. You get many small chunks and occasional very large ones. This hurts deduplication because small chunks waste metadata overhead, and large chunks reduce sharing opportunities.
+The problem with basic masking is chunk sizes follow an exponential distribution. You get many small chunks and occasional very large ones. This hurts deduplication because small chunks increase metadata overhead, and large chunks reduce sharing opportunities.
+
+Why exponential? Because the probability of hitting a boundary is the same at every byte position. Each byte has a $1/2^N$ chance of triggering a cut, regardless of how many bytes have already been consumed into the current chunk. Short chunks are always more likely than long ones, for the same reason that flipping heads on the first try is more likely than waiting until the tenth.
+
+The fix is intuitive: vary the probability based on how many bytes have been consumed into the current chunk so far. If only a few bytes have been consumed, make boundaries *harder* to find so you don't produce tiny chunks. Once you've consumed past the target average, make boundaries *easier* to find so chunks don't grow too large.
 
 FastCDC's solution:
 1. **Below the average size**: Use a **stricter mask** (more bits must be zero)
 2. **Above the average size**: Use a **looser mask** (fewer bits must be zero)
 
-This "squeezes" chunks toward the average size:
+This squeezes chunks toward the average size:
 
 {% highlight text %}
 Chunk size distribution:
@@ -1860,7 +1899,7 @@ Normalized CDC: [gaussian-like - clustered around average]
 
 ### The 2016 Algorithm
 
-Here's the core chunking loop from FastCDC 2016:
+Here's the complete 2016 chunking loop, showing both phases:
 
 <div class="code-tabs" id="fastcdc-2016-code">
   <div class="code-tab-buttons">
@@ -1996,20 +2035,23 @@ function findChunkBoundary(
 
 ### The 2020 Enhancement: Rolling Two Bytes
 
-The 2020 paper's key insight: **process two bytes per loop iteration**.
+The 2020 paper introduces a simple optimization: **process two adjacent bytes per step** as the sliding window moves across the data. Since two consecutive single-bit shifts are equivalent to one two-bit shift, the hash updates for two adjacent bytes can be collapsed:
 
-Instead of:
+Instead of two separate steps:
 ```
-hash = (hash << 1) + GEAR[byte]
+hash = (hash << 1) + GEAR[byte1]     // step 1
+hash = (hash << 1) + GEAR[byte2]     // step 2
 ```
 
-Do:
+Collapse into one:
 ```
 hash = (hash << 2) + GEAR_LS[byte1]  // Left-shifted GEAR table
 hash = hash + GEAR[byte2]            // Regular GEAR table
 ```
 
-This halves the number of loop iterations, reducing per-byte loop overhead and improving instruction-level parallelism.
+The boundary check still happens after each byte, but each check uses a different mask. After the first byte, the hash bits sit one position higher than they would in the 2016 algorithm, so a left-shifted mask (`mask_s_ls`) is needed to check the equivalent bits. After the second byte, the bits realign with the original positions, so the regular mask (`mask_s`) is used. The results are identical to processing one byte at a time.
+
+Where does the speedup come from? Each time the sliding window advances one step, the CPU must increment the position, evaluate whether the window has reached a size limit, and branch back to process the next position. By processing two bytes per step, this bookkeeping happens half as often. The two single-bit shifts also collapse into one two-bit shift instruction. These savings are small per step, but across millions of bytes they add up.
 
 <div class="code-tabs" id="fastcdc-2020-code">
   <div class="code-tab-buttons">
@@ -2174,12 +2216,12 @@ function findChunkBoundary2020(
 </div>
 
 <div class="cdc-callout" data-label="Performance Note">
-The 2020 optimization achieves 4.4 GB/s throughput on modern CPUs, fast enough that CDC is rarely the bottleneck in a deduplication pipeline. I/O and cryptographic hashing (for chunk fingerprinting) typically dominate.
+The 2020 optimization increases chunking throughput by 30-40% over the 2016 version <span class="cdc-cite"><a href="#ref-6">[6]</a></span>. In practice, CDC is rarely the bottleneck in a deduplication pipeline. Reading data from disk and computing cryptographic hashes for each chunk (used to identify duplicates) are typically the slower steps.
 </div>
 
 ### Exploring the Parameters
 
-The target average chunk size is the primary knob you turn when configuring FastCDC. A smaller average means more chunks (better deduplication granularity but more metadata), while a larger average means fewer chunks (less overhead but coarser deduplication). Drag the slider below to see how FastCDC re-chunks the same text at different target sizes:
+The target average chunk size is the primary parameter when configuring FastCDC. A smaller average means more chunks (better deduplication granularity but more metadata), while a larger average means fewer chunks (less overhead but coarser deduplication). Drag the slider below to see how FastCDC re-chunks the same text at different target sizes:
 
 <div class="cdc-viz" id="parametric-demo">
   <!-- Slider control -->
@@ -2230,6 +2272,76 @@ The target average chunk size is the primary knob you turn when configuring Fast
 </div>
 
 Notice how the dual-mask strategy keeps chunk sizes clustered around the target average. At small targets (16-32 bytes) you get many chunks, and the distribution chart reveals the normalized shape. At large targets (96-128 bytes) the entire text may collapse into just a few chunks.
+
+To see why normalization matters, consider what a single mask does. Basic CDC checks the same bit pattern from minimum size all the way to maximum size. Each byte after the minimum has an independent 1/avgSize probability of triggering a boundary. Because the algorithm cuts at the *first* match, most chunks end early: the chance of reaching any given byte without a match drops exponentially. This produces a geometric distribution skewed toward small chunks, with a few chunks surviving long enough to reach the maximum size. The FastCDC paper addresses this with normalization levels (NC1 through NC3), which control how aggressively the two masks differ from the base probability. At NC2 (the paper's recommended level), the strict mask is 4x harder to trigger than the single-mask baseline, suppressing early cuts below the target average, while the loose mask is 4x easier, catching chunks shortly after they pass it. The result is a tight cluster around the target rather than a skewed spread.
+
+Compare the two approaches below. Both chunk the same 8 KB of pseudo-random bytes (generated from a fixed seed), using the same Gear hash and the same target parameters. The only difference is how the mask is applied. Random data makes the statistical properties of each algorithm clearly visible because natural language text has too much structure to reveal the distribution shapes at this scale:
+
+<div class="cdc-viz" id="comparison-demo">
+  <!-- Shared slider -->
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Target Average: <strong id="comparison-slider-value">32</strong> bytes
+    </span>
+    <input type="range" id="comparison-slider" min="16" max="128" value="32" step="2">
+    <span class="parametric-derived-params" id="comparison-derived-params">(min: 16, max: 96)</span>
+  </div>
+
+  <!-- Two-column comparison -->
+  <div class="comparison-columns">
+    <!-- Left: Basic CDC -->
+    <div class="comparison-col">
+      <div class="comparison-label">Basic CDC <span class="comparison-sublabel">(Single Mask)</span></div>
+      <div id="comparison-basic-blocks" class="cdc-blocks-view"></div>
+      <div id="comparison-basic-distribution" class="parametric-distribution-chart"></div>
+      <div id="comparison-basic-stats" class="cdc-stats comparison-stats">
+        <div class="cdc-stat">
+          <div id="comparison-basic-stat-count" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Chunks</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-basic-stat-actual" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Actual Avg</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-basic-stat-min" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Smallest</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-basic-stat-max" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Largest</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Normalized CDC -->
+    <div class="comparison-col">
+      <div class="comparison-label">Normalized CDC <span class="comparison-sublabel">(Dual Mask)</span></div>
+      <div id="comparison-normalized-blocks" class="cdc-blocks-view"></div>
+      <div id="comparison-normalized-distribution" class="parametric-distribution-chart"></div>
+      <div id="comparison-normalized-stats" class="cdc-stats comparison-stats">
+        <div class="cdc-stat">
+          <div id="comparison-normalized-stat-count" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Chunks</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-normalized-stat-actual" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Actual Avg</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-normalized-stat-min" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Smallest</div>
+        </div>
+        <div class="cdc-stat">
+          <div id="comparison-normalized-stat-max" class="cdc-stat-value">--</div>
+          <div class="cdc-stat-label">Largest</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+Basic CDC's single mask produces chunks that follow an exponential distribution: many small chunks and a long tail of large ones. FastCDC's dual-mask normalization clusters chunks tightly around the target average, reducing both extremes. This narrower distribution means less wasted metadata on tiny chunks and fewer oversized chunks that dilute deduplication.
 
 ---
 
