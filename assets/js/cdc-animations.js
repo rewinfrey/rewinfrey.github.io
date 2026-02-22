@@ -1339,12 +1339,36 @@ class ChunkComparisonDemo {
 // Deduplication Demo
 // =============================================================================
 
+// Find the changed region between two strings, expanded to word boundaries
+function simpleDiff(oldText, newText) {
+  if (oldText === newText) return null;
+  let start = 0;
+  const minLen = Math.min(oldText.length, newText.length);
+  while (start < minLen && oldText[start] === newText[start]) start++;
+  let endOld = oldText.length;
+  let endNew = newText.length;
+  while (endOld > start && endNew > start && oldText[endOld - 1] === newText[endNew - 1]) {
+    endOld--;
+    endNew--;
+  }
+  // Expand to word boundaries for cleaner display
+  while (start > 0 && oldText[start - 1] !== ' ') start--;
+  while (endOld < oldText.length && oldText[endOld] !== ' ') endOld++;
+  while (endNew < newText.length && newText[endNew] !== ' ') endNew++;
+  const removed = oldText.slice(start, endOld).trim();
+  const added = newText.slice(start, endNew).trim();
+  if (!removed && !added) return null;
+  return { removed, added };
+}
+
 class VersionedDedupDemo {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
     this.baseText = `Every morning the baker rises before dawn to light the old brick oven. The smell of fresh bread fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves.`;
+
+    this.v1Text = `Every morning the baker rises before dawn to light the old brick oven. The aroma of sourdough fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves.`;
 
     this.encoder = new TextEncoder();
     this.minSize = 16;
@@ -1357,6 +1381,9 @@ class VersionedDedupDemo {
 
     this.buildUI();
     this.saveVersion(this.baseText, 'original');
+    this.versionCounter++;
+    this.saveVersion(this.v1Text, 'v1');
+    this.textarea.value = this.v1Text;
   }
 
   buildUI() {
@@ -1414,8 +1441,14 @@ class VersionedDedupDemo {
     // Timeline heading
     const timelineTitle = document.createElement('div');
     timelineTitle.className = 'cdc-dedup-timeline-title';
-    timelineTitle.textContent = 'Timeline';
+    timelineTitle.textContent = 'Version Timeline';
     this.container.appendChild(timelineTitle);
+
+    const timelineHint = document.createElement('p');
+    timelineHint.className = 'cdc-viz-hint';
+    timelineHint.style.marginBottom = '0.75rem';
+    timelineHint.textContent = 'Each version is split into chunks by FastCDC. Colored chunks are unique to that version. Gray chunks already exist in the store from an earlier version.';
+    this.container.appendChild(timelineHint);
 
     // Timeline
     this.timelineEl = document.createElement('div');
@@ -1425,45 +1458,44 @@ class VersionedDedupDemo {
     // Unique chunks storage
     const storage = document.createElement('div');
     storage.className = 'cdc-dedup-storage';
+
+    // Header row: title + inline stats
+    const storageHeader = document.createElement('div');
+    storageHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;';
+
     const storageTitle = document.createElement('div');
     storageTitle.className = 'cdc-dedup-storage-title';
-    storageTitle.textContent = 'Unique Chunks Stored';
-    storage.appendChild(storageTitle);
+    storageTitle.style.marginBottom = '0';
+    storageTitle.textContent = 'Content-Addressable Store';
+    storageHeader.appendChild(storageTitle);
+
+    const statsInline = document.createElement('span');
+    statsInline.style.cssText = "font-family: 'SF Mono', monospace; font-size: 0.75rem; color: #8b7355; white-space: nowrap;";
+    this.totalSizeDisplay = document.createElement('span');
+    this.totalSizeDisplay.id = 'dedup-total-size';
+    this.totalSizeDisplay.textContent = '--';
+    this.storedSizeDisplay = document.createElement('span');
+    this.storedSizeDisplay.id = 'dedup-stored-size';
+    this.storedSizeDisplay.textContent = '--';
+    this.ratioDisplay = document.createElement('span');
+    this.ratioDisplay.id = 'dedup-ratio';
+    this.ratioDisplay.style.cssText = 'font-weight: 600; color: #3d8b3d;';
+    this.ratioDisplay.textContent = '--';
+
+    statsInline.append('total content bytes (all versions): ', this.totalSizeDisplay, ' · total stored bytes: ', this.storedSizeDisplay, ' · dedup: ', this.ratioDisplay);
+    storageHeader.appendChild(statsInline);
+
+    storage.appendChild(storageHeader);
+
+    const storageHint = document.createElement('p');
+    storageHint.className = 'cdc-viz-hint';
+    storageHint.style.marginBottom = '1rem';
+    storageHint.textContent = 'Every unique chunk is stored once, identified by its content hash. Outlined chunks appear in multiple versions, and the badge shows how many versions share that chunk.';
+    storage.appendChild(storageHint);
     this.chunksDisplay = document.createElement('div');
     this.chunksDisplay.className = 'cdc-dedup-chunks';
     storage.appendChild(this.chunksDisplay);
     this.container.appendChild(storage);
-
-    // Global stats
-    const stats = document.createElement('div');
-    stats.className = 'cdc-stats';
-
-    const statDefs = [
-      { id: 'dedup-total-size', label: 'Total Size' },
-      { id: 'dedup-stored-size', label: 'Stored' },
-      { id: 'dedup-ratio', label: 'Dedup Ratio' }
-    ];
-
-    for (const def of statDefs) {
-      const stat = document.createElement('div');
-      stat.className = 'cdc-stat';
-      const value = document.createElement('div');
-      value.id = def.id;
-      value.className = 'cdc-stat-value';
-      value.textContent = '--';
-      stat.appendChild(value);
-      const lbl = document.createElement('div');
-      lbl.className = 'cdc-stat-label';
-      lbl.textContent = def.label;
-      stat.appendChild(lbl);
-      stats.appendChild(stat);
-    }
-
-    this.container.appendChild(stats);
-
-    this.totalSizeDisplay = stats.querySelector('#dedup-total-size');
-    this.storedSizeDisplay = stats.querySelector('#dedup-stored-size');
-    this.ratioDisplay = stats.querySelector('#dedup-ratio');
   }
 
   saveVersion(text, label) {
@@ -1529,7 +1561,37 @@ class VersionedDedupDemo {
   renderTimeline() {
     clearElement(this.timelineEl);
 
-    for (const version of this.versions) {
+    for (let i = 0; i < this.versions.length; i++) {
+      const version = this.versions[i];
+
+      // Show diff annotation between this version and the next (older) one
+      if (i < this.versions.length - 1) {
+        const olderVersion = this.versions[i + 1];
+        const diff = simpleDiff(olderVersion.text, version.text);
+        if (diff) {
+          const diffEl = document.createElement('div');
+          diffEl.className = 'cdc-edit-indicator';
+          diffEl.style.cssText = 'font-size: 0.78rem; padding: 0.15rem 0 0.4rem 1.5rem; text-align: left;';
+
+          const removed = document.createElement('span');
+          removed.style.cssText = 'color: #a84832; text-decoration: line-through;';
+          const removedText = diff.removed.length > 50 ? diff.removed.slice(0, 50) + '...' : diff.removed;
+          removed.textContent = removedText;
+
+          const arrow = document.createTextNode('  \u2192  ');
+
+          const added = document.createElement('span');
+          added.style.cssText = 'color: #3d8b3d;';
+          const addedText = diff.added.length > 50 ? diff.added.slice(0, 50) + '...' : diff.added;
+          added.textContent = addedText;
+
+          diffEl.appendChild(removed);
+          diffEl.appendChild(arrow);
+          diffEl.appendChild(added);
+          this.timelineEl.appendChild(diffEl);
+        }
+      }
+
       const entry = document.createElement('div');
       entry.className = 'cdc-version-entry';
 
@@ -1656,12 +1718,24 @@ class VersionedDedupDemo {
 
     this.contentStore.forEach((entry, hash) => {
       const el = document.createElement('div');
-      const sharedAcrossVersions = entry.versionIndices.size > 1;
+      const versionCount = entry.versionIndices.size;
+      const sharedAcrossVersions = versionCount > 1;
       el.className = `cdc-dedup-chunk${sharedAcrossVersions ? ' shared' : ''}`;
       el.style.backgroundColor = CHUNK_SOLID_COLORS[colorIndex % CHUNK_SOLID_COLORS.length];
-      el.textContent = hash.slice(0, 6);
+      el.style.position = 'relative';
       el.dataset.chunkHash = hash;
-      el.title = `${entry.length}B — in ${entry.versionIndices.size} version(s)`;
+      el.title = `${entry.length}B — in ${versionCount} version(s)`;
+
+      const hashLabel = document.createTextNode(hash.slice(0, 6));
+      el.appendChild(hashLabel);
+
+      if (sharedAcrossVersions) {
+        const badge = document.createElement('span');
+        badge.className = 'cdc-dedup-chunk-badge';
+        badge.textContent = `${versionCount}v`;
+        el.appendChild(badge);
+      }
+
       this.chunksDisplay.appendChild(el);
       colorIndex++;
     });

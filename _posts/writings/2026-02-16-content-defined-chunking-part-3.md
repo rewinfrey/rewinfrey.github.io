@@ -675,7 +675,8 @@ categories:
 .cdc-dedup-chunks {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  overflow: visible;
 }
 
 .cdc-dedup-chunk {
@@ -688,6 +689,20 @@ categories:
 
 .cdc-dedup-chunk.shared {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+}
+
+.cdc-dedup-chunk-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #3d3a36;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 /* Versioned Dedup - Editor */
@@ -1606,30 +1621,65 @@ categories:
 Part 3 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
-In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and parameter tuning. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
+In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
 
 ---
 
 ## Deduplication in Action
 
-Let's see how all these pieces combine to enable efficient deduplication.
+Imagine you are storing files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. The naive approach (storing a complete copy of every version) wastes storage on identical content. The key cost metrics are straightforward: how much total storage do we consume, and how many chunks can we avoid writing because they already exist?
 
+Let's examine how FastCDC's content-defined boundaries help reduce these costs. In the demo below, you can edit the text, save new versions, and watch how CDC identifies which chunks are reused and which are new.
+
+<div class="cdc-viz">
+<div class="cdc-viz-header">
+  <span class="cdc-viz-title">Deduplication Explorer</span>
+</div>
+<p class="cdc-viz-hint">A small edit has already been saved as v1 to show deduplication in action. Try making your own edits and clicking "Save Version" to see how CDC identifies reused chunks across versions. Hover over chunks to highlight them across views.</p>
 <div class="cdc-dedup-viz" id="dedup-demo">
   <!-- Populated dynamically by VersionedDedupDemo -->
+</div>
 </div>
 
 ### The Deduplication Pipeline
 
-1. **Chunk the data** using FastCDC (or another CDC algorithm)
-2. **Hash each chunk** using a cryptographic hash (SHA-256, BLAKE3, etc.)
-3. **Check if the chunk exists** in the content-addressable store
-4. **Store only new chunks** and keep references to existing ones
+The pipeline starts by running the data through a CDC algorithm like FastCDC to produce variable-size chunks. Each chunk is then hashed with a cryptographic hash function (SHA-256, BLAKE3, or similar) to produce a unique fingerprint. That fingerprint becomes the chunk's address in a content-addressable store, a key-value system where the hash itself serves as the key. Before writing a chunk, we check whether its hash already exists in the store. If it does, we skip the write and simply record a reference to the existing chunk. If it doesn't, we write the chunk and register its hash.
 
-For two versions of a document:
-- v1: chunks A, B, C, D, E
-- v2: chunks A, B, X, D, E (C was modified to X)
+The result is that only genuinely new content costs storage. Consider a file that changes between two versions:
 
-Storage required: A, B, C, D, E, X (6 chunks total, not 10)
+<div class="cdc-viz">
+<div class="cdc-viz-header">
+  <span class="cdc-viz-title">Deduplication Across Two Versions</span>
+</div>
+<div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; align-items: center; font-size: 0.9rem;">
+  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">v1</strong>
+  <div>
+    <span class="cdc-chunk chunk-a" style="margin-right: 0.25rem;">A</span>
+    <span class="cdc-chunk chunk-b" style="margin-right: 0.25rem;">B</span>
+    <span class="cdc-chunk chunk-c" style="margin-right: 0.25rem;">C</span>
+    <span class="cdc-chunk chunk-d" style="margin-right: 0.25rem;">D</span>
+    <span class="cdc-chunk chunk-e">E</span>
+  </div>
+  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">v2</strong>
+  <div>
+    <span class="cdc-chunk chunk-a unchanged" style="margin-right: 0.25rem;">A</span>
+    <span class="cdc-chunk chunk-b unchanged" style="margin-right: 0.25rem;">B</span>
+    <span class="cdc-chunk chunk-new" style="margin-right: 0.25rem;">X</span>
+    <span class="cdc-chunk chunk-d unchanged" style="margin-right: 0.25rem;">D</span>
+    <span class="cdc-chunk chunk-e unchanged">E</span>
+  </div>
+  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">store</strong>
+  <div>
+    <span class="cdc-chunk chunk-a" style="margin-right: 0.25rem;">A</span>
+    <span class="cdc-chunk chunk-b" style="margin-right: 0.25rem;">B</span>
+    <span class="cdc-chunk chunk-c" style="margin-right: 0.25rem;">C</span>
+    <span class="cdc-chunk chunk-d" style="margin-right: 0.25rem;">D</span>
+    <span class="cdc-chunk chunk-e" style="margin-right: 0.25rem;">E</span>
+    <span class="cdc-chunk chunk-new">X</span>
+  </div>
+</div>
+<p style="font-size: 0.8rem; color: #8b7355; margin: 0.75rem 0 0 0; line-height: 1.5;">Chunk C was modified, producing new chunk X. Chunks A, B, D, and E are unchanged and already exist in the store. Total storage: 6 unique chunks instead of 10.</p>
+</div>
 
 ### Why CDC Beats Fixed Chunking
 
