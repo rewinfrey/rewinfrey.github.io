@@ -1471,15 +1471,18 @@ class VersionedDedupDemo {
 
     const statsInline = document.createElement('span');
     statsInline.style.cssText = "font-family: 'SF Mono', monospace; font-size: 0.75rem; color: #8b7355; white-space: nowrap;";
+    const statValueStyle = 'font-weight: 600; color: #c45a3b;';
     this.totalSizeDisplay = document.createElement('span');
     this.totalSizeDisplay.id = 'dedup-total-size';
+    this.totalSizeDisplay.style.cssText = statValueStyle;
     this.totalSizeDisplay.textContent = '--';
     this.storedSizeDisplay = document.createElement('span');
     this.storedSizeDisplay.id = 'dedup-stored-size';
+    this.storedSizeDisplay.style.cssText = statValueStyle;
     this.storedSizeDisplay.textContent = '--';
     this.ratioDisplay = document.createElement('span');
     this.ratioDisplay.id = 'dedup-ratio';
-    this.ratioDisplay.style.cssText = 'font-weight: 600; color: #3d8b3d;';
+    this.ratioDisplay.style.cssText = statValueStyle;
     this.ratioDisplay.textContent = '--';
 
     statsInline.append('total content bytes (all versions): ', this.totalSizeDisplay, ' · total stored bytes: ', this.storedSizeDisplay, ' · dedup: ', this.ratioDisplay);

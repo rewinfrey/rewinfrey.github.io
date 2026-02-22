@@ -1629,24 +1629,6 @@ In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-
 
 Imagine you are storing files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. The naive approach (storing a complete copy of every version) wastes storage on identical content. The key cost metrics are straightforward: how much total storage do we consume, and how many chunks can we avoid writing because they already exist?
 
-Let's examine how FastCDC's content-defined boundaries help reduce these costs. In the demo below, you can edit the text, save new versions, and watch how CDC identifies which chunks are reused and which are new.
-
-<div class="cdc-viz">
-<div class="cdc-viz-header">
-  <span class="cdc-viz-title">Deduplication Explorer</span>
-</div>
-<p class="cdc-viz-hint">A small edit has already been saved as v1 to show deduplication in action. Try making your own edits and clicking "Save Version" to see how CDC identifies reused chunks across versions. Hover over chunks to highlight them across views.</p>
-<div class="cdc-dedup-viz" id="dedup-demo">
-  <!-- Populated dynamically by VersionedDedupDemo -->
-</div>
-</div>
-
-### The Deduplication Pipeline
-
-The pipeline starts by running the data through a CDC algorithm like FastCDC to produce variable-size chunks. Each chunk is then hashed with a cryptographic hash function (SHA-256, BLAKE3, or similar) to produce a unique fingerprint. That fingerprint becomes the chunk's address in a content-addressable store, a key-value system where the hash itself serves as the key. Before writing a chunk, we check whether its hash already exists in the store. If it does, we skip the write and simply record a reference to the existing chunk. If it doesn't, we write the chunk and register its hash.
-
-The result is that only genuinely new content costs storage. Consider a file that changes between two versions:
-
 <div class="cdc-viz">
 <div class="cdc-viz-header">
   <span class="cdc-viz-title">Deduplication Across Two Versions</span>
@@ -1680,6 +1662,26 @@ The result is that only genuinely new content costs storage. Consider a file tha
 </div>
 <p style="font-size: 0.8rem; color: #8b7355; margin: 0.75rem 0 0 0; line-height: 1.5;">Chunk C was modified, producing new chunk X. Chunks A, B, D, and E are unchanged and already exist in the store. Total storage: 6 unique chunks instead of 10.</p>
 </div>
+
+Let's examine how FastCDC's content-defined boundaries help reduce these costs in practice. In the demo below, you can edit the text, save new versions, and watch how CDC identifies which chunks are reused and which are new.
+
+<div class="cdc-viz">
+<div class="cdc-viz-header">
+  <span class="cdc-viz-title">Deduplication Explorer</span>
+</div>
+<p class="cdc-viz-hint">A small edit has already been saved as v1 to show deduplication in action. Try making your own edits and clicking "Save Version" to see how CDC identifies reused chunks across versions. Hover over chunks to highlight them across views.</p>
+<div class="cdc-dedup-viz" id="dedup-demo">
+  <!-- Populated dynamically by VersionedDedupDemo -->
+</div>
+</div>
+
+As the demo shows, even a small edit only produces a handful of new chunks while the rest are shared across versions. But how does this work under the hood? Let's walk through the full pipeline that makes this possible.
+
+### The Deduplication Pipeline
+
+The pipeline starts by running the data through a CDC algorithm like FastCDC to produce variable-size chunks. Each chunk is then hashed with a cryptographic hash function (SHA-256, BLAKE3, or similar) to produce a unique fingerprint. That fingerprint becomes the chunk's address in a content-addressable store, a key-value system where the hash itself serves as the key. Before writing a chunk, we check whether its hash already exists in the store. If it does, we skip the write and simply record a reference to the existing chunk. If it doesn't, we write the chunk and register its hash.
+
+The result is that only genuinely new content costs storage.
 
 ### Why CDC Beats Fixed Chunking
 
