@@ -486,6 +486,24 @@ The savings are dramatic. At 4 KB average chunk size with 4 MB containers, each 
 
 This is why container packing is not an optimization. It is a **prerequisite** for running CDC-based deduplication on cloud object storage at any meaningful scale. Without it, the per-operation pricing model of S3, GCS, and Azure Blob Storage makes fine-grained chunking economically impossible. With it, the system can use whatever chunk size gives the best deduplication ratio, because the storage layer absorbs the object-count explosion transparently.
 
+### When CDC Is Not the Right Choice
+
+Not every system chooses CDC, and the cost explorer above helps explain why. CDC optimizes for one thing above all: stable chunk boundaries across edits. That stability enables fine-grained deduplication, but it comes at a cost, and not every application prioritizes deduplication over other concerns.
+
+Dropbox is the most prominent example. Their architecture uses fixed-size 4 MiB blocks with SHA-256 hashing, and has since the early days of the product.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> Dropbox's primary engineering challenge was not deduplication, it was *transport*: syncing files across hundreds of millions of devices as fast as possible while keeping infrastructure costs predictable.
+
+Fixed-size blocks give Dropbox properties that CDC cannot. Block *N* always starts at offset `N * 4 MiB`, so a client can request any block without first receiving a boundary list. Upload work can be split across threads by byte offset with zero coordination, because boundaries are known before the content is read. The receiver knows when each block ends, enabling Dropbox's streaming sync architecture where downloads begin before the upload finishes, achieving up to 2x improvement on large file sync.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> And because every block is exactly 4 MiB (except the last), memory allocation, I/O scheduling, and storage alignment are all simple to model and predict at scale.
+
+There is also the metadata question. CDC's chunk index must be backed by a persistent, highly available data store once it outgrows a single machine. For Dropbox, serving hundreds of millions of users, the difference between a fixed-size block index and a variable-size CDC chunk index is not just memory; it is the size and complexity of the metadata infrastructure required to support it. Fixed-size blocks produce fewer, more predictable index entries, which simplifies that infrastructure considerably.
+
+The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
+
+In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
+
+Containers show that this choice is not binary. One way to recover some of Dropbox's transport advantages while keeping CDC is container packing. Instead of fetching each chunk individually, the system retrieves a container holding multiple chunks in a single request. This reduces both the number of API operations and the number of network round trips, while giving the storage layer predictable I/O sizes to work with. **Seafile**, an open-source file sync platform, demonstrates this approach: it uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
+
+But containers introduce their own tradeoffs. A container will often hold more bytes than you need for a given request, since not every chunk in the container is relevant. And if deduplication is working well, the chunks you need may be scattered across many different containers, because they were originally written at different times alongside different neighbors. In the worst case, you end up fetching just as many distinct containers as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of container packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same container. This is the fragmentation problem, and it has been the subject of over a decade of focused research.
+
 ### The Fragmentation Problem
 
 Containers solve the operations cost problem elegantly. But they introduce a new problem that the research community has spent over a decade working on: **fragmentation**.
@@ -530,11 +548,13 @@ These are not independent knobs. Container size, chunk size, rewriting aggressiv
 
 ## Conclusion
 
-Every solution at one layer of abstraction creates problems at the next. Content-Defined Chunking solved the boundary-shift problem that made fixed-size chunking fail for deduplication. But deploying CDC on cloud object storage revealed that per-operation pricing makes fine-grained chunks ruinously expensive. Containers solved that operations cost problem by decoupling logical chunk granularity from physical object count. But containers introduced fragmentation (chunks scattered across containers, degrading restore performance), made garbage collection hard (dead chunks cannot be freed until every chunk in their container is dead), and created a new design space where container size, rewriting strategy, and GC policy all interact.
+Every solution at one layer of abstraction creates problems at the next. In [Part 1](/writings/content-defined-chunking-part-1), we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC and saw how normalized chunking with dual masks produces tighter, more predictable chunk size distributions. In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline and explored the system-level costs that chunk size controls. In this post, we saw that deploying CDC on cloud object storage reveals a new cost dimension: per-operation pricing makes fine-grained chunks ruinously expensive. Containers solved that by decoupling logical chunk granularity from physical object count. But containers introduced fragmentation, made garbage collection hard, and created a design space where container size, rewriting strategy, and GC policy all interact.
 
-The field has largely converged on how to manage these tradeoffs. MFDedup's insight that deduplicating against the most recent version preserves locality while capturing most savings, GCCDF's unification of garbage collection and defragmentation into a single I/O pass, and the Data Domain Cloud Tier's cost-aware adaptation of containers to object storage, these represent a maturing understanding of container-based deduplication. The fundamental tension between dedup ratio and read locality is well-characterized. The research community has developed a toolkit of techniques, including rewriting, container capping, forward assembly, and piggybacked defragmentation, for managing it. The question is no longer whether these problems are solvable, but which combination of techniques best fits a given workload.
+The field has largely converged on how to manage these tradeoffs. MFDedup's insight that deduplicating against the most recent version preserves locality while capturing most savings, GCCDF's unification of garbage collection and defragmentation into a single I/O pass, and the Data Domain Cloud Tier's cost-aware adaptation of containers to object storage: these represent a maturing understanding of container-based deduplication. The fundamental tension between dedup ratio and read locality is well-characterized. The research community has developed a toolkit of techniques, including rewriting, container capping, forward assembly, and piggybacked defragmentation, for managing it. The question is no longer whether these problems are solvable, but which combination of techniques best fits a given workload.
 
-The beauty of the container abstraction is that it is invisible to the CDC layer. The chunking algorithm does not need to know whether chunks will be stored individually or packed into containers. This separation of concerns is what makes CDC so durable as a technique: the same Rabin or Gear hash that LBFS used in 2001 works just as well in a 2025 cloud storage system with container packing, locality-preserved caching, and piggybacked GC-defragmentation. The chunking logic and the storage logic are cleanly decoupled. Each can evolve independently, and that modularity is why both have continued to improve over more than two decades.
+The beauty of the container abstraction is that it is invisible to the CDC layer. The chunking algorithm does not need to know whether chunks will be stored individually or packed into containers. This separation of concerns is what makes CDC so durable as a technique. The same Rabin or Gear hash that LBFS used in 2001 works just as well in a 2025 cloud storage system with container packing, locality-preserved caching, and piggybacked GC-defragmentation. The chunking logic and the storage logic are cleanly decoupled. Each can evolve independently, and that modularity is why both have continued to improve over more than two decades.
+
+Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power. Chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
 
 ### References
 
@@ -561,6 +581,39 @@ The beauty of the container abstraction is that it is invisible to the CDC layer
   <div class="bib-citation">M. Lillibridge, K. Eshghi, D. Bhagwat, V. Deolalikar, G. Trezise &amp; P. Camble, "Sparse Indexing: Large Scale, Inline Deduplication Using Sampling and Locality," <em>7th USENIX Conference on File and Storage Technologies (FAST '09)</em>, San Jose, CA, February 2009.</div>
   <div class="bib-links">
     <a href="https://www.usenix.org/conference/fast-09/sparse-indexing-large-scale-inline-deduplication-using-sampling-and-locality" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-23">
+  <div class="bib-number">[23]</div>
+  <div class="bib-citation">N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-24">
+  <div class="bib-number">[24]</div>
+  <div class="bib-citation">R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-25">
+  <div class="bib-number">[25]</div>
+  <div class="bib-citation">Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-26">
+  <div class="bib-number">[26]</div>
+  <div class="bib-citation">Seafile Ltd., "Data Model," <em>Seafile Administration Manual</em>. CDC implementation: <a href="https://github.com/haiwen/seafile-server/blob/master/common/cdc/cdc.c">seafile-server/common/cdc/cdc.c</a>.</div>
+  <div class="bib-links">
+    <a href="https://manual.seafile.com/latest/develop/data_model/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/haiwen/seafile-server" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
   </div>
 </div>
 

@@ -1931,6 +1931,29 @@ categories:
   color: #8b7355;
 }
 
+.cost-bars-axis-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #a89b8c;
+  text-align: right;
+  padding: 0.25rem 1.25rem 0 0;
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.75rem;
+}
+
+.cost-bars-axis-label span:first-child {
+  /* empty grid cell to align with bar labels */
+}
+
+.cost-bars-axis-note {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  color: #8b7355;
+  padding: 0.5rem 1.25rem 0;
+  line-height: 1.5;
+}
+
 @media (max-width: 50em) {
   .cost-bar-row {
     grid-template-columns: 5rem 1fr 10rem;
@@ -2323,7 +2346,7 @@ Deduplication is not free. Every stage of the pipeline above consumes resources,
 Average chunk size is the single parameter that ties all four costs together.<span class="cdc-cite"><a href="#ref-15">[15]</a></span><span class="cdc-cite"><a href="#ref-21">[21]</a></span> Turning it down (smaller chunks) improves deduplication ratio and network efficiency but increases CPU work, index memory, and metadata overhead. Turning it up (larger chunks) reduces overhead but sacrifices dedup granularity. The right setting depends on your domain.
 </div>
 
-The four costs above are system-level resources. But most production systems today store chunks on cloud object storage (S3, GCS, Azure Blob), which layers its own pricing model on top: per-GB storage charges, but also per-operation charges for every PUT and GET. This means the number of objects you store and retrieve matters as much as the total bytes. More chunks means more API calls, and that cost scales independently of how much deduplication saves you on storage. The explorer below models this tradeoff for a concrete workload.
+The explorer below visualizes these four dimensions as you move the chunk size slider. Small chunks push CPU, memory, and metadata overhead up while improving deduplication and network efficiency. Large chunks do the reverse. The sweet spot depends on your workload.
 
 <div class="cdc-viz" id="cost-tradeoffs-demo">
   <div class="cdc-viz-header">
@@ -2334,105 +2357,24 @@ The four costs above are system-level resources. But most production systems tod
       Average Chunk Size: <strong id="cost-tradeoffs-slider-value">32 KB</strong>
     </span>
     <input type="range" id="cost-tradeoffs-slider" min="0" max="100" value="50" step="1">
+    <span class="cdc-viz-hint" style="flex-basis: 100%;">Drag the slider to see how average chunk size affects each cost dimension.</span>
+  </div>
+  <div class="cost-bars-axis-label">
+    <span></span>
+    <span>Relative Pressure &rarr;</span>
   </div>
   <div class="cost-bars-container" id="cost-tradeoffs-bars">
   </div>
-  <div class="cost-cloud-section" id="cost-cloud-section">
-    <div class="cost-cloud-header">
-      <span class="cost-cloud-title">Estimated Monthly Cloud Costs</span>
-      <span class="cost-cloud-workload" id="cost-cloud-workload"></span>
-    </div>
-    <table class="cost-cloud-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>AWS S3<span class="cost-cell-calc">Standard, US East</span></th>
-          <th>GCP<span class="cost-cell-calc">Standard, US multi-region</span></th>
-          <th>Azure<span class="cost-cell-calc">Hot tier (LRS), US East</span></th>
-        </tr>
-      </thead>
-      <tbody id="cost-cloud-tbody">
-      </tbody>
-    </table>
-    <details class="cost-pricing-ref">
-      <summary>Per-unit pricing rates used in these calculations</summary>
-      <table class="cost-cloud-table cost-ref-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>AWS S3<span class="cost-cell-calc">Standard, US East</span></th>
-            <th>GCP<span class="cost-cell-calc">Standard, US multi-region</span></th>
-            <th>Azure<span class="cost-cell-calc">Hot tier (LRS), US East</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Storage</td>
-            <td>$0.023/GB<span class="cost-cell-calc">first 50 TB</span></td>
-            <td>$0.026/GB<span class="cost-cell-calc">multi-region</span></td>
-            <td>$0.018/GB<span class="cost-cell-calc">first 50 TB</span></td>
-          </tr>
-          <tr>
-            <td>Write ops</td>
-            <td>$0.005/1K<span class="cost-cell-calc">PUT/COPY/POST/LIST</span></td>
-            <td>$0.005/1K<span class="cost-cell-calc">Class A ops</span></td>
-            <td>$0.0065/1K<span class="cost-cell-calc">Write ops</span></td>
-          </tr>
-          <tr>
-            <td>Read ops</td>
-            <td>$0.0004/1K<span class="cost-cell-calc">GET/SELECT</span></td>
-            <td>$0.0004/1K<span class="cost-cell-calc">Class B ops</span></td>
-            <td>$0.0005/1K<span class="cost-cell-calc">Read ops</span></td>
-          </tr>
-          <tr>
-            <td>Egress</td>
-            <td>$0.09/GB<span class="cost-cell-calc">first 10 TB/mo</span></td>
-            <td>$0.12/GB<span class="cost-cell-calc">first 10 TB/mo</span></td>
-            <td>$0.087/GB<span class="cost-cell-calc">to internet</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
-    <div class="cost-cloud-assumptions">
-      Assumes 100M users, 1 PB total data (~1B docs, ~1 MB avg), 1B doc reads/month, 50 edits per user/month (10 MB avg change). No client-side cache. US East / US multi-region, standard and hot tiers.
-      Pricing: <a href="https://aws.amazon.com/s3/pricing/" target="_blank">AWS S3</a>,
-      <a href="https://cloud.google.com/storage/pricing" target="_blank">GCP Cloud Storage</a>,
-      <a href="https://azure.microsoft.com/en-us/pricing/details/storage/blobs/" target="_blank">Azure Blob Storage</a>
-      as of Feb 2026.
-    </div>
-  </div>
-  <div class="cdc-viz-hint">
-    Drag the slider to see how average chunk size affects each cost dimension.
+  <div class="cost-bars-axis-note">
+    These bars show the <em>direction</em> and <em>shape</em> of each tradeoff, not exact magnitudes. CPU and memory costs scale with chunk count (more chunks = more hashing, larger index). Network cost decreases with smaller chunks because the higher deduplication ratio means less unique data to transfer. Storage has a U-shape: very small chunks incur metadata overhead, while very large chunks reduce deduplication and store more redundant data.
   </div>
 </div>
 
-Real systems make this choice based on what matters most. Backup tools like Restic and Borg use CDC with chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead. Seafile, an open-source file sync platform, uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Not every system chooses CDC, though, and for good reason. We will look at why in the next section.
+Real systems make this choice based on what matters most. Backup tools like Restic and Borg use CDC with chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead. Seafile, an open-source file sync platform, uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
 
-If you experimented with the chunk size sliders in [Part 2](/writings/2026/02/16/content-defined-chunking-part-2.html), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
+If you experimented with the chunk size sliders in [Part 2](/writings/content-defined-chunking-part-2), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
 
-What the explorer reveals is that at scale, API operations (PUT and GET costs) dominate total cloud costs, not storage. Shrinking chunk size improves deduplication and reduces stored bytes, but it multiplies the number of objects and therefore the number of API calls. The per-operation pricing model of cloud object storage means those API calls can cost orders of magnitude more than the storage savings from better dedup. In this workload, going from 1 MB chunks down to 1 KB chunks saves roughly $18K/month in storage but adds hundreds of thousands of dollars in monthly operations costs.
-
-This is not strictly a CDC problem. It is a cloud object storage cost modeling problem. CDC determines *how* you split data into chunks, but the economics of storing and retrieving those chunks depend on the storage layer underneath. A system that controls its own storage (like ZFS or btrfs) pays no per-operation tax and can freely use fine-grained chunks. A system on top of S3 has a different cost function entirely.
-
-Production systems bridge this gap with *containers*: grouping many small chunks into larger, fixed-size storage objects, writing one object per container instead of one per chunk.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-15">[15]</a></span> An index tracks each chunk's location (container ID, byte offset, length), and reads use range requests on the container rather than individual GETs per chunk. This decouples logical chunk granularity from physical object count, letting systems keep fine-grained CDC deduplication while paying for far fewer API operations.
-
-### When CDC Is Not the Right Choice
-
-CDC optimizes for one thing above all: stable chunk boundaries across edits. That stability enables fine-grained deduplication, which saves storage and reduces network transfer when the same content appears across versions. But this stability comes at a cost and not every application or use case necessarily prioritizes deduplication over other cost concerns.
-
-Dropbox is one such example. Their architecture uses fixed-size 4 MiB blocks with SHA-256 hashing, and has since the early days of the product.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> Dropbox's primary engineering challenge was not deduplication, it was *transport*: syncing files across hundreds of millions of devices as fast as possible while keeping infrastructure costs predictable.
-
-Fixed-size blocks give Dropbox properties that CDC cannot. Block *N* always starts at offset `N * 4 MiB`, so a client can request any block without first receiving a boundary list. Upload work can be split across threads by byte offset with zero coordination, because boundaries are known before the content is read. The receiver knows when each block ends, enabling Dropbox's streaming sync architecture where downloads begin before the upload finishes, achieving up to 2x improvement on large file sync.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> And because every block is exactly 4 MiB (except the last), memory allocation, I/O scheduling, and storage alignment are all simple to model and predict at scale.
-
-There is also the metadata question. As discussed in the cost tradeoffs above, CDC's chunk index must be backed by a persistent, highly available data store once it outgrows a single machine. For Dropbox, serving hundreds of millions of users, the difference between a fixed-size block index and a variable-size CDC chunk index is not just memory; it is the size and complexity of the metadata infrastructure required to support it. Fixed-size blocks produce fewer, more predictable index entries, which simplifies that infrastructure considerably.
-
-The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1.html). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
-
-In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks also mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. Dropbox cared less about maximizing deduplication and more about making costs modelable and predictable at scale. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
-
-As discussed above, one way to recover some of Dropbox's transport advantages while keeping CDC is container packing: grouping variable-size chunks into larger storage objects for transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a container holding multiple chunks in a single request. This reduces both the number of API operations (and their associated costs) and the number of network calls between server and storage engine, while giving the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A container will often contain more bytes than you need for a given request, since not every chunk in the container is relevant. And if deduplication is working well, the chunks you need may be scattered across many different containers (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct containers as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same container.
-
-Still, the existence of chunk packing shows that the choice between CDC and fixed-size chunking is not binary. It is possible to achieve good file syncing performance, network efficiency, and predictable transport while still introducing deduplication through CDC. One system that demonstrates this is **Seafile**, an open-source file sync and storage platform that uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
+There is one more cost dimension that the four bars above do not capture: the economics of cloud object storage. Most production systems today store chunks on S3, GCS, or Azure Blob Storage, which charge not just per GB stored but also per API operation (every PUT and GET). When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. In <a href="/writings/content-defined-chunking-part-4">Part 4</a>, we explore this problem in detail and introduce the container abstraction that makes CDC viable at scale on cloud storage.
 
 ### Where CDC Lives Today
 
@@ -2450,9 +2392,9 @@ $ borg create ::backup-{now} ~/Documents
 # Chunks are deduplicated across all archives
 ```
 
-**Seafile** uses CDC for file sync as discussed [above](#when-cdc-is-not-the-right-choice), proving that deduplication and efficient transport can coexist.
+**Seafile** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
 
-**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity. We explore why in detail [above](#when-cdc-is-not-the-right-choice).
+**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> We examine this tradeoff in <a href="/writings/content-defined-chunking-part-4">Part 4</a>.
 
 While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
 
@@ -2481,17 +2423,11 @@ My thesis asks whether this same structure-awareness can improve deduplication f
 
 ---
 
-## Conclusion
+---
 
-Across the first three parts of this series, we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall, producing chunks that remain stable across edits.
+In this post we saw deduplication in action: a pipeline that chunks, fingerprints, and deduplicates file versions, keeping only what is new. We explored the four system-level costs that every deduplication system must balance (CPU, memory, network, and storage) and how average chunk size acts as the central knob that ties them together. And we looked at where CDC is deployed today, from backup tools like Restic and Borg to file sync platforms like Seafile, with each system choosing the chunk size that fits its workload.
 
-We surveyed three families of CDC algorithms, each taking a different approach to finding those boundaries. The BSW family (Basic Sliding Window) uses rolling hashes like Rabin, Buzhash, and Gear to scan data byte by byte and trigger a boundary when the hash meets a condition. Local Extrema algorithms like AE and RAM skip the hash entirely and instead look for bytes that are local maxima or minima in their neighborhood. Statistical approaches like BFBC use byte-frequency analysis to find natural breakpoints. All three families produce content-defined boundaries, but they differ in speed, chunk size distribution, and how well they lend themselves to hardware acceleration.
-
-Within the BSW family, we took a deep dive into FastCDC and saw how normalized chunking with dual masks produces tighter, more predictable chunk size distributions than a single mask. We explored how the average chunk size parameter acts as the central knob in any deduplication system, balancing CPU, memory, network, and storage costs. And we saw that this is not a purely theoretical tradeoff: real systems like Restic, Borg, and Seafile make different choices based on their workloads, while Dropbox demonstrates that CDC is not always the right answer.
-
-The field continues to evolve. Hardware acceleration through SIMD is opening up new possibilities, particularly for hashless algorithms where boundary decisions are based on byte comparisons that parallelize naturally. And research like cAST<span class="cdc-cite"><a href="#ref-14">[14]</a></span> suggests that CDC's core principle, letting content determine boundaries, can be pushed further by making those boundaries syntax-aware or structure-aware, aligning chunks to functions, classes, and modules rather than byte patterns alone. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
-
-Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power, because chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput.
+But we left one cost dimension unexplored. Most production systems store chunks on cloud object storage, where per-operation pricing adds a cost that scales with the number of objects, not just the number of bytes. When each chunk is its own object, fine-grained deduplication becomes economically impractical. In <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>, we examine this problem in detail, introduce the container abstraction that solves it, and explore the new challenges containers create: fragmentation, garbage collection, and restore performance degradation.
 
 <div class="cdc-footnotes">
 <ol>
@@ -2581,22 +2517,6 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
   <div class="bib-citation">N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.</div>
   <div class="bib-links">
     <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-24">
-  <div class="bib-number">[24]</div>
-  <div class="bib-citation">R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.</div>
-  <div class="bib-links">
-    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-25">
-  <div class="bib-number">[25]</div>
-  <div class="bib-citation">Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.</div>
-  <div class="bib-links">
-    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
   </div>
 </div>
 

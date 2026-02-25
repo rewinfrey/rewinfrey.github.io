@@ -2352,7 +2352,7 @@ class CostTradeoffsDemo {
         fillClass: 'cost-fill-network',
         cost: (t) => 8 + 84 * Math.pow(t, 0.8),
         annotations: [
-          'fine-grained dedup, minimal transfer',
+          'higher dedup ratio, minimal transfer',
           'some redundant transfer',
           'poor dedup, more data sent'
         ]
