@@ -1803,7 +1803,7 @@ MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
 <div class="cdc-series-nav">
-Part 1 of 3 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Part 1 of 4 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
 Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.

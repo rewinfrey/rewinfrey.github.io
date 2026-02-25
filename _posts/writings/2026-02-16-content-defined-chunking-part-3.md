@@ -1652,6 +1652,15 @@ categories:
   margin-bottom: 0.15rem;
 }
 
+.cdc-pipe-label-desc {
+  display: block;
+  font-size: 0.65rem;
+  color: #8b7355;
+  font-style: italic;
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
 .cdc-pipe-visual {
   display: flex;
   flex-wrap: wrap;
@@ -2071,10 +2080,48 @@ categories:
   border-top: none;
   border-bottom: 1px solid rgba(61, 58, 54, 0.07);
 }
+
+/* Footnotes */
+.cdc-footnote-marker {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+}
+.cdc-footnote-marker a {
+  color: #c45a3b;
+  text-decoration: none;
+  font-weight: 600;
+}
+.cdc-footnote-marker a:hover {
+  text-decoration: underline;
+}
+.cdc-footnotes {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+  font-size: 0.85rem;
+  color: #5a5550;
+  line-height: 1.7;
+}
+.cdc-footnotes ol {
+  padding-left: 1.5rem;
+  margin: 0;
+}
+.cdc-footnotes li {
+  margin-bottom: 0.75rem;
+}
+.cdc-footnotes .back-ref {
+  color: #c45a3b;
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+.cdc-footnotes .back-ref:hover {
+  text-decoration: underline;
+}
 </style>
 
 <div class="cdc-series-nav">
-Part 3 of 3 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Part 3 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
 </div>
 
 In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
@@ -2083,49 +2130,13 @@ In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-
 
 ## Deduplication in Action
 
-Imagine you are building a system to store files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. As discussed in <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>, the naive approach (storing a complete copy of every version) wastes storage on identical content. The key cost metrics for this system are straightforward: how much total storage do we consume, and how many chunks can we avoid writing because they already exist?
-
-<div class="cdc-viz">
-<div class="cdc-viz-header">
-  <span class="cdc-viz-title">Deduplication Across Two Versions</span>
-</div>
-<div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; align-items: center; font-size: 0.9rem;">
-  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">v1</strong>
-  <div>
-    <span class="cdc-chunk chunk-a" style="margin-right: 0.25rem;">A</span>
-    <span class="cdc-chunk chunk-b" style="margin-right: 0.25rem;">B</span>
-    <span class="cdc-chunk chunk-c" style="margin-right: 0.25rem;">C</span>
-    <span class="cdc-chunk chunk-d" style="margin-right: 0.25rem;">D</span>
-    <span class="cdc-chunk chunk-e">E</span>
-  </div>
-  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">v2</strong>
-  <div>
-    <span class="cdc-chunk chunk-a unchanged" style="margin-right: 0.25rem;">A</span>
-    <span class="cdc-chunk chunk-b unchanged" style="margin-right: 0.25rem;">B</span>
-    <span class="cdc-chunk chunk-new" style="margin-right: 0.25rem;">X</span>
-    <span class="cdc-chunk chunk-d unchanged" style="margin-right: 0.25rem;">D</span>
-    <span class="cdc-chunk chunk-e unchanged">E</span>
-  </div>
-  <strong style="font-family: 'SF Mono', monospace; font-size: 0.8rem; color: #8b7355;">store</strong>
-  <div>
-    <span class="cdc-chunk chunk-a" style="margin-right: 0.25rem;">A</span>
-    <span class="cdc-chunk chunk-b" style="margin-right: 0.25rem;">B</span>
-    <span class="cdc-chunk chunk-c" style="margin-right: 0.25rem;">C</span>
-    <span class="cdc-chunk chunk-d" style="margin-right: 0.25rem;">D</span>
-    <span class="cdc-chunk chunk-e" style="margin-right: 0.25rem;">E</span>
-    <span class="cdc-chunk chunk-new">X</span>
-  </div>
-</div>
-<p style="font-size: 0.8rem; color: #8b7355; margin: 0.75rem 0 0 0; line-height: 1.5;">Chunk C was modified, producing new chunk X. Chunks A, B, D, and E are unchanged and shared. Total storage: 6 chunks instead of the 10 possible chunks.</p>
-</div>
-
-Let's examine how FastCDC's content-defined boundaries help reduce these costs in practice. In the demo below, you can edit the text, save new versions, and watch how CDC identifies which chunks are reused and which are new.
+Imagine you are building a system to store files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. As we saw in <a href="/writings/content-defined-chunking-part-1">Part 1</a>, storing a complete copy of every version wastes storage on identical content. Content-defined chunking offers a way out: split each version into chunks based on content, fingerprint each chunk, and only store chunks you have not seen before. But what does that actually look like in practice? The explorer below runs FastCDC on editable text. A small edit has already been saved to show deduplication at work: most chunks are recognized as duplicates and never stored again. Try making your own edits to see how content-defined boundaries respond.
 
 <div class="cdc-viz">
 <div class="cdc-viz-header">
   <span class="cdc-viz-title">Deduplication Explorer</span>
 </div>
-<p class="cdc-viz-hint">A small edit has already been saved as v1 to show deduplication in action. Try making your own edits and clicking "Save Version" to see how CDC identifies reused chunks across versions. Hover over chunks to highlight them across views.</p>
+<p class="cdc-viz-hint">Click "Save Version" after editing to see which chunks are new and which are shared. Hover over chunks to highlight them across views.</p>
 <div class="cdc-dedup-viz" id="dedup-demo">
   <!-- Populated dynamically by VersionedDedupDemo -->
 </div>
@@ -2148,6 +2159,7 @@ Recall the system to store files that change over time, where the goal is to avo
     <div class="cdc-pipe-label">
       <span class="cdc-pipe-label-num">01</span>
       File Input
+      <span class="cdc-pipe-label-desc">Read the file as a raw byte stream.</span>
     </div>
     <div class="cdc-pipe-visual">
       <span class="cdc-pipe-file"><span class="cdc-pipe-file-icon">&#128196;</span> document.txt</span>
@@ -2164,6 +2176,7 @@ Recall the system to store files that change over time, where the goal is to avo
     <div class="cdc-pipe-label">
       <span class="cdc-pipe-label-num">02</span>
       CDC Chunking
+      <span class="cdc-pipe-label-desc">Split the stream into variable-size chunks using content-defined boundaries.</span>
     </div>
     <div class="cdc-pipe-visual cdc-pipe-grid">
       <span class="cdc-chunk chunk-a" style="font-size:0.75rem;">A</span>
@@ -2186,6 +2199,7 @@ Recall the system to store files that change over time, where the goal is to avo
     <div class="cdc-pipe-label">
       <span class="cdc-pipe-label-num">03</span>
       Hash Each Chunk
+      <span class="cdc-pipe-label-desc">Compute a collision-resistant fingerprint for each chunk.</span>
     </div>
     <div class="cdc-pipe-visual cdc-pipe-grid">
       <div class="cdc-pipe-chunk-col">
@@ -2226,6 +2240,7 @@ Recall the system to store files that change over time, where the goal is to avo
     <div class="cdc-pipe-label">
       <span class="cdc-pipe-label-num">04</span>
       Store Lookup
+      <span class="cdc-pipe-label-desc">Check whether each fingerprint already exists in the chunk store.</span>
     </div>
     <div class="cdc-pipe-visual cdc-pipe-grid">
       <div class="cdc-pipe-chunk-col">
@@ -2264,6 +2279,7 @@ Recall the system to store files that change over time, where the goal is to avo
     <div class="cdc-pipe-label">
       <span class="cdc-pipe-label-num">05</span>
       Store Decision
+      <span class="cdc-pipe-label-desc">Write only new chunks; record a reference for duplicates.</span>
     </div>
     <div class="cdc-pipe-visual" style="background: none; padding: 0;">
       <div class="cdc-pipe-branch">
@@ -2287,13 +2303,15 @@ Recall the system to store files that change over time, where the goal is to avo
 </div>
 </div>
 
+Walking through the stages: the raw file bytes enter the pipeline and are split into variable-size chunks by the CDC algorithm (here, FastCDC). Each chunk is then fingerprinted with a cryptographic hash like BLAKE3. The system looks up each fingerprint in the chunk store. Chunks that already exist are skipped with only a reference recorded, while genuinely new chunks are written to storage and their fingerprints registered for future lookups. The result is that storing a new version of a file costs only the new chunks, not a full copy.
+
 Each stage in the pipeline maps to just a few lines of code, but together they form a system where redundant data is identified and eliminated before it ever reaches disk or network. When a file changes, only the chunks that were actually modified produce new hashes. The rest match what is already in the store, so they are never written again.
 
 ### The Cost Tradeoffs
 
 Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The costs fall into four categories, and they all interact.
 
-**CPU** is the first cost you pay, and it shows up in three places. The CDC rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. But the cryptographic hash that follows is more expensive. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint. With fast chunking algorithms like FastCDC, fingerprinting becomes the CPU bottleneck in the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero. Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work that scales linearly with data volume. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
+**CPU** is the first cost you pay, and it shows up in three places. The CDC rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. But the cryptographic hash that follows is more expensive. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint.<span id="fn1-ref" class="cdc-footnote-marker"><a href="#fn1">1</a></span> With fast chunking algorithms like FastCDC, fingerprinting becomes the CPU bottleneck in the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero. Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work that scales linearly with data volume. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
 
 **Memory** is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query (every chunk triggers a lookup). At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span> The index size scales with the number of unique chunks, not with total data volume, which is good. But here's the catch: smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data. Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
 
@@ -2412,7 +2430,7 @@ The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can
 
 In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks also mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. Dropbox cared less about maximizing deduplication and more about making costs modelable and predictable at scale. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
 
-As discussed above, one way to recover some of Dropbox's transport advantages while keeping CDC is chunk packing (packfiles): grouping variable-size chunks into larger storage objects for transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a pack containing multiple chunks in a single request. This reduces both the number of API operations (and their associated costs) and the number of network calls between server and storage engine, while giving the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A pack will often contain more bytes than you need for a given request, since not every chunk in the pack is relevant. And if deduplication is working well, the chunks you need may be scattered across many different packs (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct packs as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same pack.
+As discussed above, one way to recover some of Dropbox's transport advantages while keeping CDC is container packing: grouping variable-size chunks into larger storage objects for transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a container holding multiple chunks in a single request. This reduces both the number of API operations (and their associated costs) and the number of network calls between server and storage engine, while giving the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A container will often contain more bytes than you need for a given request, since not every chunk in the container is relevant. And if deduplication is working well, the chunks you need may be scattered across many different containers (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct containers as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same container.
 
 Still, the existence of chunk packing shows that the choice between CDC and fixed-size chunking is not binary. It is possible to achieve good file syncing performance, network efficiency, and predictable transport while still introducing deduplication through CDC. One system that demonstrates this is **Seafile**, an open-source file sync and storage platform that uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
 
@@ -2465,7 +2483,7 @@ My thesis asks whether this same structure-awareness can improve deduplication f
 
 ## Conclusion
 
-Across this three-part series, we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall, producing chunks that remain stable across edits.
+Across the first three parts of this series, we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall, producing chunks that remain stable across edits.
 
 We surveyed three families of CDC algorithms, each taking a different approach to finding those boundaries. The BSW family (Basic Sliding Window) uses rolling hashes like Rabin, Buzhash, and Gear to scan data byte by byte and trigger a boundary when the hash meets a condition. Local Extrema algorithms like AE and RAM skip the hash entirely and instead look for bytes that are local maxima or minima in their neighborhood. Statistical approaches like BFBC use byte-frequency analysis to find natural breakpoints. All three families produce content-defined boundaries, but they differ in speed, chunk size distribution, and how well they lend themselves to hardware acceleration.
 
@@ -2474,6 +2492,12 @@ Within the BSW family, we took a deep dive into FastCDC and saw how normalized c
 The field continues to evolve. Hardware acceleration through SIMD is opening up new possibilities, particularly for hashless algorithms where boundary decisions are based on byte comparisons that parallelize naturally. And research like cAST<span class="cdc-cite"><a href="#ref-14">[14]</a></span> suggests that CDC's core principle, letting content determine boundaries, can be pushed further by making those boundaries syntax-aware or structure-aware, aligning chunks to functions, classes, and modules rather than byte patterns alone. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
 
 Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power, because chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput.
+
+<div class="cdc-footnotes">
+<ol>
+<li id="fn1">Collision resistance requires that it is computationally infeasible to find two different inputs that produce the same hash. For this guarantee to hold, every bit of the input must influence the output. If the function skipped even a single byte, two inputs differing only in that byte would hash identically, a trivial collision. This is the fundamental difference from rolling hashes used for boundary detection: Gear hash only looks at a sliding window and is not collision-resistant, which is fine for finding chunk boundaries but not for content addressing, where a collision means two different chunks are treated as identical and one gets silently discarded. BLAKE3 is notably faster than SHA-256 here because it uses a Merkle tree structure internally, allowing parts of the input to be hashed in parallel across cores and SIMD lanes, but it still processes every byte. <a href="#fn1-ref" class="back-ref">&#8617;</a></li>
+</ol>
+</div>
 
 ### References
 
@@ -2613,7 +2637,7 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
 *The interactive animations in this post are available for experimentation. Try modifying the input text, adjusting chunk size parameters, and watching how CDC adapts to your changes.*
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Back to <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
+&larr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Continue reading &rarr; <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>
