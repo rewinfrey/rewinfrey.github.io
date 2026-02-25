@@ -2147,7 +2147,7 @@ categories:
 Part 3 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
 </div>
 
-In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this final post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and look at what lies beyond traditional chunking.
+In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and explore the cost tradeoffs that shape real-world systems.
 
 ---
 
@@ -2332,40 +2332,13 @@ Each stage in the pipeline maps to just a few lines of code, but together they f
 
 ### Where CDC Lives Today
 
-Content-defined chunking has become infrastructure, often invisible but always essential.
+Content-defined chunking has become infrastructure, often invisible but always essential. It shows up across three broad categories: backup and archival, file sync and distribution, and content-addressable storage.
 
-**Restic** uses Rabin fingerprints with ~1MB average chunks:
-```bash
-$ restic backup ~/Documents
-# Only changed chunks are uploaded to the repository
-```
+**Backup and archival tools** were the earliest adopters. **[Restic](https://restic.net/)** uses Rabin fingerprints with configurable chunk sizes,<span class="cdc-cite"><a href="#ref-29">[29]</a></span> **[Borg](https://www.borgbackup.org/)** uses Buzhash with a secret seed (preventing attackers from predicting chunk boundaries based on known content),<span class="cdc-cite"><a href="#ref-30">[30]</a></span> and newer tools like **[Kopia](https://kopia.io/)**,<span class="cdc-cite"><a href="#ref-31">[31]</a></span> **[Duplicacy](https://duplicacy.com/)**,<span class="cdc-cite"><a href="#ref-32">[32]</a></span> **[Bupstash](https://bupstash.io/)**,<span class="cdc-cite"><a href="#ref-33">[33]</a></span> and **[Tarsnap](https://www.tarsnap.com/)**<span class="cdc-cite"><a href="#ref-34">[34]</a></span> all rely on CDC to deduplicate across snapshots. The pattern is the same in each: split data into content-defined chunks, fingerprint each chunk, and store only the unique ones.
 
-**Borg** uses Buzhash with a secret seed (preventing attackers from guessing chunk boundaries based on known content):
-```bash
-$ borg create ::backup-{now} ~/Documents
-# Chunks are deduplicated across all archives
-```
+**File sync and software distribution** use CDC to minimize transfer sizes. **[Seafile](https://www.seafile.com/)** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> **[Riot Games](https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher)** rebuilt the League of Legends patcher around FastCDC, replacing an older binary-delta system and achieving a tenfold improvement in patching speeds.<span class="cdc-cite"><a href="#ref-27">[27]</a></span> **[casync](https://github.com/systemd/casync)**, created by Lennart Poettering, applies CDC to OS and container image distribution, chunking across file boundaries so that updates to a filesystem image only transfer the chunks that actually changed.<span class="cdc-cite"><a href="#ref-35">[35]</a></span>
 
-**Seafile** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
-
-**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> We examine this tradeoff in <a href="/writings/content-defined-chunking-part-4">Part 4</a>.
-
-While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
-
-For Rust developers, the `fastcdc` crate provides production-ready implementations:
-
-{% highlight rust linenos %}
-use fastcdc::v2020::FastCDC;
-
-let data = std::fs::read("large_file.bin")?;
-let chunker = FastCDC::new(&data, 8192, 16384, 65535);
-
-for chunk in chunker {
-    println!("Chunk: {} bytes at offset {}",
-             chunk.length, chunk.offset);
-    // Hash the chunk, store it, etc.
-}
-{% endhighlight %}
+**Content-addressable storage** systems like **[IPFS](https://ipfs.tech/)** use CDC to split files into variable-size blocks before distributing them across a peer-to-peer network.<span class="cdc-cite"><a href="#ref-28">[28]</a></span> Because chunk boundaries are determined by content rather than position, identical regions of different files naturally converge on the same chunks and the same content addresses.
 
 ### The Cost Tradeoffs
 
@@ -2375,9 +2348,9 @@ Deduplication is not free. Every stage of the pipeline above consumes resources,
 
 **Memory** is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query (every chunk triggers a lookup). At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span> The index size scales with the number of unique chunks, not with total data volume, which is good. But here's the catch: smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data. Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
 
-**Network** is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. LBFS demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes. Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
+**Network** is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. The [Low-Bandwidth Network File System](https://pdos.csail.mit.edu/archive/lbfs/) (LBFS) demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes. Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
 
-**Storage** (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> At extreme chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself. Meyer and Bolosky found that whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup for live file systems, illustrating how quickly diminishing returns set in as chunk granularity increases.<span class="cdc-cite"><a href="#ref-20">[20]</a></span>
+**Storage** (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> At extremely small chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself. Meyer and Bolosky found that for live desktop file systems, where most duplication consists of identical files stored in multiple locations, whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup.<span class="cdc-cite"><a href="#ref-20">[20]</a></span> But that result is workload-dependent. When files churn frequently and edits are localized within larger files (the pattern that dominates backup, sync, and software distribution), whole-file dedup sees zero savings on each modified file while CDC captures nearly everything. The value of sub-file chunking scales with both how much duplicated content exists and how frequently that content changes.
 
 <div class="cdc-callout" data-label="The Central Knob">
 Average chunk size is the single parameter that ties all four costs together.<span class="cdc-cite"><a href="#ref-15">[15]</a></span><span class="cdc-cite"><a href="#ref-21">[21]</a></span> Turning it down (smaller chunks) improves deduplication ratio and network efficiency but increases CPU work, index memory, and metadata overhead. Turning it up (larger chunks) reduces overhead but sacrifices dedup granularity. The right setting depends on your domain.
@@ -2407,13 +2380,13 @@ The explorer below visualizes these four dimensions as you move the chunk size s
   </div>
 </div>
 
-The systems surveyed above illustrate these tradeoffs in practice. Restic and Borg use chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead.
-
-If you experimented with the chunk size sliders in [Part 2](/writings/content-defined-chunking-part-2), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
+If you experimented with the [Parametric Chunking Explorer](/writings/content-defined-chunking-part-2#parametric-demo) in Part 2, you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. In production, the right balance depends on your workload: the volume of duplicated content, the rate at which that content changes, and how each cost dimension (CPU, memory, network, storage) maps onto your constraints. These are the competing forces that determine whether CDC is a valuable strategy for your system, and if so, what average chunk size best balances them. That answer depends on your domain, and only you as the expert in your particular system can make that call. My hope is that the intuitions developed here help you make a more informed decision.
 
 ### The Cost of Cloud Storage
 
-The four dimensions above (CPU, memory, network, and storage) cover the core engineering tradeoffs of any deduplication system. But they assume a local or self-managed storage backend where the cost of writing and reading an object is just disk I/O. Most production systems today do not work that way. They store chunks on cloud object storage: S3, GCS, or Azure Blob Storage.
+So far, the costs we have discussed are engineering costs: CPU cycles, memory footprint, bytes on the wire, bytes on disk. They are real, but they are also somewhat abstract. There is another cost dimension that makes these tradeoffs painfully concrete: money.
+
+The four dimensions above assume a local or self-managed storage backend where the cost of writing and reading an object is just disk I/O. Most production systems today do not work that way. They store chunks on cloud object storage: S3, GCS, or Azure Blob Storage.
 
 Cloud providers charge not just per GB stored but also per API operation. Every PUT and every GET has a price. When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. The same knob that the explorer above illustrates (smaller chunks improve dedup but increase chunk count) takes on a new, financially painful dimension: more chunks means more API calls means a larger cloud bill, even if the total bytes stored are fewer.
 
@@ -2510,12 +2483,90 @@ This is the problem that <a href="/writings/content-defined-chunking-part-4">Par
   </div>
 </div>
 
+<div class="bib-entry" id="ref-27">
+  <div class="bib-number">[27]</div>
+  <div class="bib-citation">Riot Games Technology, "Supercharging Data Delivery: The New League Patcher," 2019. Describes the move from binary deltas to FastCDC-based content-defined chunking for game updates.</div>
+  <div class="bib-links">
+    <a href="https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Article</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-28">
+  <div class="bib-number">[28]</div>
+  <div class="bib-citation">IPFS Documentation, "File Systems: Chunking." Describes IPFS's use of Rabin fingerprinting for content-defined chunking alongside fixed-size splitting.</div>
+  <div class="bib-links">
+    <a href="https://docs.ipfs.tech/concepts/file-systems/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/ipfs/boxo/tree/main/chunker" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-29">
+  <div class="bib-number">[29]</div>
+  <div class="bib-citation">A. Neumann, "Restic Foundation - Content Defined Chunking," <em>Restic Blog</em>, September 2015. Describes Restic's use of Rabin fingerprint-based CDC for deduplication.</div>
+  <div class="bib-links">
+    <a href="https://restic.net/blog/2015-09-12/restic-foundation1-cdc/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+    <a href="https://github.com/restic/chunker" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-30">
+  <div class="bib-number">[30]</div>
+  <div class="bib-citation">BorgBackup Contributors, "Internals: Data Structures," <em>BorgBackup Documentation</em>. Describes Borg's Buzhash-based chunker with a keyed seed for chunk boundary detection.</div>
+  <div class="bib-links">
+    <a href="https://borgbackup.readthedocs.io/en/stable/internals/data-structures.html" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/borgbackup/borg" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-31">
+  <div class="bib-number">[31]</div>
+  <div class="bib-citation">Kopia Contributors, "Architecture," <em>Kopia Documentation</em>. Describes Kopia's rolling-hash file splitting for content-addressable deduplication.</div>
+  <div class="bib-links">
+    <a href="https://kopia.io/docs/advanced/architecture/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/kopia/kopia" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-32">
+  <div class="bib-number">[32]</div>
+  <div class="bib-citation">G. Chen, "Variable-size Chunking," <em>Duplicacy Design Document</em>. Describes Duplicacy's variable-size CDC with configurable minimum, average, and maximum chunk sizes.</div>
+  <div class="bib-links">
+    <a href="https://github.com/gilbertchen/duplicacy/wiki/Chunk-Size" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Wiki</a>
+    <a href="https://github.com/gilbertchen/duplicacy" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-33">
+  <div class="bib-number">[33]</div>
+  <div class="bib-citation">A. Chambers, "Technical Overview," <em>Bupstash Documentation</em>. Describes Bupstash's GearHash-based content-defined chunking for encrypted, deduplicated backups.</div>
+  <div class="bib-links">
+    <a href="https://github.com/andrewchambers/bupstash/blob/master/doc/technical_overview.md" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/andrewchambers/bupstash" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-34">
+  <div class="bib-number">[34]</div>
+  <div class="bib-citation">C. Percival, "How Tarsnap Deduplication Works," <em>Tarsnap Documentation</em>. Describes Tarsnap's context-dependent variable-size chunking for client-side deduplication.</div>
+  <div class="bib-links">
+    <a href="https://www.tarsnap.com/deduplication-explanation" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://www.tarsnap.com/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Site</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-35">
+  <div class="bib-number">[35]</div>
+  <div class="bib-citation">L. Poettering, "casync: Content-Addressable Data Synchronization Tool," 2017. Uses CDC to split filesystem images into variable-size chunks for efficient OS and container image distribution.</div>
+  <div class="bib-links">
+    <a href="https://github.com/systemd/casync" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+    <a href="https://lwn.net/Articles/726625/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> LWN</a>
+  </div>
+</div>
+
 </div>
 
 **Tools & Implementations**
 - [fastcdc-rs on GitHub](https://github.com/nlfiedler/fastcdc-rs)
-- [Restic Foundation: CDC](https://restic.net/blog/2015-09-12/restic-foundation1-cdc/)
-- [Borg Internals](https://borgbackup.readthedocs.io/en/1.0-maint/internals.html)
 
 ---
 
