@@ -1366,9 +1366,9 @@ class VersionedDedupDemo {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
-    this.baseText = `Every morning the baker rises before dawn to light the old brick oven. The smell of fresh bread fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves.`;
+    this.baseText = `Every morning the baker rises before dawn to light the old brick oven. The smell of fresh bread fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves. It has been this way for as long as anyone can remember.`;
 
-    this.v1Text = `Every morning the baker rises before dawn to light the old brick oven. The aroma of sourdough fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves.`;
+    this.v1Text = `Every morning the baker rises before dawn to light the old brick oven. The aroma of sourdough fills the narrow streets as the town slowly wakes. Children pass by on their way to school, pressing their noses against the glass. By noon the shelves are nearly bare and the baker begins to plan tomorrow's loaves. It has been this way for as long as anyone can remember.`;
 
     this.encoder = new TextEncoder();
     this.minSize = 16;
@@ -1493,7 +1493,7 @@ class VersionedDedupDemo {
     const storageHint = document.createElement('p');
     storageHint.className = 'cdc-viz-hint';
     storageHint.style.marginBottom = '1rem';
-    storageHint.textContent = 'Every unique chunk is stored once, identified by its content hash. Outlined chunks appear in multiple versions, and the badge shows how many versions share that chunk.';
+    storageHint.textContent = 'Every unique chunk is stored once, identified by its content hash. Outlined chunks are shared across versions, and the badge shows the number of versions share that chunk.';
     storage.appendChild(storageHint);
     this.chunksDisplay = document.createElement('div');
     this.chunksDisplay.className = 'cdc-dedup-chunks';

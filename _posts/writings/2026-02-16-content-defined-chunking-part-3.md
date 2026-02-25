@@ -688,7 +688,7 @@ categories:
 }
 
 .cdc-dedup-chunk.shared {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 5px #3d3a36;
 }
 
 .cdc-dedup-chunk-badge {
@@ -709,7 +709,7 @@ categories:
 .cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 
 .cdc-dedup-textarea {
-  width: 100%; min-height: 80px; padding: 0.75rem;
+  width: 100%; min-height: 120px; padding: 0.75rem;
   font-family: 'Source Serif 4', Georgia, serif; font-size: 0.9rem; line-height: 1.6;
   color: #3d3a36; background: #fff;
   border: 1px solid rgba(61, 58, 54, 0.2); border-radius: 6px;
@@ -1615,6 +1615,260 @@ categories:
 }
 .cdc-series-nav a { color: #c45a3b; text-decoration: none; }
 .cdc-series-nav a:hover { text-decoration: underline; }
+
+/* ==========================================================================
+   Pipeline Diagram
+   ========================================================================== */
+.cdc-pipe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1rem 0;
+}
+
+.cdc-pipe-stage {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) 16rem;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.1rem 0;
+}
+
+.cdc-pipe-label {
+  text-align: right;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #3d3a36;
+  line-height: 1.3;
+}
+
+.cdc-pipe-label-num {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #a89b8c;
+  margin-bottom: 0.15rem;
+}
+
+.cdc-pipe-visual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(61, 58, 54, 0.025);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  min-height: 2.5rem;
+}
+
+.cdc-pipe-visual.cdc-pipe-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  justify-items: center;
+}
+
+.cdc-pipe-code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #5a564f;
+  border-left: 2px solid rgba(196, 90, 59, 0.3);
+  padding-left: 0.6rem;
+  white-space: pre;
+}
+
+.cdc-pipe-code .kw { color: #8b5cf6; }
+.cdc-pipe-code .fn { color: #c45a3b; }
+.cdc-pipe-code .cm { color: #a89b8c; font-style: italic; }
+.cdc-pipe-code .str { color: #5a8a5a; }
+
+.cdc-pipe-connector {
+  display: flex;
+  justify-content: center;
+  padding: 0.15rem 0;
+}
+
+.cdc-pipe-connector::after {
+  content: '';
+  display: block;
+  width: 2px;
+  height: 20px;
+  background: rgba(61, 58, 54, 0.2);
+  position: relative;
+}
+
+.cdc-pipe-connector-arrow {
+  display: flex;
+  justify-content: center;
+}
+
+.cdc-pipe-connector-arrow::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid rgba(61, 58, 54, 0.25);
+}
+
+.cdc-pipe-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.7rem;
+  color: #3d3a36;
+}
+
+.cdc-pipe-file-icon {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.cdc-pipe-hash-label {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  text-align: center;
+  margin-top: 0.15rem;
+  letter-spacing: -0.02em;
+}
+
+.cdc-pipe-chunk-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cdc-pipe-result {
+  display: inline-block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-top: 0.2rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cdc-pipe-result.exists {
+  background: rgba(90, 138, 90, 0.15);
+  color: #3d7a3d;
+}
+
+.cdc-pipe-result.new {
+  background: rgba(196, 90, 59, 0.15);
+  color: #a84832;
+}
+
+.cdc-pipe-branch {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.cdc-pipe-branch-arm {
+  flex: 1;
+  max-width: 14rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border: 1px dashed;
+  text-align: center;
+}
+
+.cdc-pipe-branch-arm .cdc-pipe-branch-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.cdc-pipe-branch-arm .cdc-pipe-branch-desc {
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #5a564f;
+}
+
+.cdc-pipe-branch-arm.exists-arm {
+  background: rgba(90, 138, 90, 0.06);
+  border-color: rgba(90, 138, 90, 0.3);
+}
+
+.cdc-pipe-branch-arm.exists-arm .cdc-pipe-branch-title { color: #3d7a3d; }
+
+.cdc-pipe-branch-arm.new-arm {
+  background: rgba(196, 90, 59, 0.06);
+  border-color: rgba(196, 90, 59, 0.3);
+}
+
+.cdc-pipe-branch-arm.new-arm .cdc-pipe-branch-title { color: #a84832; }
+
+.cdc-pipe-summary {
+  text-align: center;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #3d3a36;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(196, 90, 59, 0.06) 0%, rgba(212, 165, 116, 0.1) 100%);
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cdc-pipe-stream-label {
+  font-size: 0.65rem;
+  color: #8b7355;
+  font-style: italic;
+}
+
+/* Pipeline responsive: tablet */
+@media (max-width: 50em) {
+  .cdc-pipe-stage {
+    grid-template-columns: 5rem 1fr;
+    grid-template-rows: auto auto;
+  }
+  .cdc-pipe-code {
+    grid-column: 1 / -1;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Pipeline responsive: mobile */
+@media (max-width: 42em) {
+  .cdc-pipe-stage {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .cdc-pipe-label {
+    text-align: center;
+  }
+  .cdc-pipe-code {
+    white-space: pre-wrap;
+    word-break: break-all;
+    grid-column: 1;
+  }
+  .cdc-pipe-branch {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cdc-pipe-branch-arm {
+    max-width: 100%;
+    width: 100%;
+  }
+}
 </style>
 
 <div class="cdc-series-nav">
@@ -1627,7 +1881,7 @@ In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-
 
 ## Deduplication in Action
 
-Imagine you are storing files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. The naive approach (storing a complete copy of every version) wastes storage on identical content. The key cost metrics are straightforward: how much total storage do we consume, and how many chunks can we avoid writing because they already exist?
+Imagine you are building a system to store files that change over time. Each new version is mostly the same as the last, with only a small edit here or there. As discussed in <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>, the naive approach (storing a complete copy of every version) wastes storage on identical content. The key cost metrics for this system are straightforward: how much total storage do we consume, and how many chunks can we avoid writing because they already exist?
 
 <div class="cdc-viz">
 <div class="cdc-viz-header">
@@ -1660,7 +1914,7 @@ Imagine you are storing files that change over time. Each new version is mostly 
     <span class="cdc-chunk chunk-new">X</span>
   </div>
 </div>
-<p style="font-size: 0.8rem; color: #8b7355; margin: 0.75rem 0 0 0; line-height: 1.5;">Chunk C was modified, producing new chunk X. Chunks A, B, D, and E are unchanged and already exist in the store. Total storage: 6 unique chunks instead of 10.</p>
+<p style="font-size: 0.8rem; color: #8b7355; margin: 0.75rem 0 0 0; line-height: 1.5;">Chunk C was modified, producing new chunk X. Chunks A, B, D, and E are unchanged and shared. Total storage: 6 chunks instead of the 10 possible chunks.</p>
 </div>
 
 Let's examine how FastCDC's content-defined boundaries help reduce these costs in practice. In the demo below, you can edit the text, save new versions, and watch how CDC identifies which chunks are reused and which are new.
@@ -1675,31 +1929,201 @@ Let's examine how FastCDC's content-defined boundaries help reduce these costs i
 </div>
 </div>
 
-As the demo shows, even a small edit only produces a handful of new chunks while the rest are shared across versions. But how does this work under the hood? Let's walk through the full pipeline that makes this possible.
+As the demo shows, even a small edit only produces a handful of new chunks while the rest are shared across versions. But how does this work under the hood?
 
 ### The Deduplication Pipeline
 
-The pipeline starts by running the data through a CDC algorithm like FastCDC to produce variable-size chunks. Each chunk is then hashed with a cryptographic hash function (SHA-256, BLAKE3, or similar) to produce a unique fingerprint. That fingerprint becomes the chunk's address in a content-addressable store, a key-value system where the hash itself serves as the key. Before writing a chunk, we check whether its hash already exists in the store. If it does, we skip the write and simply record a reference to the existing chunk. If it doesn't, we write the chunk and register its hash.
+Recall the system to store files that change over time, where the goal is to avoid writing identical content twice. Implementations vary widely, but any CDC-based deduplication system needs the same core ingredients: a way to split data into chunks, a way to fingerprint each chunk, and a way to check whether that fingerprint has been seen before. The visualization below walks through these ingredients as a simple linear pipeline, though real systems will likely optimize by reordering, parallelizing, or batching these steps.
 
-The result is that only genuinely new content costs storage.
+<div class="cdc-viz">
+<div class="cdc-viz-header">
+  <span class="cdc-viz-title">Pipeline</span>
+</div>
+<div class="cdc-pipe">
 
-### Why CDC Beats Fixed Chunking
+  <!-- Stage 01: File Input -->
+  <div class="cdc-pipe-stage">
+    <div class="cdc-pipe-label">
+      <span class="cdc-pipe-label-num">01</span>
+      File Input
+    </div>
+    <div class="cdc-pipe-visual">
+      <span class="cdc-pipe-file"><span class="cdc-pipe-file-icon">&#128196;</span> document.txt</span>
+      <span class="cdc-pipe-stream-label">raw byte stream</span>
+    </div>
+    <div class="cdc-pipe-code"><span class="kw">let</span> data = <span class="fn">fs::read</span>(<span class="str">"document.txt"</span>);</div>
+  </div>
 
-| Scenario | Fixed Chunking | CDC |
-|----------|---------------|-----|
-| 1 byte inserted at start | 0% dedup | ~95%+ dedup |
-| Middle section modified | ~50% dedup | ~90%+ dedup |
-| End section appended | 0% dedup (shifts all) | ~95%+ dedup |
+  <div class="cdc-pipe-connector"></div>
+  <div class="cdc-pipe-connector-arrow"></div>
 
----
+  <!-- Stage 02: CDC Chunking -->
+  <div class="cdc-pipe-stage">
+    <div class="cdc-pipe-label">
+      <span class="cdc-pipe-label-num">02</span>
+      CDC Chunking
+    </div>
+    <div class="cdc-pipe-visual cdc-pipe-grid">
+      <span class="cdc-chunk chunk-a" style="font-size:0.75rem;">A</span>
+      <span class="cdc-chunk chunk-b" style="font-size:0.75rem;">B</span>
+      <span class="cdc-chunk chunk-c" style="font-size:0.75rem;">C</span>
+      <span class="cdc-chunk chunk-d" style="font-size:0.75rem;">D</span>
+      <span class="cdc-chunk chunk-e" style="font-size:0.75rem;">E</span>
+      <span class="cdc-chunk chunk-new" style="font-size:0.75rem;">F</span>
+    </div>
+    <div class="cdc-pipe-code"><span class="kw">let</span> chunks = <span class="fn">FastCDC::new</span>(
+  &amp;data, min, avg, max
+);</div>
+  </div>
 
-## Conclusion
+  <div class="cdc-pipe-connector"></div>
+  <div class="cdc-pipe-connector-arrow"></div>
 
-Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power:
+  <!-- Stage 03: Hash Each Chunk -->
+  <div class="cdc-pipe-stage">
+    <div class="cdc-pipe-label">
+      <span class="cdc-pipe-label-num">03</span>
+      Hash Each Chunk
+    </div>
+    <div class="cdc-pipe-visual cdc-pipe-grid">
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-a" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">A</span>
+        <span class="cdc-pipe-hash-label">7f3a9b2c</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-b" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">B</span>
+        <span class="cdc-pipe-hash-label">e2b10f87</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-c" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">C</span>
+        <span class="cdc-pipe-hash-label">91cda4e3</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-d" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">D</span>
+        <span class="cdc-pipe-hash-label">a4f8c61d</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-e" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">E</span>
+        <span class="cdc-pipe-hash-label">c3d752af</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-new" style="font-size:0.75rem; padding: 0.3rem 0.5rem;">F</span>
+        <span class="cdc-pipe-hash-label">58eab03e</span>
+      </div>
+    </div>
+    <div class="cdc-pipe-code"><span class="kw">for</span> chunk <span class="kw">in</span> chunks {
+  hash = <span class="fn">blake3</span>(chunk.data);
+}</div>
+  </div>
 
-- **Locality**: Boundaries depend only on nearby content
-- **Determinism**: Same content always produces same boundaries
-- **Efficiency**: Modern implementations process gigabytes per second
+  <div class="cdc-pipe-connector"></div>
+  <div class="cdc-pipe-connector-arrow"></div>
+
+  <!-- Stage 04: Store Lookup -->
+  <div class="cdc-pipe-stage">
+    <div class="cdc-pipe-label">
+      <span class="cdc-pipe-label-num">04</span>
+      Store Lookup
+    </div>
+    <div class="cdc-pipe-visual cdc-pipe-grid">
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-a unchanged" style="font-size:0.75rem;">A</span>
+        <span class="cdc-pipe-result exists">exists</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-b" style="font-size:0.75rem;">B</span>
+        <span class="cdc-pipe-result new">new!</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-c unchanged" style="font-size:0.75rem;">C</span>
+        <span class="cdc-pipe-result exists">exists</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-d unchanged" style="font-size:0.75rem;">D</span>
+        <span class="cdc-pipe-result exists">exists</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-e unchanged" style="font-size:0.75rem;">E</span>
+        <span class="cdc-pipe-result exists">exists</span>
+      </div>
+      <div class="cdc-pipe-chunk-col">
+        <span class="cdc-chunk chunk-new" style="font-size:0.75rem;">F</span>
+        <span class="cdc-pipe-result new">new!</span>
+      </div>
+    </div>
+    <div class="cdc-pipe-code"><span class="kw">let</span> known = <span class="fn">store.contains</span>(hash);</div>
+  </div>
+
+  <div class="cdc-pipe-connector"></div>
+  <div class="cdc-pipe-connector-arrow"></div>
+
+  <!-- Stage 05: Store Decision -->
+  <div class="cdc-pipe-stage">
+    <div class="cdc-pipe-label">
+      <span class="cdc-pipe-label-num">05</span>
+      Store Decision
+    </div>
+    <div class="cdc-pipe-visual" style="background: none; padding: 0;">
+      <div class="cdc-pipe-branch">
+        <div class="cdc-pipe-branch-arm exists-arm">
+          <div class="cdc-pipe-branch-title">Hash Exists</div>
+          <div class="cdc-pipe-branch-desc">Skip write, record reference</div>
+        </div>
+        <div class="cdc-pipe-branch-arm new-arm">
+          <div class="cdc-pipe-branch-title">Hash New</div>
+          <div class="cdc-pipe-branch-desc">Write chunk, register hash</div>
+        </div>
+      </div>
+    </div>
+    <div class="cdc-pipe-code"><span class="kw">if</span> known {
+  <span class="fn">ref</span>(hash)
+} <span class="kw">else</span> {
+  <span class="fn">store.put</span>(hash, data)
+}</div>
+  </div>
+
+</div>
+</div>
+
+Each stage in the pipeline maps to just a few lines of code, but together they form a system where redundant data is identified and eliminated before it ever reaches disk or network. When a file changes, only the chunks that were actually modified produce new hashes. The rest match what is already in the store, so they are never written again.
+
+### The Cost Tradeoffs
+
+Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The costs fall into four categories, and they all interact.
+
+**CPU** is the first cost you pay, and it shows up in three places. The CDC rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. But the cryptographic hash that follows is more expensive. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint. With fast chunking algorithms like FastCDC, fingerprinting becomes the CPU bottleneck in the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero. Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work that scales linearly with data volume. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
+
+**Memory** is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query (every chunk triggers a lookup). At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span> The index size scales with the number of unique chunks, not with total data volume, which is good. But here's the catch: smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data. Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
+
+**Network** is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. LBFS demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes. Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
+
+**Storage** (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> At extreme chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself. Meyer and Bolosky found that whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup for live file systems, illustrating how quickly diminishing returns set in as chunk granularity increases.<span class="cdc-cite"><a href="#ref-20">[20]</a></span>
+
+<div class="cdc-callout" data-label="The Central Knob">
+Average chunk size is the single parameter that ties all four costs together.<span class="cdc-cite"><a href="#ref-15">[15]</a></span><span class="cdc-cite"><a href="#ref-21">[21]</a></span> Turning it down (smaller chunks) improves deduplication ratio and network efficiency but increases CPU work, index memory, and metadata overhead. Turning it up (larger chunks) reduces overhead but sacrifices dedup granularity. The right setting depends on your domain.
+</div>
+
+Real systems make this choice based on what matters most. Backup tools like Restic and Borg use CDC with chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead. Seafile, an open-source file sync platform, uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Not every system chooses CDC, though, and for good reason. We will look at why in the next section.
+
+If you experimented with the chunk size sliders in [Part 2](/writings/2026/02/16/content-defined-chunking-part-2.html), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
+
+### When CDC Is Not the Right Choice
+
+CDC optimizes for one thing above all: stable chunk boundaries across edits. That stability enables fine-grained deduplication, which saves storage and reduces network transfer when the same content appears across versions. But this stability comes at a cost and not every application or use case necessarily prioritizes deduplication over other cost concerns.
+
+Dropbox is one such example. Their architecture uses fixed-size 4 MiB blocks with SHA-256 hashing, and has since the early days of the product.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> Dropbox's primary engineering challenge was not deduplication, it was *transport*: syncing files across hundreds of millions of devices as fast as possible while keeping infrastructure costs predictable.
+
+Fixed-size blocks give Dropbox properties that CDC cannot. Block *N* always starts at offset `N * 4 MiB`, so a client can request any block without first receiving a boundary list. Upload work can be split across threads by byte offset with zero coordination, because boundaries are known before the content is read. The receiver knows when each block ends, enabling Dropbox's streaming sync architecture where downloads begin before the upload finishes, achieving up to 2x improvement on large file sync.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> And because every block is exactly 4 MiB (except the last), memory allocation, I/O scheduling, and storage alignment are all simple to model and predict at scale.
+
+There is also the metadata question. As discussed in the cost tradeoffs above, CDC's chunk index must be backed by a persistent, highly available data store once it outgrows a single machine. For Dropbox, serving hundreds of millions of users, the difference between a fixed-size block index and a variable-size CDC chunk index is not just memory; it is the size and complexity of the metadata infrastructure required to support it. Fixed-size blocks produce fewer, more predictable index entries, which simplifies that infrastructure considerably.
+
+The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1.html). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
+
+In short, Dropbox traded storage efficiency for transport speed and operational simplicity. At their scale, predictable system resource loads and the ability to parallelize everything without content-dependent coordination were worth more than the deduplication gains CDC would have provided.
+
+One way to recover some of Dropbox's transport advantages while keeping CDC is *chunk packing*: grouping variable-size chunks into fixed-size packs for storage and transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a pack containing multiple chunks in a single request. This reduces the number of network calls between server and storage engine and gives the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A pack will often contain more bytes than you need for a given request, since not every chunk in the pack is relevant. And if deduplication is working well, the chunks you need may be scattered across many different packs (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct packs as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same pack.
+
+Still, the existence of chunk packing shows that the choice between CDC and fixed-size chunking is not binary. It is possible to achieve good file syncing performance, network efficiency, and predictable transport while still introducing deduplication through CDC. One system that demonstrates this is **Seafile**, an open-source file sync and storage platform that uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
 
 ### Where CDC Lives Today
 
@@ -1717,15 +2141,11 @@ $ borg create ::backup-{now} ~/Documents
 # Chunks are deduplicated across all archives
 ```
 
-**Dropbox** pioneered using CDC for efficient file sync. When you modify a document, only changed chunks traverse the network.
+**Seafile** uses CDC for file sync as discussed [above](#when-cdc-is-not-the-right-choice), proving that deduplication and efficient transport can coexist.
+
+**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity. We explore why in detail [above](#when-cdc-is-not-the-right-choice).
 
 While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
-
-### Beyond Deduplication: Structure-Aware Chunking
-
-The core insight behind CDC (that boundaries should be determined by content, not arbitrary positions) is finding new applications beyond storage deduplication. In retrieval-augmented code generation (RAG), **cAST**, which performs chunking via Abstract Syntax Trees (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span>, applies this principle to source code: instead of splitting files at fixed line counts, it parses code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
-
-This represents a broader trend: wherever data has inherent structure, whether byte-level patterns in binary files or syntactic structure in source code, content-aware chunking consistently outperforms naive fixed-size approaches.
 
 For Rust developers, the `fastcdc` crate provides production-ready implementations:
 
@@ -1744,19 +2164,25 @@ for chunk in chunker {
 
 ### Why I Care About This
 
-This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. The question driving the work: can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions?
+This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. Source code is a particularly interesting domain for chunking because individual files are typically small<span class="cdc-cite"><a href="#ref-27">[27]</a></span> and edits tend to be localized, small changes concentrated in specific functions or blocks<span class="cdc-cite"><a href="#ref-28">[28]</a></span>. This means even smaller chunk sizes may be appropriate since the overhead is bounded by the small file sizes involved.
 
-I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** (the approach Git uses today), **FastCDC** (byte-level content-defined chunking), and **cAST-style structural chunking** (AST-aware boundaries). Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
+If edits concentrate in specific functions and blocks, the natural extension of content-defined chunking is to define boundaries using the structure of the source code itself: functions, methods, classes, and modules. Rather than scanning bytes for rolling hash matches, you can parse the code into its syntactic units and chunk along those boundaries directly. **cAST** (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> does exactly this for retrieval-augmented code generation (RAG): it parses source code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
 
-### Key Takeaways
+My thesis asks whether this same structure-awareness can improve deduplication for source code on large version control platforms. Can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions? I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** as a baseline, modeling Git's approach without its packfile and delta compression layers, then **FastCDC** for byte-level content-defined chunking, and finally **cAST-style structural chunking** with AST-aware boundaries. Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
 
-1. **Fixed-size chunking fails** because insertions shift all boundaries
-2. **CDC uses content** to determine boundaries, making them stable
-3. **Three families** of CDC algorithms exist: BSW (hash-based), Local Extrema (comparison-based), and Statistical (frequency-based)
-4. **Rolling hashes** (Rabin, Buzhash, Gear) power the BSW family
-5. **Normalized chunking** (dual masks) produces better chunk size distributions
-6. **Hardware acceleration** (SIMD) promises dramatic speedups, especially for hashless algorithms
-7. **The field is still evolving**, from Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration
+---
+
+## Conclusion
+
+Across this three-part series, we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall, producing chunks that remain stable across edits.
+
+We surveyed three families of CDC algorithms, each taking a different approach to finding those boundaries. The BSW family (Basic Sliding Window) uses rolling hashes like Rabin, Buzhash, and Gear to scan data byte by byte and trigger a boundary when the hash meets a condition. Local Extrema algorithms like AE and RAM skip the hash entirely and instead look for bytes that are local maxima or minima in their neighborhood. Statistical approaches like BFBC use byte-frequency analysis to find natural breakpoints. All three families produce content-defined boundaries, but they differ in speed, chunk size distribution, and how well they lend themselves to hardware acceleration.
+
+Within the BSW family, we took a deep dive into FastCDC and saw how normalized chunking with dual masks produces tighter, more predictable chunk size distributions than a single mask. We explored how the average chunk size parameter acts as the central knob in any deduplication system, balancing CPU, memory, network, and storage costs. And we saw that this is not a purely theoretical tradeoff: real systems like Restic, Borg, and Seafile make different choices based on their workloads, while Dropbox demonstrates that CDC is not always the right answer.
+
+The field continues to evolve. Hardware acceleration through SIMD is opening up new possibilities, particularly for hashless algorithms where boundary decisions are based on byte comparisons that parallelize naturally. And research like cAST<span class="cdc-cite"><a href="#ref-14">[14]</a></span> suggests that CDC's core principle, letting content determine boundaries, can be pushed further by making those boundaries syntax-aware or structure-aware, aligning chunks to functions, classes, and modules rather than byte patterns alone. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
+
+Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power, because chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput.
 
 ### References
 
@@ -1767,6 +2193,120 @@ I'm comparing three approaches along a granularity spectrum: **whole-file conten
   <div class="bib-citation">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.</div>
   <div class="bib-links">
     <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-15">
+  <div class="bib-number">[15]</div>
+  <div class="bib-citation">W. Xia, H. Jiang, D. Feng, F. Douglis, P. Shilane, Y. Hua, M. Fu, Y. Zhang &amp; Y. Zhou, "A Comprehensive Study of the Past, Present, and Future of Data Deduplication," <em>Proceedings of the IEEE</em>, vol. 104, no. 9, pp. 1681-1710, September 2016.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7529062" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-16">
+  <div class="bib-number">[16]</div>
+  <div class="bib-citation">B. Zhu, K. Li &amp; H. Patterson, "Avoiding the Disk Bottleneck in the Data Domain Deduplication File System," <em>6th USENIX Conference on File and Storage Technologies (FAST '08)</em>, San Jose, CA, February 2008.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/legacy/event/fast08/tech/full_papers/zhu/zhu.pdf" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-17">
+  <div class="bib-number">[17]</div>
+  <div class="bib-citation">W. Xia, X. Zou, Y. Zhou, H. Jiang, C. Liu, D. Feng, Y. Hua, Y. Hu &amp; Y. Zhang, "The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems," <em>IEEE Transactions on Parallel and Distributed Systems</em>, vol. 31, no. 9, pp. 2017-2031, 2020.</div>
+  <div class="bib-links">
+    <a href="https://csyhua.github.io/csyhua/hua-tpds2020-dedup.pdf" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-18">
+  <div class="bib-number">[18]</div>
+  <div class="bib-citation">M. Lillibridge, K. Eshghi, D. Bhagwat, V. Deolalikar, G. Trezise &amp; P. Camble, "Sparse Indexing: Large Scale, Inline Deduplication Using Sampling and Locality," <em>7th USENIX Conference on File and Storage Technologies (FAST '09)</em>, San Jose, CA, February 2009.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast-09/sparse-indexing-large-scale-inline-deduplication-using-sampling-and-locality" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-19">
+  <div class="bib-number">[19]</div>
+  <div class="bib-citation">A. Muthitacharoen, B. Chen &amp; D. Mazi&egrave;res, "A Low-bandwidth Network File System," <em>18th ACM Symposium on Operating Systems Principles (SOSP '01)</em>, Banff, Canada, October 2001.</div>
+  <div class="bib-links">
+    <a href="https://pdos.csail.mit.edu/papers/lbfs:sosp01/lbfs.pdf" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-20">
+  <div class="bib-number">[20]</div>
+  <div class="bib-citation">D. T. Meyer &amp; W. J. Bolosky, "A Study of Practical Deduplication," <em>9th USENIX Conference on File and Storage Technologies (FAST '11)</em>, San Jose, CA, February 2011.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/legacy/event/fast11/tech/full_papers/Meyer.pdf" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-21">
+  <div class="bib-number">[21]</div>
+  <div class="bib-citation">H. Wu, C. Wang, K. Lu, Y. Fu &amp; L. Zhu, "One Size Does Not Fit All: The Case for Chunking Configuration in Backup Deduplication," <em>18th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid '18)</em>, 2018.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/8411025" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-22">
+  <div class="bib-number">[22]</div>
+  <div class="bib-citation">Y. Collet, N. Terrell, W. F. Handte, D. Rozenblit, V. Zhang, K. Zhang, Y. Goldschlag, J. Lee, E. Gorokhovsky, Y. Komornik, D. Riegel, S. Angelov &amp; N. Rotem, "OpenZL: A Graph-Based Model for Compression," <em>arXiv:2510.03203</em>, October 2025.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2510.03203" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://openzl.org/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Project</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-23">
+  <div class="bib-number">[23]</div>
+  <div class="bib-citation">N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-24">
+  <div class="bib-number">[24]</div>
+  <div class="bib-citation">R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-25">
+  <div class="bib-number">[25]</div>
+  <div class="bib-citation">Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-26">
+  <div class="bib-number">[26]</div>
+  <div class="bib-citation">Seafile Ltd., "Data Model," <em>Seafile Administration Manual</em>. CDC implementation: <a href="https://github.com/haiwen/seafile-server/blob/master/common/cdc/cdc.c">seafile-server/common/cdc/cdc.c</a>.</div>
+  <div class="bib-links">
+    <a href="https://manual.seafile.com/latest/develop/data_model/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/haiwen/seafile-server" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-27">
+  <div class="bib-number">[27]</div>
+  <div class="bib-citation">I. Herraiz, D. M. German &amp; A. E. Hassan, "On the Distribution of Source Code File Sizes," <em>6th International Conference on Software and Data Technologies (ICSOFT '11)</em>, 2011.</div>
+  <div class="bib-links">
+    <a href="https://www.researchgate.net/publication/220737991_On_the_Distribution_of_Source_Code_File_Sizes" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ResearchGate</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-28">
+  <div class="bib-number">[28]</div>
+  <div class="bib-citation">O. Arafat &amp; D. Riehle, "The Commit Size Distribution of Open Source Software," <em>42nd Hawaii International Conference on System Sciences (HICSS-42)</em>, 2009.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/4755633" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
   </div>
 </div>
 
