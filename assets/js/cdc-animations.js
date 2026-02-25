@@ -112,29 +112,32 @@ const MASKS = [
 // Chunk background colors (hue-diverse for clear adjacent-chunk distinction)
 const CHUNK_COLORS = [
   'rgba(196, 90, 59, 0.18)',   // terracotta
-  'rgba(90, 138, 90, 0.18)',   // sage green
-  'rgba(70, 110, 160, 0.18)',  // steel blue
-  'rgba(160, 100, 50, 0.20)',  // amber
+  'rgba(20, 110, 90, 0.18)',   // jungle green (cool/emerald)
+  'rgba(100, 170, 220, 0.20)', // sky blue
+  'rgba(220, 160, 40, 0.20)',  // yellow-orange
   'rgba(130, 80, 150, 0.16)',  // muted purple
-  'rgba(60, 130, 130, 0.16)',  // teal
+  'rgba(45, 70, 130, 0.20)',   // dark blue
+  'rgba(120, 140, 60, 0.20)',  // sage green (warm/olive)
 ];
 
 const CHUNK_SOLID_COLORS = [
   '#c45a3b',   // terracotta
-  '#5a8a5a',   // sage green
-  '#466ea0',   // steel blue
-  '#a06432',   // amber
+  '#146e5a',   // jungle green (cool/emerald)
+  '#64aadc',   // sky blue
+  '#dca028',   // yellow-orange
   '#825096',   // muted purple
-  '#3c8282',   // teal
+  '#2d4682',   // dark blue
+  '#788c3c',   // sage green (warm/olive)
 ];
 
 const CHUNK_BORDER_COLORS = [
   'rgba(196, 90, 59, 0.5)',
-  'rgba(90, 138, 90, 0.5)',
-  'rgba(70, 110, 160, 0.5)',
-  'rgba(160, 100, 50, 0.5)',
+  'rgba(20, 110, 90, 0.5)',
+  'rgba(100, 170, 220, 0.5)',
+  'rgba(220, 160, 40, 0.5)',
   'rgba(130, 80, 150, 0.5)',
-  'rgba(60, 130, 130, 0.5)',
+  'rgba(45, 70, 130, 0.5)',
+  'rgba(120, 140, 60, 0.5)',
 ];
 
 // =============================================================================
@@ -395,13 +398,13 @@ class FixedVsCDCDemo {
 
     chunks.forEach((chunk, index) => {
       const block = document.createElement('div');
-      block.className = `cdc-block chunk-${index % 6}`;
+      block.className = `cdc-block chunk-${index % CHUNK_COLORS.length}`;
 
       // Calculate width proportional to chunk size
       const widthPercent = (chunk.length / data.length) * 100;
       block.style.width = `${Math.max(widthPercent, 2)}%`;
       block.style.flex = `${chunk.length} 0 auto`;
-      block.style.backgroundColor = CHUNK_SOLID_COLORS[index % 6];
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[index % CHUNK_SOLID_COLORS.length];
 
       // Check if this chunk exists in original
       if (originalHashes) {
@@ -456,7 +459,7 @@ class GearHashDemo {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
-    this.text = 'The quick brown fox jumps over the lazy dog.';
+    this.text = 'The quick brown fox jumps over the lazy dog. She packed her seven boxes and left. A warm breeze drifted through the open window.';
     this.encoder = new TextEncoder();
     this.data = this.encoder.encode(this.text);
 
@@ -464,7 +467,7 @@ class GearHashDemo {
     this.hash = 0n;
     this.previousHash = 0n;
     this.isPlaying = false;
-    this.speed = 2;
+    this.speed = 7;
     this.animationFrame = null;
     this.lastTime = 0;
     this.chunks = [];
@@ -550,16 +553,40 @@ class GearHashDemo {
     clearElement(grid);
     this.gearCells = [];
 
+    const hexDigits = '0123456789ABCDEF';
+
+    // Top-left corner (empty)
+    const corner = document.createElement('div');
+    corner.className = 'gear-table-label';
+    grid.appendChild(corner);
+
+    // Column headers (0-F)
+    for (let c = 0; c < 16; c++) {
+      const colLabel = document.createElement('div');
+      colLabel.className = 'gear-table-label col-header';
+      colLabel.textContent = hexDigits[c];
+      grid.appendChild(colLabel);
+    }
+
     for (let i = 0; i < 256; i++) {
+      const row = Math.floor(i / 16);
+      const col = i % 16;
+
+      // Row header at the start of each row
+      if (col === 0) {
+        const rowLabel = document.createElement('div');
+        rowLabel.className = 'gear-table-label row-header';
+        rowLabel.textContent = hexDigits[row] + '_';
+        grid.appendChild(rowLabel);
+      }
+
       const cell = document.createElement('div');
       cell.className = 'gear-table-cell';
 
       // Color by row hue + column-driven lightness gradient
-      const row = Math.floor(i / 16);
-      const col = i % 16;
       const hue = (row * 22.5 + 10) % 360;
-      const saturation = row % 2 === 0 ? 42 : 36;
-      const lightness = 85 - (col / 15) * 18;  // 85% → 67%, light to dark left-to-right
+      const saturation = row % 2 === 0 ? 68 : 60;
+      const lightness = 80 - (col / 15) * 18;  // 80% → 62%, light to dark left-to-right
       cell.style.backgroundColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
       const gearVal = Number(GEAR[i] & 0xffffffffn);
@@ -596,20 +623,34 @@ class GearHashDemo {
 
     const hexStr = '0x' + gearVal.toString(16).padStart(8, '0');
     const binStr = '0b' + gearVal.toString(2).padStart(32, '0');
+    const byteHex = '0x' + byteIndex.toString(16).padStart(2, '0');
 
-    const text1 = document.createTextNode('GEAR[');
-    const strong = document.createElement('strong');
-    strong.textContent = byteIndex.toString();
-    const text2 = document.createTextNode('] = ');
+    // Show printable ASCII character if applicable
+    const isPrintable = byteIndex >= 33 && byteIndex <= 126;
+    if (isPrintable) {
+      const charSpan = document.createElement('strong');
+      charSpan.textContent = "'" + String.fromCharCode(byteIndex) + "'";
+      this.tableReadout.appendChild(charSpan);
+      const arrow1 = document.createTextNode(' (' + byteHex + ') \u2192 ');
+      this.tableReadout.appendChild(arrow1);
+    } else {
+      const byteSpan = document.createElement('strong');
+      byteSpan.textContent = byteHex;
+      this.tableReadout.appendChild(byteSpan);
+      this.tableReadout.appendChild(document.createTextNode(' \u2192 '));
+    }
+
+    this.tableReadout.appendChild(document.createTextNode('GEAR['));
+    const idxStrong = document.createElement('strong');
+    idxStrong.textContent = byteIndex.toString();
+    this.tableReadout.appendChild(idxStrong);
+    this.tableReadout.appendChild(document.createTextNode('] = '));
     const valStrong = document.createElement('strong');
     valStrong.textContent = hexStr;
+    this.tableReadout.appendChild(valStrong);
     const binSpan = document.createElement('span');
     binSpan.textContent = ' ' + binStr;
     binSpan.style.cssText = 'font-size: 0.65rem; color: #aaa; font-weight: normal;';
-    this.tableReadout.appendChild(text1);
-    this.tableReadout.appendChild(strong);
-    this.tableReadout.appendChild(text2);
-    this.tableReadout.appendChild(valStrong);
     this.tableReadout.appendChild(binSpan);
   }
 
@@ -694,12 +735,14 @@ class GearHashDemo {
     this.hash = BigInt(newHashNum);
     this.position++;
 
-    // 6. Check for chunk boundary (using chunk-relative length)
+    // 6. Check for chunk boundary (normalized dual-mask, matching findChunkBoundary)
     let isBoundary = false;
     const chunkLen = this.position - this.currentChunkStart;
     if (chunkLen >= this.minSize) {
       const bits = Math.floor(Math.log2(this.avgSize));
-      const mask = MASKS[bits];
+      const maskS = (1n << BigInt(bits + 2)) - 1n;
+      const maskL = (1n << BigInt(Math.max(bits - 2, 1))) - 1n;
+      const mask = chunkLen < this.avgSize ? maskS : maskL;
       if ((this.hash & mask) === 0n || chunkLen >= this.maxSize) {
         this.chunkBoundaries.push(this.position);
         isBoundary = true;
@@ -779,10 +822,15 @@ class GearHashDemo {
       this.hashDisplay.appendChild(binSpan);
 
       // Highlight if boundary condition met
-      const bits = Math.floor(Math.log2(this.avgSize));
-      const mask = MASKS[bits];
-      if (this.position >= this.minSize && (this.hash & mask) === 0n) {
-        strong.style.color = '#2a7d4f';
+      const chunkLen = this.position - this.currentChunkStart;
+      if (chunkLen >= this.minSize) {
+        const bits = Math.floor(Math.log2(this.avgSize));
+        const maskS = (1n << BigInt(bits + 2)) - 1n;
+        const maskL = (1n << BigInt(Math.max(bits - 2, 1))) - 1n;
+        const mask = chunkLen < this.avgSize ? maskS : maskL;
+        if ((this.hash & mask) === 0n) {
+          strong.style.color = '#2a7d4f';
+        }
       }
     }
 
@@ -806,10 +854,18 @@ class GearHashDemo {
     }
 
     // Show the current chunk's bytes in the window
+    // If the last entry is a boundary, we're still displaying the old chunk
+    const lastEntry = this.hashHistory[this.hashHistory.length - 1];
+    const chunkIndex = lastEntry && lastEntry.isBoundary
+      ? this.chunkBoundaries.length - 1
+      : this.chunkBoundaries.length;
+    const chunkColor = CHUNK_COLORS[chunkIndex % CHUNK_COLORS.length];
+
     for (let i = currentChunkStartIdx; i < this.hashHistory.length; i++) {
       const entry = this.hashHistory[i];
       const cell = document.createElement('div');
       cell.className = 'gear-hw-cell';
+      cell.style.backgroundColor = chunkColor;
 
       if (i === this.hashHistory.length - 1) {
         cell.classList.add('current');
@@ -899,12 +955,27 @@ class GearHashDemo {
       return row;
     };
 
-    // === Shift box: wraps hash → << 1 → hash<<1 ===
-    const shiftBox = document.createElement('div');
-    shiftBox.className = 'gear-shift-box';
+    const makeSeparator = () => {
+      const sep = document.createElement('div');
+      sep.className = 'gear-shift-row';
+      const sepLabel = document.createElement('span');
+      sepLabel.className = 'gear-shift-label';
+      sep.appendChild(sepLabel);
+      const sepSpacer = document.createElement('span');
+      sepSpacer.className = 'gear-shift-hex';
+      sep.appendChild(sepSpacer);
+      const sepLine = document.createElement('div');
+      sepLine.className = 'gear-shift-separator';
+      sep.appendChild(sepLine);
+      return sep;
+    };
+
+    // === Single card: hash → << 1 → = hash<<1 → + GEAR[n] → = hash ===
+    const card = document.createElement('div');
+    card.className = 'gear-shift-box';
 
     // Row 1: previous hash with MSB marked
-    shiftBox.appendChild(makeBitRow(prevBits, 'hash', toHex(previousHash), { markDropped: true }));
+    card.appendChild(makeBitRow(prevBits, 'hash', toHex(previousHash), { markDropped: true }));
 
     // Arrow indicator
     const arrowRow = document.createElement('div');
@@ -929,52 +1000,30 @@ class GearHashDemo {
     arrowBits.appendChild(arrowLeft);
     arrowBits.appendChild(arrowRight);
     arrowRow.appendChild(arrowBits);
-    shiftBox.appendChild(arrowRow);
+    card.appendChild(arrowRow);
 
-    // Row 2: shifted result
-    shiftBox.appendChild(makeBitRow(shiftBits, 'hash<<1', toHex(shiftedHash), { animated: true, markEntering: true }));
+    // Separator after shift
+    card.appendChild(makeSeparator());
 
-    this.shiftViz.appendChild(shiftBox);
+    // Shift result
+    card.appendChild(makeBitRow(shiftBits, '= hash<<1', toHex(shiftedHash), { animated: true, markEntering: true }));
 
-    // === Connecting arrow from shift box down to addition ===
-    const connector = document.createElement('div');
-    connector.className = 'gear-shift-connector';
-    connector.textContent = '\u25BC';
-    this.shiftViz.appendChild(connector);
+    // GEAR value row
+    card.appendChild(makeBitRow(gearBits, '+ GEAR[n]', toHex(gearValue), {}));
 
-    // === Addition section: hash<<1 + GEAR[n] = result ===
-    const addSection = document.createElement('div');
-    addSection.className = 'gear-shift-add';
+    // Separator before final result
+    card.appendChild(makeSeparator());
 
-    addSection.appendChild(makeBitRow(shiftBits, 'hash<<1', toHex(shiftedHash), {}));
-    addSection.appendChild(makeBitRow(gearBits, '+ GEAR[n]', toHex(gearValue), {}));
-
-    // Separator
-    const sep = document.createElement('div');
-    sep.className = 'gear-shift-row';
-    const sepLabel = document.createElement('span');
-    sepLabel.className = 'gear-shift-label';
-    sepLabel.textContent = '';
-    sep.appendChild(sepLabel);
-    const sepSpacer = document.createElement('span');
-    sepSpacer.className = 'gear-shift-hex';
-    sepSpacer.textContent = '';
-    sep.appendChild(sepSpacer);
-    const sepLine = document.createElement('div');
-    sepLine.className = 'gear-shift-separator';
-    sep.appendChild(sepLine);
-    addSection.appendChild(sep);
-
-    // Result row
+    // Final result row
     const resultLabel = isBoundary ? '= hash \u2713' : '= hash';
     const resultRow = makeBitRow(resultBits, resultLabel, toHex(newHash), {});
     if (isBoundary) {
       resultRow.style.fontWeight = '700';
       resultRow.querySelector('.gear-shift-label').style.color = '#2a7d4f';
     }
-    addSection.appendChild(resultRow);
+    card.appendChild(resultRow);
 
-    this.shiftViz.appendChild(addSection);
+    this.shiftViz.appendChild(card);
   }
 
   renderContent() {
@@ -1016,9 +1065,9 @@ class GearHashDemo {
 
       if (isProcessed) {
         col.dataset.chunkIndex = chunkIndex;
-        col.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
-        col.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
-        charSpan.style.color = CHUNK_SOLID_COLORS[chunkIndex % 6];
+        col.style.backgroundColor = CHUNK_COLORS[chunkIndex % CHUNK_COLORS.length];
+        col.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % CHUNK_BORDER_COLORS.length]}`;
+        charSpan.style.color = CHUNK_SOLID_COLORS[chunkIndex % CHUNK_SOLID_COLORS.length];
       }
       if (isCurrent) {
         col.style.outline = '2px solid #c45a3b';
@@ -1093,7 +1142,7 @@ class GearHashDemo {
       // Colored block bar
       const block = document.createElement('div');
       block.className = 'cdc-block';
-      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
 
       const processedLength = Math.min(this.position - start, length);
       const processedPercent = Math.max(0, processedLength / length);
@@ -1101,7 +1150,7 @@ class GearHashDemo {
       if (this.position <= start) {
         block.style.backgroundColor = 'transparent';
       } else if (this.position < end) {
-        const baseColor = CHUNK_SOLID_COLORS[i % 6];
+        const baseColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
         block.style.background = `linear-gradient(to right, ${baseColor} 0%, ${baseColor} ${processedPercent * 100}%, transparent ${processedPercent * 100}%)`;
       }
 
@@ -1289,7 +1338,7 @@ class ChunkComparisonDemo {
       }
       chunkLabel.style.color = (showReuse && chunk.reused)
         ? '#8b8178'
-        : CHUNK_SOLID_COLORS[i % 6];
+        : CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       wrapper.appendChild(chunkLabel);
 
       // Chunk text span
@@ -1299,12 +1348,12 @@ class ChunkComparisonDemo {
         span.className = 'cdc-cmp-chunk unchanged';
       } else if (showReuse && !chunk.reused) {
         span.className = 'cdc-cmp-chunk new';
-        span.style.backgroundColor = CHUNK_COLORS[i % 6];
-        span.style.borderColor = CHUNK_SOLID_COLORS[i % 6];
+        span.style.backgroundColor = CHUNK_COLORS[i % CHUNK_COLORS.length];
+        span.style.borderColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       } else {
         span.className = 'cdc-cmp-chunk';
-        span.style.backgroundColor = CHUNK_COLORS[i % 6];
-        span.style.borderColor = CHUNK_SOLID_COLORS[i % 6];
+        span.style.backgroundColor = CHUNK_COLORS[i % CHUNK_COLORS.length];
+        span.style.borderColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       }
 
       span.textContent = chunk.text;
@@ -1673,7 +1722,7 @@ class VersionedDedupDemo {
   renderVersionText(container, version) {
     version.chunkMap.forEach((chunk, index) => {
       const shared = this.isChunkShared(chunk.hash, version.id);
-      const colorIndex = index % 6;
+      const colorIndex = index % CHUNK_COLORS.length;
 
       const span = document.createElement('span');
       span.className = `chunk chunk-${colorIndex}`;
@@ -1711,7 +1760,7 @@ class VersionedDedupDemo {
 
       const block = document.createElement('div');
       block.className = 'cdc-block';
-      block.style.backgroundColor = (shared && version.id > 0) ? 'rgba(61, 58, 54, 0.2)' : CHUNK_SOLID_COLORS[i % 6];
+      block.style.backgroundColor = (shared && version.id > 0) ? 'rgba(61, 58, 54, 0.2)' : CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       block.title = `${chunk.length}B${shared ? ' (shared)' : ''}`;
       wrapper.appendChild(block);
 
@@ -1910,10 +1959,10 @@ class ParametricChunkingDemo {
 
     chunks.forEach((chunk, i) => {
       const span = document.createElement('span');
-      span.className = `chunk chunk-${i % 6}`;
+      span.className = `chunk chunk-${i % CHUNK_COLORS.length}`;
       span.dataset.chunkIndex = i;
       span.textContent = this.inputText.slice(chunk.offset, chunk.offset + chunk.length);
-      span.style.backgroundColor = CHUNK_COLORS[i % 6];
+      span.style.backgroundColor = CHUNK_COLORS[i % CHUNK_COLORS.length];
       this.textDisplay.appendChild(span);
     });
   }
@@ -1934,7 +1983,7 @@ class ParametricChunkingDemo {
 
       const block = document.createElement('div');
       block.className = 'cdc-block';
-      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       block.style.height = `${Math.max(3, (chunk.length / fixedMax) * maxBlockHeight)}px`;
       block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
       wrapper.appendChild(block);
@@ -1996,7 +2045,7 @@ class ParametricChunkingDemo {
       bar.dataset.chunkIndex = i;
       const fraction = chunk.length / maxLen;
       bar.style.height = `${Math.max(fraction * 100, 2)}%`;
-      bar.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      bar.style.backgroundColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
 
       const tooltip = document.createElement('div');
       tooltip.className = 'parametric-dist-tooltip';
@@ -2186,7 +2235,7 @@ class ComparisonDemo {
 
       const block = document.createElement('div');
       block.className = 'cdc-block';
-      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % 6];
+      block.style.backgroundColor = CHUNK_SOLID_COLORS[i % CHUNK_SOLID_COLORS.length];
       block.style.height = `${Math.max(3, (chunk.length / fixedMax) * maxBlockHeight)}px`;
       block.title = `Chunk ${i + 1}: ${chunk.length} bytes`;
       wrapper.appendChild(block);

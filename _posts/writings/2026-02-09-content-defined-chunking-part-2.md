@@ -1201,11 +1201,38 @@ categories:
 /* GEAR Lookup Table grid */
 .gear-table-grid {
   display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  grid-template-rows: repeat(16, 1fr);
+  grid-template-columns: 1.2rem repeat(16, 1fr);
+  grid-template-rows: 0.7rem repeat(16, 13px);
   gap: 1px;
   margin-top: 0.5rem;
-  flex: 1;
+  overflow: hidden;
+}
+
+.gear-table-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.5rem;
+  color: #8b7355;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  padding: 0 2px;
+}
+
+.gear-table-label.col-header {
+  padding-bottom: 2px;
+}
+
+.gear-table-label.row-header {
+  padding-right: 3px;
+}
+
+.gear-table-legend {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  margin-top: 0.4rem;
+  text-align: center;
 }
 
 .gear-table-cell {
@@ -1234,7 +1261,7 @@ categories:
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.8rem;
   color: #8b7355;
-  min-height: 1.4em;
+  min-height: 2.8em;
 }
 
 .gear-table-readout strong {
@@ -1396,22 +1423,60 @@ categories:
 
 /* Two-column layout: Operation panel + GEAR table */
 .gear-two-col {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 0 1.5rem;
   margin-top: 1rem;
-  align-items: stretch;
 }
 
 .gear-col-left {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: contents;
 }
 
 .gear-col-right {
-  flex: 1 1 0;
-  min-width: 0;
+  display: contents;
+}
+
+.gear-col-left > .cdc-viz-header {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.gear-col-right > .cdc-viz-header {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.gear-col-left > .gear-table-readout {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.gear-col-right > .cdc-hash-display {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.gear-col-left > .gear-table-grid {
+  grid-column: 1;
+  grid-row: 3 / 5;
+}
+
+.gear-col-left > .gear-table-legend {
+  grid-column: 1;
+  grid-row: 5;
+}
+
+.gear-col-right > .gear-hash-window {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.gear-col-right > .gear-shift-viz {
+  grid-column: 2;
+  grid-row: 4;
+  align-self: start;
 }
 
 /* Chunk boundary marker (vertical separator) */
@@ -1842,7 +1907,21 @@ categories:
   }
 
   .gear-two-col {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .gear-col-left > .cdc-viz-header { grid-row: auto; }
+  .gear-col-right > .cdc-viz-header { grid-row: auto; }
+  .gear-col-left > .gear-table-readout { grid-row: auto; }
+  .gear-col-right > .cdc-hash-display { grid-row: auto; }
+  .gear-col-left > .gear-table-grid { grid-row: auto; }
+  .gear-col-left > .gear-table-legend { grid-row: auto; }
+  .gear-col-right > .gear-hash-window { grid-row: auto; }
+  .gear-col-right > .gear-shift-viz { grid-row: auto; }
+
+  .gear-col-left > *,
+  .gear-col-right > * {
+    grid-column: 1;
   }
 
   .gear-table-grid {
@@ -1852,6 +1931,10 @@ categories:
   .gear-table-cell {
     border-radius: 0;
     height: 12px;
+  }
+
+  .gear-table-label {
+    font-size: 0.4rem;
   }
 
 }
@@ -1902,13 +1985,15 @@ At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations
 
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
 
+*The visualization below uses 32-bit values for compactness. The real FastCDC implementation uses 64-bit GEAR table entries and a 64-bit hash accumulator, as shown in the code samples that follow. The algorithm works identically at either width -- only the bit count and mask positions change.*
+
 <div class="cdc-viz" id="gear-hash-demo">
   <div class="cdc-viz-header">
     <div class="cdc-viz-title">Gear Hash in Action</div>
   </div>
   <div class="cdc-content">
     <div id="gear-content-display" class="cdc-combined-view">
-      The quick brown fox jumps over the lazy dog.
+      The quick brown fox jumps over the lazy dog. She packed her seven boxes and left. A warm breeze drifted through the open window.
     </div>
   </div>
 
@@ -1917,18 +2002,19 @@ That's it. No XOR with outgoing bytes, no polynomial division. Just shift and ad
     <div class="gear-col-left">
       <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
         <div class="cdc-viz-title">GEAR Lookup Table</div>
-        <p class="cdc-viz-hint">Each byte maps to a random 32-bit value. Hover a cell to see its mapping.</p>
+        <p class="cdc-viz-hint">Each colored block is one of 256 pre-computed random 32-bit values, keyed by byte. Hover a cell to see its mapping.</p>
       </div>
       <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>
       <div class="gear-table-grid" id="gear-table-grid">
-        <!-- 256 cells populated by JS -->
+        <!-- axis labels + 256 cells populated by JS -->
       </div>
+      <div class="gear-table-legend">Rows 0-1: control bytes &middot; Rows 2-7: printable ASCII &middot; Row 7F: DEL &middot; Rows 8-F: extended bytes</div>
     </div>
 
     <div class="gear-col-right">
       <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
         <div class="cdc-viz-title">Rolling Hash Window</div>
-        <p class="cdc-viz-hint">The hash rolls forward one byte at a time. When it matches a bit pattern, a chunk boundary is placed.</p>
+        <p class="cdc-viz-hint">The hash rolls forward one byte at a time. When it matches a bit pattern, a chunk boundary is placed. Target chunk size: min 8, avg 16, max 32 bytes.</p>
       </div>
       <div class="cdc-hash-display" id="gear-hash-display">Current Hash: <strong>0x00000000</strong></div>
       <div class="gear-hash-window" id="gear-hash-window"></div>
@@ -1952,7 +2038,7 @@ That's it. No XOR with outgoing bytes, no polynomial division. Just shift and ad
     </div>
     <div class="cdc-speed-control">
       <span class="cdc-speed-label">Speed</span>
-      <input type="range" id="gear-speed" min="1" max="10" value="2" style="width: 80px;" title="Playback speed">
+      <input type="range" id="gear-speed" min="1" max="10" value="7" style="width: 80px;" title="Playback speed">
     </div>
   </div>
 </div>
@@ -2071,23 +2157,27 @@ function gearHash(data: Uint8Array): bigint {
 </style>
 
 <script>
-document.querySelectorAll('.code-tabs').forEach(container => {
-  const buttons = container.querySelectorAll('.code-tab-btn');
-  const contents = container.querySelectorAll('.code-tab-content');
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.code-tabs').forEach(container => {
+    const buttons = container.querySelectorAll('.code-tab-btn');
+    const contents = container.querySelectorAll('.code-tab-content');
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const lang = btn.dataset.lang;
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
 
-      buttons.forEach(b => b.classList.remove('active'));
-      contents.forEach(c => c.classList.remove('active'));
+        buttons.forEach(b => b.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
 
-      btn.classList.add('active');
-      container.querySelector(`.code-tab-content[data-lang="${lang}"]`).classList.add('active');
+        btn.classList.add('active');
+        container.querySelector(`.code-tab-content[data-lang="${lang}"]`).classList.add('active');
+      });
     });
   });
 });
 </script>
+
+The simplicity of this hash is the point. A single left-shift and a single addition per byte gives the GEAR hash its speed advantage over Rabin (which requires polynomial division) and Buzhash (which requires XOR with both the incoming and outgoing byte). But a fast hash is only half the story. The other half is deciding *when* the hash value signals a chunk boundary.
 
 ### Finding Chunk Boundaries
 
@@ -2151,11 +2241,11 @@ FastCDC's solution:
 1. **Below the average size**: Use a **stricter mask** (more bits must be zero)
 2. **Above the average size**: Use a **looser mask** (fewer bits must be zero)
 
-FastCDC was published in two rounds: a 2016 paper that introduced normalized chunking, and a 2020 revision that added a performance optimization by processing two bytes per iteration.
+FastCDC was published in two rounds: a 2016 paper that introduced normalized chunking, and a 2020 revision that added a performance optimization by processing two bytes per iteration. Let's walk through both versions to see how the dual-mask idea translates into concrete code, and how the algorithm evolved between the two papers.
 
 ### The 2016 Algorithm
 
-Here's the complete 2016 chunking loop, showing the use of both masks:
+This is the version illustrated above: it processes one byte at a time, shifting and adding through the GEAR table exactly as we saw in the *Gear Hash in Action* animation, and switches between the strict and loose mask depending on how far into the current chunk it has consumed. Here's the complete loop:
 
 <div class="code-tabs" id="fastcdc-2016-code">
   <div class="code-tab-buttons">
@@ -2477,6 +2567,8 @@ function findChunkBoundary2020(
 The 2020 optimization increases chunking throughput by 30-40% over the 2016 version <span class="cdc-cite"><a href="#ref-6">[6]</a></span>. In practice, CDC is rarely the bottleneck in a deduplication pipeline. Reading data from disk and computing cryptographic hashes for each chunk (used to identify duplicates) are typically the slower steps.
 </div>
 
+Both versions produce the same chunk boundaries for the same input and parameters. The difference is purely mechanical: the 2020 version reaches those boundaries faster by doing two bytes of work per loop iteration. With the algorithm itself understood, the next question is practical: how do the parameters you choose actually affect the chunks that come out?
+
 ### Exploring the Parameters
 
 The target average chunk size is the primary parameter when configuring FastCDC. A smaller average means more chunks (better deduplication granularity but more metadata), while a larger average means fewer chunks (less overhead but coarser deduplication). Drag the slider below to see how FastCDC re-chunks the same text at different target sizes:
@@ -2565,7 +2657,7 @@ Basic CDC's single mask produces chunks that follow an exponential distribution:
 
 FastCDC gives us a chunking algorithm that is fast, produces well-distributed chunk sizes, and, most importantly, generates stable boundaries that survive local edits. But chunking is only the first stage of a deduplication pipeline. Once data is split into chunks, each chunk needs a cryptographic fingerprint, those fingerprints need to be indexed and looked up efficiently, and duplicate chunks need to be eliminated during storage or transmission. The choices made at each stage (hash function, index structure, storage layout) interact with the chunking layer in ways that matter for real-world performance.
 
-In the next post, [Part 3: Deduplication in Action](/writings/content-defined-chunking-part-3), we'll build on FastCDC to walk through a complete deduplication pipeline: from fingerprinting chunks and detecting duplicates, to managing chunk references and reclaiming storage when data is deleted.
+In the next post, [Part 3: Deduplication in Action](/writings/content-defined-chunking-part-3), we'll build on FastCDC to walk through the deduplication pipeline end to end: fingerprinting chunks, detecting duplicates, and examining the cost tradeoffs that shape how these systems perform in practice.
 
 ---
 
