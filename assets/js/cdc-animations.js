@@ -2315,6 +2315,333 @@ class ComparisonDemo {
 }
 
 // =============================================================================
+// Cost Tradeoffs Explorer
+// =============================================================================
+
+class CostTradeoffsDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.dimensions = [
+      {
+        key: 'cpu',
+        label: 'CPU',
+        fillClass: 'cost-fill-cpu',
+        cost: (t) => 8 + 84 * (1 - t),
+        annotations: [
+          'many chunks to hash + compress',
+          'balanced workload',
+          'fewer chunks to process'
+        ]
+      },
+      {
+        key: 'memory',
+        label: 'Memory',
+        fillClass: 'cost-fill-memory',
+        cost: (t) => 8 + 84 * Math.pow(1 - t, 0.85),
+        annotations: [
+          'large chunk index',
+          'manageable index',
+          'compact index'
+        ]
+      },
+      {
+        key: 'network',
+        label: 'Network',
+        fillClass: 'cost-fill-network',
+        cost: (t) => 8 + 84 * Math.pow(t, 0.8),
+        annotations: [
+          'fine-grained dedup, minimal transfer',
+          'some redundant transfer',
+          'poor dedup, more data sent'
+        ]
+      },
+      {
+        key: 'storage',
+        label: 'Storage',
+        fillClass: 'cost-fill-storage',
+        cost: (t) => 10 + 82 * (Math.pow(1 - t, 2.5) + Math.pow(t, 2)),
+        annotations: [
+          'metadata overhead dominates',
+          'sweet spot: metadata and dedup balanced',
+          'less dedup, more redundant data stored'
+        ]
+      }
+    ];
+
+    this.init();
+  }
+
+  init() {
+    this.slider = document.getElementById('cost-tradeoffs-slider');
+    this.sliderValueEl = document.getElementById('cost-tradeoffs-slider-value');
+    this.barsContainer = document.getElementById('cost-tradeoffs-bars');
+    this.cloudWorkload = document.getElementById('cost-cloud-workload');
+    this.cloudTbody = document.getElementById('cost-cloud-tbody');
+
+    // User-activity-driven workload
+    this.numUsers = 100_000_000;          // 100M users
+    this.totalDataGB = 1_048_576;         // 1 PB
+    this.monthlyDocReads = 1_000_000_000; // 1B reads/month
+    this.avgReadMB = 1;                   // ~1 MB per doc read
+    this.editsPerUserMonth = 50;
+    this.avgEditMB = 10;                  // 10 MB change per edit
+
+    // Derived monthly volumes
+    // Egress: all doc reads download full doc (no cache)
+    this.monthlyEgressGB = (this.monthlyDocReads * this.avgReadMB) / 1024;
+    // Gross churn: total edit volume before dedup
+    this.grossChurnGB = (this.numUsers * this.editsPerUserMonth * this.avgEditMB) / 1024;
+
+    // Cloud provider pricing (per-unit costs)
+    this.providers = [
+      {
+        name: 'AWS S3',
+        storagePerGB: 0.023,       // S3 Standard, first 50 TB
+        storageNote: 'Standard, first 50 TB',
+        putPer1K: 0.005,           // PUT/COPY/POST/LIST per 1,000
+        putNote: 'PUT/COPY/POST/LIST',
+        getPer1K: 0.0004,          // GET/SELECT per 1,000
+        getNote: 'GET/SELECT',
+        egressPerGB: 0.09,         // first 10 TB/month
+        egressNote: 'first 10 TB/mo'
+      },
+      {
+        name: 'GCP',
+        storagePerGB: 0.026,       // Standard, US multi-region
+        storageNote: 'Standard, multi-region',
+        putPer1K: 0.005,           // Class A per 1,000
+        putNote: 'Class A ops',
+        getPer1K: 0.0004,          // Class B per 1,000
+        getNote: 'Class B ops',
+        egressPerGB: 0.12,         // first 10 TB/month
+        egressNote: 'first 10 TB/mo'
+      },
+      {
+        name: 'Azure',
+        storagePerGB: 0.018,       // Hot tier (LRS), first 50 TB
+        storageNote: 'Hot (LRS), first 50 TB',
+        putPer1K: 0.0065,          // Write per 1,000 ($0.065/10K)
+        putNote: 'Write ops',
+        getPer1K: 0.0005,          // Read per 1,000 ($0.005/10K)
+        getNote: 'Read ops',
+        egressPerGB: 0.087,        // to internet
+        egressNote: 'to internet'
+      }
+    ];
+
+    this.buildBars();
+    this.buildCloudTable();
+    this.slider?.addEventListener('input', () => this.update());
+    this.update();
+  }
+
+  buildBars() {
+    clearElement(this.barsContainer);
+
+    this.bars = {};
+    for (const dim of this.dimensions) {
+      const row = document.createElement('div');
+      row.className = 'cost-bar-row';
+
+      const label = document.createElement('span');
+      label.className = 'cost-bar-label';
+      label.textContent = dim.label;
+
+      const track = document.createElement('div');
+      track.className = 'cost-bar-track';
+
+      const fill = document.createElement('div');
+      fill.className = `cost-bar-fill ${dim.fillClass}`;
+      track.appendChild(fill);
+
+      const annotation = document.createElement('span');
+      annotation.className = 'cost-bar-annotation';
+
+      row.appendChild(label);
+      row.appendChild(track);
+      row.appendChild(annotation);
+      this.barsContainer.appendChild(row);
+
+      this.bars[dim.key] = { fill, annotation };
+    }
+  }
+
+  sliderToKB(value) {
+    return Math.pow(2, value / 10);
+  }
+
+  formatSize(kb) {
+    if (kb >= 1024) return `${(kb / 1024).toFixed(0)} MB`;
+    if (kb >= 10) return `${Math.round(kb)} KB`;
+    return `${kb.toFixed(1)} KB`;
+  }
+
+  formatDollars(amount) {
+    if (amount >= 1e9) return `$${(amount / 1e9).toFixed(1)}B`;
+    if (amount >= 1e6) return `$${(amount / 1e6).toFixed(1)}M`;
+    if (amount >= 1e3) return `$${(amount / 1e3).toFixed(1)}K`;
+    if (amount >= 100) return `$${amount.toFixed(0)}`;
+    if (amount >= 1) return `$${amount.toFixed(2)}`;
+    return `$${amount.toFixed(3)}`;
+  }
+
+  formatCount(n) {
+    if (n >= 1e12) return `${(n / 1e12).toFixed(1)}T`;
+    if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+    return `${Math.round(n)}`;
+  }
+
+  formatGB(gb) {
+    if (gb >= 1_048_576) return `${(gb / 1_048_576).toFixed(1)} PB`;
+    if (gb >= 1024) return `${(gb / 1024).toFixed(0)} TB`;
+    if (gb >= 1) return `${Math.round(gb)} GB`;
+    return `${(gb * 1024).toFixed(0)} MB`;
+  }
+
+  dedupRatio(t) {
+    // 1 KB (~5x dedup) to 1 MB (~1.2x dedup)
+    return 1.2 + 3.8 * Math.pow(1 - t, 0.7);
+  }
+
+  buildCloudTable() {
+    if (!this.cloudTbody) return;
+    clearElement(this.cloudTbody);
+
+    const rowDefs = [
+      { label: 'Objects stored', key: 'objects' },
+      { label: 'Storage', key: 'storage' },
+      { label: 'Operations (PUT + GET)', key: 'operations' },
+      { label: 'Network egress', key: 'egress' },
+      { label: 'Network ingress', key: 'ingress' },
+      { label: 'Monthly total', key: 'total' }
+    ];
+
+    this.cloudCells = {};
+    for (const rowDef of rowDefs) {
+      const tr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.textContent = rowDef.label;
+      tr.appendChild(th);
+
+      this.cloudCells[rowDef.key] = [];
+      for (let i = 0; i < this.providers.length; i++) {
+        const td = document.createElement('td');
+
+        const value = document.createElement('span');
+        value.className = 'cost-cell-value';
+        const calc1 = document.createElement('span');
+        calc1.className = 'cost-cell-calc';
+        const calc2 = document.createElement('span');
+        calc2.className = 'cost-cell-calc';
+
+        td.appendChild(value);
+        td.appendChild(calc1);
+        td.appendChild(calc2);
+        tr.appendChild(td);
+        this.cloudCells[rowDef.key].push({ value, calc1, calc2 });
+      }
+
+      this.cloudTbody.appendChild(tr);
+    }
+  }
+
+  updateCloudCosts(t, chunkKB) {
+    if (!this.cloudTbody) return;
+
+    const dedup = this.dedupRatio(t);
+    const uniqueGB = this.totalDataGB / dedup;
+    const chunkBytes = chunkKB * 1024;
+    const numObjects = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
+
+    // PUT ops: each chunk from an edit needs an API call (check hash, store if new)
+    const monthlyPuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // GET ops: each doc fetch downloads all chunks (no cache)
+    const monthlyGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Ingress: only unique new chunks actually upload (dedup filters the rest)
+    const ingressGB = this.grossChurnGB / dedup;
+
+    // Update workload summary
+    if (this.cloudWorkload) {
+      this.cloudWorkload.textContent =
+        `${this.formatCount(numObjects)} objects | ${this.formatGB(uniqueGB)} stored | ${dedup.toFixed(1)}x dedup`;
+    }
+
+    const chunkLabel = this.formatSize(chunkKB);
+
+    for (let i = 0; i < this.providers.length; i++) {
+      const p = this.providers[i];
+
+      const storageCost = uniqueGB * p.storagePerGB;
+      const putCost = (monthlyPuts / 1000) * p.putPer1K;
+      const getCost = (monthlyGets / 1000) * p.getPer1K;
+      const opsCost = putCost + getCost;
+      // Egress: full doc bytes for every user fetch, no cache
+      const egressCost = this.monthlyEgressGB * p.egressPerGB;
+      const totalCost = storageCost + opsCost + egressCost;
+
+      // Objects stored
+      const obj = this.cloudCells['objects'][i];
+      obj.value.textContent = this.formatCount(numObjects);
+      obj.calc1.textContent = `${this.formatGB(uniqueGB)} / ${chunkLabel}`;
+      obj.calc2.textContent = '';
+
+      // Storage
+      const stor = this.cloudCells['storage'][i];
+      stor.value.textContent = this.formatDollars(storageCost);
+      stor.calc1.textContent = `${this.formatGB(uniqueGB)} \u00d7 $${p.storagePerGB}/GB`;
+      stor.calc2.textContent = p.storageNote;
+
+      // Operations (PUT + GET with separate calc lines)
+      const ops = this.cloudCells['operations'][i];
+      ops.value.textContent = this.formatDollars(opsCost);
+      ops.calc1.textContent = `${p.putNote}: ${this.formatCount(monthlyPuts)} \u00d7 $${p.putPer1K}/1K`;
+      ops.calc2.textContent = `${p.getNote}: ${this.formatCount(monthlyGets)} \u00d7 $${p.getPer1K}/1K`;
+
+      // Egress
+      const egr = this.cloudCells['egress'][i];
+      egr.value.textContent = this.formatDollars(egressCost);
+      egr.calc1.textContent = `${this.formatGB(this.monthlyEgressGB)} \u00d7 $${p.egressPerGB}/GB`;
+      egr.calc2.textContent = p.egressNote;
+
+      // Ingress
+      const ing = this.cloudCells['ingress'][i];
+      ing.value.textContent = `Free (${this.formatGB(ingressGB)})`;
+      ing.calc1.textContent = `${this.formatGB(this.grossChurnGB)} / ${dedup.toFixed(1)}x dedup`;
+      ing.calc2.textContent = '';
+
+      // Total
+      const tot = this.cloudCells['total'][i];
+      tot.value.textContent = this.formatDollars(totalCost);
+      tot.calc1.textContent = '';
+      tot.calc2.textContent = '';
+    }
+  }
+
+  update() {
+    const sliderValue = parseInt(this.slider.value);
+    const t = sliderValue / 100;
+    const kb = this.sliderToKB(sliderValue);
+
+    this.sliderValueEl.textContent = this.formatSize(kb);
+
+    for (const dim of this.dimensions) {
+      const pct = dim.cost(t);
+      const bar = this.bars[dim.key];
+      bar.fill.style.width = `${pct}%`;
+
+      const tier = t < 0.33 ? 0 : t < 0.67 ? 1 : 2;
+      bar.annotation.textContent = dim.annotations[tier];
+    }
+
+    this.updateCloudCosts(t, kb);
+  }
+}
+
+// =============================================================================
 // Initialize on page load
 // =============================================================================
 
@@ -2337,6 +2664,9 @@ function initCDCAnimations() {
 
   // Basic vs Normalized comparison
   new ComparisonDemo('comparison-demo');
+
+  // Cost tradeoffs explorer
+  new CostTradeoffsDemo('cost-tradeoffs-demo');
 }
 
 // Auto-init when DOM is ready
@@ -2347,4 +2677,4 @@ if (document.readyState === 'loading') {
 }
 
 // Export for module usage
-export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, ComparisonDemo, chunkData, chunkDataBasic, chunkDataFixed, findChunkBoundary, findChunkBoundaryBasic };
+export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, ComparisonDemo, CostTradeoffsDemo, chunkData, chunkDataBasic, chunkDataFixed, findChunkBoundary, findChunkBoundaryBasic };

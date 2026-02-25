@@ -1869,6 +1869,208 @@ categories:
     width: 100%;
   }
 }
+
+/* Cost Tradeoffs Explorer */
+.cost-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.cost-bar-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr 14rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cost-bar-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #3d3a36;
+  text-align: right;
+}
+
+.cost-bar-track {
+  height: 24px;
+  background: rgba(61, 58, 54, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cost-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.cost-fill-cpu,
+.cost-fill-memory,
+.cost-fill-storage {
+  background: linear-gradient(to right, #d4a574, #c45a3b);
+}
+
+.cost-fill-network {
+  background: linear-gradient(to right, #8ab88a, #5a8a5a);
+}
+
+.cost-bar-annotation {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+}
+
+@media (max-width: 50em) {
+  .cost-bar-row {
+    grid-template-columns: 5rem 1fr 10rem;
+  }
+}
+
+@media (max-width: 42em) {
+  .cost-bar-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .cost-bar-label {
+    text-align: left;
+  }
+  .cost-bar-track {
+    height: 20px;
+  }
+}
+
+/* Cloud Cost Table */
+.cost-cloud-section {
+  padding: 0 1.25rem 0.5rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.cost-cloud-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cost-cloud-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #3d3a36;
+}
+
+.cost-cloud-workload {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.7rem;
+  color: #8b7355;
+}
+
+.cost-cloud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cost-cloud-table th {
+  font-weight: bold;
+  color: #3d3a36;
+  text-align: right;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 2px solid rgba(61, 58, 54, 0.15);
+}
+
+.cost-cloud-table th:first-child {
+  text-align: left;
+}
+
+.cost-cloud-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: right;
+  color: #3d3a36;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.07);
+}
+
+.cost-cloud-table td:first-child {
+  text-align: left;
+  color: #8b7355;
+}
+
+.cost-cloud-table tr:last-child td {
+  font-weight: bold;
+  border-top: 2px solid rgba(61, 58, 54, 0.15);
+  border-bottom: none;
+}
+
+.cost-cell-value {
+  display: block;
+}
+
+.cost-cell-calc {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #a08b6e;
+  line-height: 1.3;
+}
+
+.cost-cloud-assumptions {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #8b7355;
+  line-height: 1.5;
+}
+
+.cost-cloud-assumptions a {
+  color: #c45a3b;
+}
+
+@media (max-width: 42em) {
+  .cost-cloud-table {
+    font-size: 0.65rem;
+  }
+  .cost-cloud-table th,
+  .cost-cloud-table td {
+    padding: 0.25rem 0.3rem;
+  }
+  .cost-cell-calc {
+    display: none;
+  }
+}
+
+.cost-pricing-ref {
+  margin: 0.5rem 0 0.75rem;
+}
+.cost-pricing-ref summary {
+  cursor: pointer;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  color: #8b7355;
+  list-style: none;
+  padding: 0.25rem 0;
+}
+.cost-pricing-ref summary::-webkit-details-marker { display: none; }
+.cost-pricing-ref summary::marker { display: none; }
+.cost-pricing-ref summary::before {
+  content: "\25B8  ";
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.cost-pricing-ref[open] summary::before {
+  transform: rotate(90deg);
+}
+.cost-ref-table tr:last-child td {
+  font-weight: normal;
+  border-top: none;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.07);
+}
 </style>
 
 <div class="cdc-series-nav">
@@ -2103,9 +2305,98 @@ Deduplication is not free. Every stage of the pipeline above consumes resources,
 Average chunk size is the single parameter that ties all four costs together.<span class="cdc-cite"><a href="#ref-15">[15]</a></span><span class="cdc-cite"><a href="#ref-21">[21]</a></span> Turning it down (smaller chunks) improves deduplication ratio and network efficiency but increases CPU work, index memory, and metadata overhead. Turning it up (larger chunks) reduces overhead but sacrifices dedup granularity. The right setting depends on your domain.
 </div>
 
+The four costs above are system-level resources. But most production systems today store chunks on cloud object storage (S3, GCS, Azure Blob), which layers its own pricing model on top: per-GB storage charges, but also per-operation charges for every PUT and GET. This means the number of objects you store and retrieve matters as much as the total bytes. More chunks means more API calls, and that cost scales independently of how much deduplication saves you on storage. The explorer below models this tradeoff for a concrete workload.
+
+<div class="cdc-viz" id="cost-tradeoffs-demo">
+  <div class="cdc-viz-header">
+    <span class="cdc-viz-title">Cost Tradeoffs Explorer</span>
+  </div>
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Average Chunk Size: <strong id="cost-tradeoffs-slider-value">32 KB</strong>
+    </span>
+    <input type="range" id="cost-tradeoffs-slider" min="0" max="100" value="50" step="1">
+  </div>
+  <div class="cost-bars-container" id="cost-tradeoffs-bars">
+  </div>
+  <div class="cost-cloud-section" id="cost-cloud-section">
+    <div class="cost-cloud-header">
+      <span class="cost-cloud-title">Estimated Monthly Cloud Costs</span>
+      <span class="cost-cloud-workload" id="cost-cloud-workload"></span>
+    </div>
+    <table class="cost-cloud-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>AWS S3<span class="cost-cell-calc">Standard, US East</span></th>
+          <th>GCP<span class="cost-cell-calc">Standard, US multi-region</span></th>
+          <th>Azure<span class="cost-cell-calc">Hot tier (LRS), US East</span></th>
+        </tr>
+      </thead>
+      <tbody id="cost-cloud-tbody">
+      </tbody>
+    </table>
+    <details class="cost-pricing-ref">
+      <summary>Per-unit pricing rates used in these calculations</summary>
+      <table class="cost-cloud-table cost-ref-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>AWS S3<span class="cost-cell-calc">Standard, US East</span></th>
+            <th>GCP<span class="cost-cell-calc">Standard, US multi-region</span></th>
+            <th>Azure<span class="cost-cell-calc">Hot tier (LRS), US East</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Storage</td>
+            <td>$0.023/GB<span class="cost-cell-calc">first 50 TB</span></td>
+            <td>$0.026/GB<span class="cost-cell-calc">multi-region</span></td>
+            <td>$0.018/GB<span class="cost-cell-calc">first 50 TB</span></td>
+          </tr>
+          <tr>
+            <td>Write ops</td>
+            <td>$0.005/1K<span class="cost-cell-calc">PUT/COPY/POST/LIST</span></td>
+            <td>$0.005/1K<span class="cost-cell-calc">Class A ops</span></td>
+            <td>$0.0065/1K<span class="cost-cell-calc">Write ops</span></td>
+          </tr>
+          <tr>
+            <td>Read ops</td>
+            <td>$0.0004/1K<span class="cost-cell-calc">GET/SELECT</span></td>
+            <td>$0.0004/1K<span class="cost-cell-calc">Class B ops</span></td>
+            <td>$0.0005/1K<span class="cost-cell-calc">Read ops</span></td>
+          </tr>
+          <tr>
+            <td>Egress</td>
+            <td>$0.09/GB<span class="cost-cell-calc">first 10 TB/mo</span></td>
+            <td>$0.12/GB<span class="cost-cell-calc">first 10 TB/mo</span></td>
+            <td>$0.087/GB<span class="cost-cell-calc">to internet</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+    <div class="cost-cloud-assumptions">
+      Assumes 100M users, 1 PB total data (~1B docs, ~1 MB avg), 1B doc reads/month, 50 edits per user/month (10 MB avg change). No client-side cache. US East / US multi-region, standard and hot tiers.
+      Pricing: <a href="https://aws.amazon.com/s3/pricing/" target="_blank">AWS S3</a>,
+      <a href="https://cloud.google.com/storage/pricing" target="_blank">GCP Cloud Storage</a>,
+      <a href="https://azure.microsoft.com/en-us/pricing/details/storage/blobs/" target="_blank">Azure Blob Storage</a>
+      as of Feb 2026.
+    </div>
+  </div>
+  <div class="cdc-viz-hint">
+    Drag the slider to see how average chunk size affects each cost dimension.
+  </div>
+</div>
+
 Real systems make this choice based on what matters most. Backup tools like Restic and Borg use CDC with chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead. Seafile, an open-source file sync platform, uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Not every system chooses CDC, though, and for good reason. We will look at why in the next section.
 
 If you experimented with the chunk size sliders in [Part 2](/writings/2026/02/16/content-defined-chunking-part-2.html), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
+
+What the explorer reveals is that at scale, API operations (PUT and GET costs) dominate total cloud costs, not storage. Shrinking chunk size improves deduplication and reduces stored bytes, but it multiplies the number of objects and therefore the number of API calls. The per-operation pricing model of cloud object storage means those API calls can cost orders of magnitude more than the storage savings from better dedup. In this workload, going from 1 MB chunks down to 1 KB chunks saves roughly $18K/month in storage but adds hundreds of thousands of dollars in monthly operations costs.
+
+This is not strictly a CDC problem. It is a cloud object storage cost modeling problem. CDC determines *how* you split data into chunks, but the economics of storing and retrieving those chunks depend on the storage layer underneath. A system that controls its own storage (like ZFS or btrfs) pays no per-operation tax and can freely use fine-grained chunks. A system on top of S3 has a different cost function entirely.
+
+Production systems bridge this gap with *containers*: grouping many small chunks into larger, fixed-size storage objects, writing one object per container instead of one per chunk.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-15">[15]</a></span> An index tracks each chunk's location (container ID, byte offset, length), and reads use range requests on the container rather than individual GETs per chunk. This decouples logical chunk granularity from physical object count, letting systems keep fine-grained CDC deduplication while paying for far fewer API operations.
 
 ### When CDC Is Not the Right Choice
 
@@ -2119,9 +2410,9 @@ There is also the metadata question. As discussed in the cost tradeoffs above, C
 
 The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1.html). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
 
-In short, Dropbox traded storage efficiency for transport speed and operational simplicity. At their scale, predictable system resource loads and the ability to parallelize everything without content-dependent coordination were worth more than the deduplication gains CDC would have provided.
+In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks also mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. Dropbox cared less about maximizing deduplication and more about making costs modelable and predictable at scale. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
 
-One way to recover some of Dropbox's transport advantages while keeping CDC is *chunk packing*: grouping variable-size chunks into fixed-size packs for storage and transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a pack containing multiple chunks in a single request. This reduces the number of network calls between server and storage engine and gives the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A pack will often contain more bytes than you need for a given request, since not every chunk in the pack is relevant. And if deduplication is working well, the chunks you need may be scattered across many different packs (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct packs as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same pack.
+As discussed above, one way to recover some of Dropbox's transport advantages while keeping CDC is chunk packing (packfiles): grouping variable-size chunks into larger storage objects for transfer. Instead of fetching each chunk individually (one network round trip per chunk), the system retrieves a pack containing multiple chunks in a single request. This reduces both the number of API operations (and their associated costs) and the number of network calls between server and storage engine, while giving the storage layer predictable I/O sizes to work with. But packing introduces its own tradeoffs. A pack will often contain more bytes than you need for a given request, since not every chunk in the pack is relevant. And if deduplication is working well, the chunks you need may be scattered across many different packs (because they were originally written at different times alongside different neighbors). In the worst case, you end up fetching just as many distinct packs as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same pack.
 
 Still, the existence of chunk packing shows that the choice between CDC and fixed-size chunking is not binary. It is possible to achieve good file syncing performance, network efficiency, and predictable transport while still introducing deduplication through CDC. One system that demonstrates this is **Seafile**, an open-source file sync and storage platform that uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
 
