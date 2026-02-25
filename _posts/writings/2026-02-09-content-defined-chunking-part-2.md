@@ -1160,6 +1160,20 @@ categories:
   text-overflow: ellipsis;
 }
 
+/* Fix chunk bar height in Gear Hash demo to prevent layout shift */
+#gear-hash-demo .cdc-blocks-view {
+  min-height: 60px;
+}
+
+/* Darker default text for Gear Hash demo */
+#gear-hash-demo .cdc-byte-char {
+  color: #2a2724;
+  font-weight: 600;
+}
+#gear-hash-demo .cdc-byte-hex {
+  color: #6b5a42;
+}
+
 /* Chunk hover highlights */
 .cdc-combined-view .cdc-byte-col.chunk-hover {
   filter: brightness(0.85);
@@ -1856,6 +1870,9 @@ At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
 
 <div class="cdc-viz" id="gear-hash-demo">
+  <div class="cdc-viz-header">
+    <div class="cdc-viz-title">Gear Hash in Action</div>
+  </div>
   <div class="cdc-content">
     <div id="gear-content-display" class="cdc-combined-view">
       The quick brown fox jumps over the lazy dog.

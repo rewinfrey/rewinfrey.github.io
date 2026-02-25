@@ -532,6 +532,10 @@ class GearHashDemo {
       this.speed = parseInt(e.target.value);
     });
 
+    // Render initial placeholder shift viz to reserve layout height
+    this.renderShiftViz(0, 0, 0, 0, false);
+    if (this.shiftViz) this.shiftViz.style.visibility = 'hidden';
+
     this.render();
   }
 
@@ -712,6 +716,7 @@ class GearHashDemo {
     });
 
     // 8. Update bit-shift visualization
+    if (this.shiftViz) this.shiftViz.style.visibility = 'visible';
     this.renderShiftViz(Number(this.previousHash), shiftedHash, gearValue, newHashNum, isBoundary);
 
     // 9. Highlight the GEAR table cell
@@ -739,9 +744,11 @@ class GearHashDemo {
     // Clear GEAR cell highlight
     this.highlightGearCell(-1);
 
-    // Reset shift viz
+    // Reset shift viz to hidden placeholder
     if (this.shiftViz) {
       clearElement(this.shiftViz);
+      this.renderShiftViz(0, 0, 0, 0, false);
+      this.shiftViz.style.visibility = 'hidden';
     }
 
     // Reset readout
@@ -1005,6 +1012,8 @@ class GearHashDemo {
       hexSpan.textContent = hex;
       col.appendChild(hexSpan);
 
+      col.style.borderBottom = '2px solid transparent';
+
       if (isProcessed) {
         col.dataset.chunkIndex = chunkIndex;
         col.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
@@ -1032,8 +1041,37 @@ class GearHashDemo {
     const bar = document.createElement('div');
     bar.className = 'cdc-blocks-view';
 
-    // Don't show the bar until the animation has started
-    if (this.position === 0) return bar;
+    // Reserve space for the chunk bar before animation starts
+    if (this.position === 0) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cdc-block-wrapper';
+      wrapper.style.flex = '1 0 0';
+
+      const block = document.createElement('div');
+      block.className = 'cdc-block';
+      block.style.backgroundColor = 'transparent';
+      wrapper.appendChild(block);
+
+      const annotation = document.createElement('div');
+      annotation.className = 'cdc-block-annotation';
+
+      const line = document.createElement('div');
+      line.className = 'cdc-block-line';
+      annotation.appendChild(line);
+
+      const tick = document.createElement('div');
+      tick.className = 'cdc-block-tick';
+      annotation.appendChild(tick);
+
+      const label = document.createElement('div');
+      label.className = 'cdc-block-label';
+      label.textContent = 'No chunks yet';
+      annotation.appendChild(label);
+
+      wrapper.appendChild(annotation);
+      bar.appendChild(wrapper);
+      return bar;
+    }
 
     const boundaries = [0, ...this.chunkBoundaries, this.data.length];
     const isLastChunkComplete = this.chunkBoundaries.length > 0 &&
@@ -1059,11 +1097,11 @@ class GearHashDemo {
       const processedLength = Math.min(this.position - start, length);
       const processedPercent = Math.max(0, processedLength / length);
 
-      block.style.opacity = this.position > start ? 1 : 0.3;
-
-      if (this.position > start && this.position < end) {
+      if (this.position <= start) {
+        block.style.backgroundColor = 'transparent';
+      } else if (this.position < end) {
         const baseColor = CHUNK_SOLID_COLORS[i % 6];
-        block.style.background = `linear-gradient(to right, ${baseColor} 0%, ${baseColor} ${processedPercent * 100}%, rgba(61, 58, 54, 0.1) ${processedPercent * 100}%)`;
+        block.style.background = `linear-gradient(to right, ${baseColor} 0%, ${baseColor} ${processedPercent * 100}%, transparent ${processedPercent * 100}%)`;
       }
 
       block.title = `${length} bytes`;

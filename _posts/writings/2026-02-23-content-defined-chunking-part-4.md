@@ -424,7 +424,7 @@ categories:
 </style>
 
 <div class="cdc-series-nav">
-Part 4 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+Part 4 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> &middot; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> &middot; <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
 In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline and explored its cost tradeoffs. The cloud cost explorer revealed a surprising result: when every chunk lives as a separate object on cloud storage, the per-operation pricing model means API calls (PUT and GET) dominate total cost, not storage. Shrinking chunks improves deduplication ratio but multiplies operations costs by orders of magnitude. At 1 KB average chunk size, operations cost hundreds of thousands of dollars per month for a workload where storage itself costs only tens of thousands.
