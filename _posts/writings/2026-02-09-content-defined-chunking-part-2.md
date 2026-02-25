@@ -502,6 +502,7 @@ categories:
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-top: 1rem;
   padding: 1rem 1.25rem;
   background: rgba(61, 58, 54, 0.02);
   border-top: 1px solid rgba(61, 58, 54, 0.08);
@@ -1165,9 +1166,9 @@ categories:
   min-height: 60px;
 }
 
-/* Darker default text for Gear Hash demo */
+/* Default text for Gear Hash demo */
 #gear-hash-demo .cdc-byte-char {
-  color: #2a2724;
+  color: #000;
   font-weight: 600;
 }
 #gear-hash-demo .cdc-byte-hex {
@@ -1201,12 +1202,14 @@ categories:
 .gear-table-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(16, 1fr);
   gap: 1px;
   margin-top: 0.5rem;
+  flex: 1;
 }
 
 .gear-table-cell {
-  height: 15px;
+  min-height: 10px;
   border-radius: 1px;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.15s ease;
@@ -1290,7 +1293,7 @@ categories:
 
 /* Bit-shift visualization */
 .gear-shift-viz {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.6rem;
 }
@@ -1396,12 +1399,14 @@ categories:
   display: flex;
   gap: 1.5rem;
   margin-top: 1rem;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .gear-col-left {
   flex: 1 1 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .gear-col-right {
@@ -1887,13 +1892,13 @@ Part 2 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writing
 
 ## A Closer Look at BSW via FastCDC
 
-FastCDC belongs to the **Basic Sliding Window** family, but it is the most refined algorithm in that lineage. Where Rabin used polynomial arithmetic and Buzhash used cyclic shifts, FastCDC's Gear hash strips the rolling hash down to its simplest possible form. We'll explore both the 2016<span class="cdc-cite"><a href="#ref-5">[5]</a></span> and 2020<span class="cdc-cite"><a href="#ref-6">[6]</a></span> versions in detail, using the <a href="https://github.com/nlfiedler/fastcdc-rs"><code>fastcdc-rs</code></a> Rust crate as our reference implementation.
+The **Basic Sliding Window** family includes FastCDC, which is true to its name: it is *fast*. Where Rabin used polynomial arithmetic and Buzhash used cyclic shifts, FastCDC's Gear hash strips the rolling hash down to its simplest possible form. That speed, combined with normalized chunking for tighter chunk-size distributions, has made FastCDC one of the most widely implemented CDC algorithms today, with mature libraries in Rust, Go, Python, Java, and C++. We'll explore both the 2016<span class="cdc-cite"><a href="#ref-5">[5]</a></span> and 2020<span class="cdc-cite"><a href="#ref-6">[6]</a></span> versions in detail, using the <a href="https://github.com/nlfiedler/fastcdc-rs"><code>fastcdc-rs</code></a> Rust crate as our reference implementation.
 
 ### The GEAR Hash
 
 At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations. For each byte, you:
-1. Left-shift the current hash by one bit
-2. Add a pre-computed random value for that byte
+1. **Left-shift** the current hash by one bit, dropping the most significant bit
+2. **Add** the value from the GEAR table keyed by the current byte, a pre-computed 64-bit random value, to the hash
 
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
 

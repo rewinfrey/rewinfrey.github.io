@@ -1018,13 +1018,14 @@ class GearHashDemo {
         col.dataset.chunkIndex = chunkIndex;
         col.style.backgroundColor = CHUNK_COLORS[chunkIndex % 6];
         col.style.borderBottom = `2px solid ${CHUNK_BORDER_COLORS[chunkIndex % 6]}`;
+        charSpan.style.color = CHUNK_SOLID_COLORS[chunkIndex % 6];
       }
       if (isCurrent) {
         col.style.outline = '2px solid #c45a3b';
         col.style.outlineOffset = '-1px';
       }
       if (isUnprocessed) {
-        col.style.opacity = '0.4';
+        col.style.opacity = '0.7';
       }
 
       this.contentDisplay.appendChild(col);
