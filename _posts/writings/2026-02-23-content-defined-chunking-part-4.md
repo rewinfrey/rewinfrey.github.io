@@ -546,6 +546,14 @@ The Data Domain Cloud Tier paper by Duggal et al. (ATC '19) extended the contain
 
 These are not independent knobs. Container size, chunk size, rewriting aggressiveness, GC frequency, cache budget, and index structure all interact. The FAST '15 paper found that tuning one parameter without considering the others can produce worse results than the untuned default, because improving one dimension (say, dedup ratio via smaller chunks) can degrade another (restore speed via increased fragmentation). This interdependence is why the research community has spent over a decade refining the relationships between these parameters, and why production systems like Data Domain have developed sophisticated auto-tuning mechanisms rather than exposing raw knobs to operators.
 
+### Why I Care About This
+
+This series grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. Source code is a particularly interesting domain for chunking because individual files are typically small<span class="cdc-cite"><a href="#ref-27">[27]</a></span> and edits tend to be localized, small changes concentrated in specific functions or blocks<span class="cdc-cite"><a href="#ref-28">[28]</a></span>. This means even smaller chunk sizes may be appropriate since the overhead is bounded by the small file sizes involved.
+
+If edits concentrate in specific functions and blocks, the natural extension of content-defined chunking is to define boundaries using the structure of the source code itself: functions, methods, classes, and modules. Rather than scanning bytes for rolling hash matches, you can parse the code into its syntactic units and chunk along those boundaries directly. **cAST** (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> does exactly this for retrieval-augmented code generation (RAG): it parses source code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
+
+My thesis asks whether this same structure-awareness can improve deduplication for source code on large version control platforms. Can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions? I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** as a baseline, modeling Git's approach without its packfile and delta compression layers, then **FastCDC** for byte-level content-defined chunking, and finally **cAST-style structural chunking** with AST-aware boundaries. Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
+
 ## Conclusion
 
 Every solution at one layer of abstraction creates problems at the next. In [Part 1](/writings/content-defined-chunking-part-1), we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC and saw how normalized chunking with dual masks produces tighter, more predictable chunk size distributions. In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline and explored the system-level costs that chunk size controls. In this post, we saw that deploying CDC on cloud object storage reveals a new cost dimension: per-operation pricing makes fine-grained chunks ruinously expensive. Containers solved that by decoupling logical chunk granularity from physical object count. But containers introduced fragmentation, made garbage collection hard, and created a design space where container size, rewriting strategy, and GC policy all interact.
@@ -678,6 +686,30 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
   <div class="bib-citation">A. Duggal, F. Jenkins, P. Shilane, R. Chinthekindi, R. Shah &amp; M. Kamat, "Data Domain Cloud Tier: Backup here, backup there, deduplicated everywhere!" <em>USENIX ATC '19</em>, Renton, WA, July 2019.</div>
   <div class="bib-links">
     <a href="https://www.usenix.org/conference/atc19/presentation/duggal" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-14">
+  <div class="bib-number">[14]</div>
+  <div class="bib-citation">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-27">
+  <div class="bib-number">[27]</div>
+  <div class="bib-citation">I. Herraiz, D. M. German &amp; A. E. Hassan, "On the Distribution of Source Code File Sizes," <em>6th International Conference on Software and Data Technologies (ICSOFT '11)</em>, 2011.</div>
+  <div class="bib-links">
+    <a href="https://www.researchgate.net/publication/220737991_On_the_Distribution_of_Source_Code_File_Sizes" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ResearchGate</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-28">
+  <div class="bib-number">[28]</div>
+  <div class="bib-citation">O. Arafat &amp; D. Riehle, "The Commit Size Distribution of Open Source Software," <em>42nd Hawaii International Conference on System Sciences (HICSS-42)</em>, 2009.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/4755633" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
   </div>
 </div>
 

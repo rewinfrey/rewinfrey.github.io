@@ -2330,6 +2330,43 @@ Walking through the stages: the raw file bytes enter the pipeline and are split 
 
 Each stage in the pipeline maps to just a few lines of code, but together they form a system where redundant data is identified and eliminated before it ever reaches disk or network. When a file changes, only the chunks that were actually modified produce new hashes. The rest match what is already in the store, so they are never written again.
 
+### Where CDC Lives Today
+
+Content-defined chunking has become infrastructure, often invisible but always essential.
+
+**Restic** uses Rabin fingerprints with ~1MB average chunks:
+```bash
+$ restic backup ~/Documents
+# Only changed chunks are uploaded to the repository
+```
+
+**Borg** uses Buzhash with a secret seed (preventing attackers from guessing chunk boundaries based on known content):
+```bash
+$ borg create ::backup-{now} ~/Documents
+# Chunks are deduplicated across all archives
+```
+
+**Seafile** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
+
+**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> We examine this tradeoff in <a href="/writings/content-defined-chunking-part-4">Part 4</a>.
+
+While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
+
+For Rust developers, the `fastcdc` crate provides production-ready implementations:
+
+{% highlight rust linenos %}
+use fastcdc::v2020::FastCDC;
+
+let data = std::fs::read("large_file.bin")?;
+let chunker = FastCDC::new(&data, 8192, 16384, 65535);
+
+for chunk in chunker {
+    println!("Chunk: {} bytes at offset {}",
+             chunk.length, chunk.offset);
+    // Hash the chunk, store it, etc.
+}
+{% endhighlight %}
+
 ### The Cost Tradeoffs
 
 Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The costs fall into four categories, and they all interact.
@@ -2370,65 +2407,17 @@ The explorer below visualizes these four dimensions as you move the chunk size s
   </div>
 </div>
 
-Real systems make this choice based on what matters most. Backup tools like Restic and Borg use CDC with chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead. Seafile, an open-source file sync platform, uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
+The systems surveyed above illustrate these tradeoffs in practice. Restic and Borg use chunks averaging around 1 MB because their inputs tend to be large files (disk images, databases, media) where coarse-grained dedup is already effective and the priority is minimizing index size and metadata overhead.
 
 If you experimented with the chunk size sliders in [Part 2](/writings/content-defined-chunking-part-2), you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. The cost implications are what make the choice matter in production.
 
-There is one more cost dimension that the four bars above do not capture: the economics of cloud object storage. Most production systems today store chunks on S3, GCS, or Azure Blob Storage, which charge not just per GB stored but also per API operation (every PUT and GET). When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. In <a href="/writings/content-defined-chunking-part-4">Part 4</a>, we explore this problem in detail and introduce the container abstraction that makes CDC viable at scale on cloud storage.
+### The Cost of Cloud Storage
 
-### Where CDC Lives Today
+The four dimensions above (CPU, memory, network, and storage) cover the core engineering tradeoffs of any deduplication system. But they assume a local or self-managed storage backend where the cost of writing and reading an object is just disk I/O. Most production systems today do not work that way. They store chunks on cloud object storage: S3, GCS, or Azure Blob Storage.
 
-Content-defined chunking has become infrastructure, often invisible but always essential.
+Cloud providers charge not just per GB stored but also per API operation. Every PUT and every GET has a price. When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. The same knob that the explorer above illustrates (smaller chunks improve dedup but increase chunk count) takes on a new, financially painful dimension: more chunks means more API calls means a larger cloud bill, even if the total bytes stored are fewer.
 
-**Restic** uses Rabin fingerprints with ~1MB average chunks:
-```bash
-$ restic backup ~/Documents
-# Only changed chunks are uploaded to the repository
-```
-
-**Borg** uses Buzhash with a secret seed (preventing attackers from guessing chunk boundaries based on known content):
-```bash
-$ borg create ::backup-{now} ~/Documents
-# Chunks are deduplicated across all archives
-```
-
-**Seafile** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span>
-
-**Dropbox** notably does *not* use CDC. It uses fixed-size 4 MiB blocks, trading boundary stability for transport speed and operational simplicity.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> We examine this tradeoff in <a href="/writings/content-defined-chunking-part-4">Part 4</a>.
-
-While Git doesn't use traditional CDC (it stores complete object snapshots), the principle of content-addressable storage is the same. Modern systems like **Perkeep** (née Camlistore) use CDC for its content layer.
-
-For Rust developers, the `fastcdc` crate provides production-ready implementations:
-
-{% highlight rust linenos %}
-use fastcdc::v2020::FastCDC;
-
-let data = std::fs::read("large_file.bin")?;
-let chunker = FastCDC::new(&data, 8192, 16384, 65535);
-
-for chunk in chunker {
-    println!("Chunk: {} bytes at offset {}",
-             chunk.length, chunk.offset);
-    // Hash the chunk, store it, etc.
-}
-{% endhighlight %}
-
-### Why I Care About This
-
-This post grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. Source code is a particularly interesting domain for chunking because individual files are typically small<span class="cdc-cite"><a href="#ref-27">[27]</a></span> and edits tend to be localized, small changes concentrated in specific functions or blocks<span class="cdc-cite"><a href="#ref-28">[28]</a></span>. This means even smaller chunk sizes may be appropriate since the overhead is bounded by the small file sizes involved.
-
-If edits concentrate in specific functions and blocks, the natural extension of content-defined chunking is to define boundaries using the structure of the source code itself: functions, methods, classes, and modules. Rather than scanning bytes for rolling hash matches, you can parse the code into its syntactic units and chunk along those boundaries directly. **cAST** (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> does exactly this for retrieval-augmented code generation (RAG): it parses source code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
-
-My thesis asks whether this same structure-awareness can improve deduplication for source code on large version control platforms. Can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions? I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** as a baseline, modeling Git's approach without its packfile and delta compression layers, then **FastCDC** for byte-level content-defined chunking, and finally **cAST-style structural chunking** with AST-aware boundaries. Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
-
----
-
----
-
-In this post we saw deduplication in action: a pipeline that chunks, fingerprints, and deduplicates file versions, keeping only what is new. We explored the four system-level costs that every deduplication system must balance (CPU, memory, network, and storage) and how average chunk size acts as the central knob that ties them together. And we looked at where CDC is deployed today, from backup tools like Restic and Borg to file sync platforms like Seafile, with each system choosing the chunk size that fits its workload.
-
-But we left one cost dimension unexplored. Most production systems store chunks on cloud object storage, where per-operation pricing adds a cost that scales with the number of objects, not just the number of bytes. When each chunk is its own object, fine-grained deduplication becomes economically impractical. In <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>, we examine this problem in detail, introduce the container abstraction that solves it, and explore the new challenges containers create: fragmentation, garbage collection, and restore performance degradation.
-
+This is the problem that <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a> tackles head-on. We build an interactive cost model for cloud object storage, introduce the container abstraction that collapses operations costs by orders of magnitude, and then explore the new challenges containers create: fragmentation, garbage collection, and restore performance degradation.
 <div class="cdc-footnotes">
 <ol>
 <li id="fn1">Collision resistance requires that it is computationally infeasible to find two different inputs that produce the same hash. For this guarantee to hold, every bit of the input must influence the output. If the function skipped even a single byte, two inputs differing only in that byte would hash identically, a trivial collision. This is the fundamental difference from rolling hashes used for boundary detection: Gear hash only looks at a sliding window and is not collision-resistant, which is fine for finding chunk boundaries but not for content addressing, where a collision means two different chunks are treated as identical and one gets silently discarded. BLAKE3 is notably faster than SHA-256 here because it uses a Merkle tree structure internally, allowing parts of the input to be hashed in parallel across cores and SIMD lanes, but it still processes every byte. <a href="#fn1-ref" class="back-ref">&#8617;</a></li>
@@ -2438,14 +2427,6 @@ But we left one cost dimension unexplored. Most production systems store chunks 
 ### References
 
 <div class="cdc-references">
-
-<div class="bib-entry" id="ref-14">
-  <div class="bib-number">[14]</div>
-  <div class="bib-citation">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.</div>
-  <div class="bib-links">
-    <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
-  </div>
-</div>
 
 <div class="bib-entry" id="ref-15">
   <div class="bib-number">[15]</div>
@@ -2526,22 +2507,6 @@ But we left one cost dimension unexplored. Most production systems store chunks 
   <div class="bib-links">
     <a href="https://manual.seafile.com/latest/develop/data_model/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
     <a href="https://github.com/haiwen/seafile-server" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-27">
-  <div class="bib-number">[27]</div>
-  <div class="bib-citation">I. Herraiz, D. M. German &amp; A. E. Hassan, "On the Distribution of Source Code File Sizes," <em>6th International Conference on Software and Data Technologies (ICSOFT '11)</em>, 2011.</div>
-  <div class="bib-links">
-    <a href="https://www.researchgate.net/publication/220737991_On_the_Distribution_of_Source_Code_File_Sizes" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ResearchGate</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-28">
-  <div class="bib-number">[28]</div>
-  <div class="bib-citation">O. Arafat &amp; D. Riehle, "The Commit Size Distribution of Open Source Software," <em>42nd Hawaii International Conference on System Sciences (HICSS-42)</em>, 2009.</div>
-  <div class="bib-links">
-    <a href="https://ieeexplore.ieee.org/document/4755633" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
   </div>
 </div>
 
