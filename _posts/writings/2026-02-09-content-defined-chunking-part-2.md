@@ -1711,6 +1711,34 @@ categories:
   margin-top: auto;
 }
 
+/* Distribution illustration (static SVG curves) */
+.dist-illustration {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 42em) {
+  .dist-illustration {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dist-illustration-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.dist-illustration-note {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
 .cdc-blocks-target-line {
   position: absolute;
   left: 0;
@@ -2070,6 +2098,46 @@ But basic masking has a problem, and FastCDC does something more clever: **norma
 
 The problem with basic masking is chunk sizes follow an exponential distribution. You get many small chunks and occasional very large ones. This hurts deduplication because small chunks increase metadata overhead, and large chunks reduce sharing opportunities.
 
+<div class="cdc-viz">
+  <div class="cdc-viz-header">
+    <span class="cdc-viz-title">Chunk Size Distribution: Basic vs Normalized</span>
+  </div>
+  <div class="dist-illustration">
+    <div class="dist-illustration-panel">
+      <div class="comparison-label"><span class="comparison-label-text">Basic CDC <span class="comparison-sublabel">(Single Mask)</span></span></div>
+      <svg class="dist-illustration-svg" viewBox="0 -8 200 118" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="exp-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c45a3b" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#c45a3b" stop-opacity="0.05"/>
+          </linearGradient>
+        </defs>
+        <path d="M 0 100 C 5 100, 10 100, 15 98 C 20 90, 22 30, 25 12 C 28 25, 40 50, 60 68 C 80 78, 110 88, 150 94 C 170 96, 190 98, 200 99 L 200 100 Z" fill="url(#exp-fill)" stroke="#c45a3b" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="100" y1="5" x2="100" y2="100" stroke="#3d3a36" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>
+        <text x="100" y="2" text-anchor="middle" font-family="'Libre Baskerville', Georgia, serif" font-size="6" fill="#8b7355">target avg</text>
+        <text x="100" y="109" text-anchor="middle" font-family="'Libre Baskerville', Georgia, serif" font-size="6" fill="#8b7355">Chunk size &#x2192;</text>
+      </svg>
+      <div class="dist-illustration-note">Many small chunks, long tail of large ones</div>
+    </div>
+    <div class="dist-illustration-panel">
+      <div class="comparison-label"><span class="comparison-label-text">Normalized CDC <span class="comparison-sublabel">(Dual Mask)</span></span></div>
+      <svg class="dist-illustration-svg" viewBox="0 -8 200 118" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="gauss-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c45a3b" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#c45a3b" stop-opacity="0.05"/>
+          </linearGradient>
+        </defs>
+        <path d="M 0 100 C 10 100, 25 99, 40 97 C 55 93, 65 80, 75 55 C 85 28, 90 14, 100 10 C 110 14, 115 28, 125 55 C 135 80, 145 93, 160 97 C 175 99, 190 100, 200 100 Z" fill="url(#gauss-fill)" stroke="#c45a3b" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="100" y1="5" x2="100" y2="100" stroke="#3d3a36" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>
+        <text x="100" y="2" text-anchor="middle" font-family="'Libre Baskerville', Georgia, serif" font-size="6" fill="#8b7355">target avg</text>
+        <text x="100" y="109" text-anchor="middle" font-family="'Libre Baskerville', Georgia, serif" font-size="6" fill="#8b7355">Chunk size &#x2192;</text>
+      </svg>
+      <div class="dist-illustration-note">Chunks cluster tightly around the target</div>
+    </div>
+  </div>
+</div>
+
 Why exponential? Because the probability of hitting a boundary is the same at every byte position. Each byte has a $1/2^N$ chance of triggering a cut, regardless of how many bytes have already been consumed into the current chunk. Short chunks are always more likely than long ones, for the same reason that flipping heads on the first try is more likely than waiting until the tenth.
 
 The fix is intuitive: vary the probability based on how many bytes have been consumed into the current chunk so far. If only a few bytes have been consumed, make boundaries *harder* to find so you don't produce tiny chunks. Once you've consumed past the target average, make boundaries *easier* to find so chunks don't grow too large.
@@ -2078,32 +2146,11 @@ FastCDC's solution:
 1. **Below the average size**: Use a **stricter mask** (more bits must be zero)
 2. **Above the average size**: Use a **looser mask** (fewer bits must be zero)
 
-This squeezes chunks toward the average size:
-
-{% highlight text %}
-Chunk size distribution:
-
-Basic CDC:      [exponential - many small, few large]
-                ████████████████████
-                ████████████
-                ████████
-                ███
-                ██
-                █
-
-Normalized CDC: [gaussian-like - clustered around average]
-                    █████
-                  █████████
-                ██████████████
-                ████████████████
-                ██████████████
-                  █████████
-                    █████
-{% endhighlight %}
+FastCDC was published in two rounds: a 2016 paper that introduced normalized chunking, and a 2020 revision that added a performance optimization by processing two bytes per iteration.
 
 ### The 2016 Algorithm
 
-Here's the complete 2016 chunking loop, showing both phases:
+Here's the complete 2016 chunking loop, showing the use of both masks:
 
 <div class="code-tabs" id="fastcdc-2016-code">
   <div class="code-tab-buttons">
@@ -2236,6 +2283,8 @@ function findChunkBoundary(
 {% endhighlight %}
   </div>
 </div>
+
+The 2016 algorithm's one-byte sliding window is already fast, but the 2020 revision found a way to cut the number of loop iterations in half.
 
 ### The 2020 Enhancement: Rolling Two Bytes
 
