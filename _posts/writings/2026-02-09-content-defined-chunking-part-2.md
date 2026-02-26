@@ -1966,7 +1966,7 @@ MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
 <div class="cdc-series-nav">
-Part 2 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+Part 2 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · Next: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
 </div>
 
 [Part 1](/writings/content-defined-chunking-part-1) introduced the deduplication problem, showed why fixed-size chunking fails, and surveyed three CDC algorithm families: Basic Sliding Window (BSW), Local Extrema, and Statistical. This post focuses on **FastCDC**, the most widely adopted BSW algorithm, exploring its Gear hash, normalized chunking strategy, and tunable parameters through interactive demos.

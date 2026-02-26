@@ -409,6 +409,49 @@ categories:
 .cdc-series-nav a { color: #c45a3b; text-decoration: none; }
 .cdc-series-nav a:hover { text-decoration: underline; }
 
+/* Jazz Cloud single-column table */
+.jazz-cost-table {
+  max-width: 24rem;
+}
+
+/* Comprehensive / single-column cost table */
+.comprehensive-cost-table {
+  max-width: 28rem;
+}
+
+/* Styled provider select dropdowns */
+.cost-provider-select {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  color: #3d3a36;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.2);
+  border-radius: 6px;
+  padding: 0.35rem 2rem 0.35rem 0.6rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b7355'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.cost-provider-select:hover {
+  border-color: rgba(61, 58, 54, 0.4);
+}
+
+.cost-provider-select:focus {
+  outline: none;
+  border-color: #c45a3b;
+  box-shadow: 0 0 0 2px rgba(196, 90, 59, 0.15);
+}
+
+.cost-provider-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 @media (max-width: 42em) {
   .cost-cloud-table {
     font-size: 0.65rem;
@@ -424,30 +467,12 @@ categories:
 </style>
 
 <div class="cdc-series-nav">
-Part 4 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> &middot; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> &middot; <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+Part 4 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a> &middot; Next: <a href="/writings/content-defined-chunking-part-5">Part 5: The Cost of CDC at Scale</a>
 </div>
 
-In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline and explored its cost tradeoffs. The cloud cost explorer revealed a surprising result: when every chunk lives as a separate object on cloud storage, the per-operation pricing model means API calls (PUT and GET) dominate total cost, not storage. Shrinking chunks improves deduplication ratio but multiplies operations costs by orders of magnitude. At 1 KB average chunk size, operations cost hundreds of thousands of dollars per month for a workload where storage itself costs only tens of thousands.
+In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline, explored its cost tradeoffs, and saw where CDC is deployed today. The cloud cost explorer revealed a surprising result: when every chunk lives as a separate object on cloud storage, the per-operation pricing model means API calls (PUT and GET) dominate total cost, not storage. Shrinking chunks improves deduplication ratio but multiplies operations costs by orders of magnitude. At 1 KB average chunk size, operations cost hundreds of thousands of dollars per month for a workload where storage itself costs only tens of thousands.
 
-We ended that post with a single paragraph introducing containers as the fix: grouping many small chunks into larger, fixed-size storage objects, writing one object per container instead of one per chunk. But that paragraph glossed over a lot. How do containers actually work? How much do they save? And what new problems do they create?
-
-This post answers those questions. We will start with the container abstraction as it was defined in the research literature, build an interactive cost model that shows exactly how much containers save, and then explore the three major problems containers introduce: fragmentation, garbage collection, and restore performance degradation. Each of these has been the subject of over a decade of focused research at venues like USENIX FAST, ACM SYSTOR, and EuroSys. The arc of this post is a recurring one in systems design: a solution to one problem creates new problems at the next layer of abstraction.
-
-### What Containers Are
-
-The Data Domain paper by Zhu et al. (FAST '08) defined the container abstraction that the field has used ever since.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> A container is a self-describing, immutable, fixed-size storage unit, typically a few megabytes, that groups many variable-size chunks together. Instead of storing each chunk as its own object, the system packs hundreds or thousands of chunks into a single container and writes that container as one I/O operation.
-
-A container has two sections. The **metadata section** contains the fingerprint (cryptographic hash) of every chunk in the container, along with each chunk's byte offset and length within the data section. The **data section** holds the actual chunk bytes, often compressed. The metadata section is compact enough to be read independently, which lets the system know what a container holds without reading the full data. This separation is critical for the optimizations that make container-based deduplication practical.
-
-The **write path** works as follows. Incoming unique chunks, those that pass the deduplication check and are confirmed to be new, are buffered in memory. When enough chunks have accumulated to fill a container, they are packed together (metadata header followed by chunk data), and the entire container is written as a single I/O operation: one PUT on object storage, one sequential write on disk. After the write, the chunk index is updated to map each chunk's hash to a tuple of (container_id, byte_offset, length). The buffering amortizes the cost of a write across many chunks. At 4 KB average chunk size and 4 MB container size, a single write covers roughly 1,000 chunks.
-
-The **read path** inverts this. To retrieve a chunk, the system looks up its container_id, offset, and length in the chunk index, then issues a byte-range request on that container (a range GET on S3, or a positioned read on local disk). If multiple chunks from the same container are needed, a single read can fetch them all. In practice, restoring a file often requires chunks from several containers, so the system issues a set of range reads in parallel.
-
-Zhu et al. introduced a key optimization that exploits container structure: **locality-preserved caching**.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> When the system reads a container's metadata section to check whether it contains a particular chunk, it caches all the fingerprints from that container in memory. Because backup streams have locality, consecutive chunks in the input tend to end up in the same or nearby containers, this prefetches fingerprints for upcoming deduplication lookups. Combined with a Bloom filter (which the Data Domain paper calls a "summary vector") for quickly rejecting chunks that are definitely new, this locality-preserved caching eliminated 99% of on-disk index lookups during deduplication. The Bloom filter handles the common case (most incoming chunks are new and can be rejected without a disk seek), while the container metadata cache handles the remaining case (chunks that might be duplicates are likely co-located with recently seen duplicates).
-
-A note on terminology: the deduplication research literature consistently uses the term "container" for this abstraction (Zhu et al., Lillibridge et al., Xia et al., and others).<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span><span class="cdc-cite"><a href="#ref-15">[15]</a></span> Backup tools like Restic and Git use "packfile" for a similar concept. Git's packfile format serves a somewhat different purpose (it includes delta compression between objects, not just packing), so this post uses the literature's term to avoid conflation.
-
-The key insight of the container abstraction is that it **decouples logical chunk granularity from physical object count**. You can have billions of 4 KB chunks but only millions of 4 MB containers. The chunk index grows with the number of unique chunks, but the storage layer deals with far fewer, larger objects. The CDC algorithm does not need to change. The same Gear hash or Rabin fingerprint that produces variable-size chunks feeds into the same deduplication lookup. The container is purely a storage-layer concern, invisible to the chunking logic above it.
+The solution is containers: grouping many small chunks into larger, fixed-size storage objects, writing one object per container instead of one per chunk. This post starts with the cost comparison that makes containers essential, then explains the container abstraction as it was defined in the research literature. But every solution at one layer of abstraction creates problems at the next. Containers introduce fragmentation, make garbage collection hard, and create a design space where container size, rewriting strategy, and GC policy all interact. Each of these has been the subject of over a decade of focused research at venues like USENIX FAST, ACM SYSTOR, and EuroSys. [Part 5](/writings/content-defined-chunking-part-5) picks up the cost story from here, exploring how newcomer storage providers, caching layers, and container configurations combine to determine the real monthly bill.
 
 ### The Cost Comparison
 
@@ -486,23 +511,27 @@ The savings are dramatic. At 4 KB average chunk size with 4 MB containers, each 
 
 This is why container packing is not an optimization. It is a **prerequisite** for running CDC-based deduplication on cloud object storage at any meaningful scale. Without it, the per-operation pricing model of S3, GCS, and Azure Blob Storage makes fine-grained chunking economically impossible. With it, the system can use whatever chunk size gives the best deduplication ratio, because the storage layer absorbs the object-count explosion transparently.
 
-### When CDC Is Not the Right Choice
+The cost picture changes further when you look beyond the major cloud providers. A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce per-operation and egress costs, and caching adds another dimension entirely. [Part 5: The Cost of CDC at Scale](/writings/content-defined-chunking-part-5) explores this full cost landscape: newcomer providers, per-request caching, and a comprehensive model that combines storage, cache, chunk size, and container packing into a single view.
 
-Not every system chooses CDC, and the cost explorer above helps explain why. CDC optimizes for one thing above all: stable chunk boundaries across edits. That stability enables fine-grained deduplication, but it comes at a cost, and not every application prioritizes deduplication over other concerns.
+### Reducing Costs through Containers
 
-Dropbox is the most prominent example. Their architecture uses fixed-size 4 MiB blocks with SHA-256 hashing, and has since the early days of the product.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> Dropbox's primary engineering challenge was not deduplication, it was *transport*: syncing files across hundreds of millions of devices as fast as possible while keeping infrastructure costs predictable.
+The Data Domain paper by Zhu et al. (FAST '08) defined the container abstraction that the field has used ever since.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> A container is a self-describing, immutable, fixed-size storage unit, typically a few megabytes, that groups many variable-size chunks together. Instead of storing each chunk as its own object, the system packs hundreds or thousands of chunks into a single container and writes that container as one I/O operation.
 
-Fixed-size blocks give Dropbox properties that CDC cannot. Block *N* always starts at offset `N * 4 MiB`, so a client can request any block without first receiving a boundary list. Upload work can be split across threads by byte offset with zero coordination, because boundaries are known before the content is read. The receiver knows when each block ends, enabling Dropbox's streaming sync architecture where downloads begin before the upload finishes, achieving up to 2x improvement on large file sync.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> And because every block is exactly 4 MiB (except the last), memory allocation, I/O scheduling, and storage alignment are all simple to model and predict at scale.
+A container has two sections. The **metadata section** contains the fingerprint (cryptographic hash) of every chunk in the container, along with each chunk's byte offset and length within the data section. The **data section** holds the actual chunk bytes, often compressed. The metadata section is compact enough to be read independently, which lets the system know what a container holds without reading the full data. This separation is critical for the optimizations that make container-based deduplication practical.
 
-There is also the metadata question. CDC's chunk index must be backed by a persistent, highly available data store once it outgrows a single machine. For Dropbox, serving hundreds of millions of users, the difference between a fixed-size block index and a variable-size CDC chunk index is not just memory; it is the size and complexity of the metadata infrastructure required to support it. Fixed-size blocks produce fewer, more predictable index entries, which simplifies that infrastructure considerably.
+The **write path** works as follows. Incoming unique chunks, those that pass the deduplication check and are confirmed to be new, are buffered in memory. When enough chunks have accumulated to fill a container, they are packed together (metadata header followed by chunk data), and the entire container is written as a single I/O operation: one PUT on object storage, one sequential write on disk. After the write, the chunk index is updated to map each chunk's hash to a tuple of (container_id, byte_offset, length). The buffering amortizes the cost of a write across many chunks. At 4 KB average chunk size and 4 MB container size, a single write covers roughly 1,000 chunks.
 
-The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
+The **read path** inverts this. To retrieve a chunk, the system looks up its container_id, offset, and length in the chunk index, then issues a byte-range request on that container (a range GET on S3, or a positioned read on local disk). If multiple chunks from the same container are needed, a single read can fetch them all. In practice, restoring a file often requires chunks from several containers, so the system issues a set of range reads in parallel.
 
-In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
+Zhu et al. introduced a key optimization that exploits container structure: **locality-preserved caching**.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> When the system reads a container's metadata section to check whether it contains a particular chunk, it caches all the fingerprints from that container in memory. Because backup streams have locality, consecutive chunks in the input tend to end up in the same or nearby containers, this prefetches fingerprints for upcoming deduplication lookups. Combined with a Bloom filter (which the Data Domain paper calls a "summary vector") for quickly rejecting chunks that are definitely new, this locality-preserved caching eliminated 99% of on-disk index lookups during deduplication. The Bloom filter handles the common case (most incoming chunks are new and can be rejected without a disk seek), while the container metadata cache handles the remaining case (chunks that might be duplicates are likely co-located with recently seen duplicates).
 
-Containers show that this choice is not binary. One way to recover some of Dropbox's transport advantages while keeping CDC is container packing. Instead of fetching each chunk individually, the system retrieves a container holding multiple chunks in a single request. This reduces both the number of API operations and the number of network round trips, while giving the storage layer predictable I/O sizes to work with. **Seafile**, an open-source file sync platform, demonstrates this approach: it uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice.
+A note on terminology: the deduplication research literature consistently uses the term "container" for this abstraction (Zhu et al., Lillibridge et al., Xia et al., and others).<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span><span class="cdc-cite"><a href="#ref-15">[15]</a></span> Backup tools like Restic and Git use "packfile" for a similar concept. Git's packfile format serves a somewhat different purpose (it includes delta compression between objects, not just packing), so this post uses the literature's term to avoid conflation.
 
-But containers introduce their own tradeoffs. A container will often hold more bytes than you need for a given request, since not every chunk in the container is relevant. And if deduplication is working well, the chunks you need may be scattered across many different containers, because they were originally written at different times alongside different neighbors. In the worst case, you end up fetching just as many distinct containers as you would have fetched individual chunks, each carrying extra bytes you will discard. The efficiency of container packing depends heavily on chunk locality: how often the chunks you need happen to be co-located in the same container. This is the fragmentation problem, and it has been the subject of over a decade of focused research.
+The key insight of the container abstraction is that it **decouples logical chunk granularity from physical object count**. You can have billions of 4 KB chunks but only millions of 4 MB containers. The chunk index grows with the number of unique chunks, but the storage layer deals with far fewer, larger objects. The CDC algorithm does not need to change. The same Gear hash or Rabin fingerprint that produces variable-size chunks feeds into the same deduplication lookup. The container is purely a storage-layer concern, invisible to the chunking logic above it.
+
+### More Containers More Problems
+
+Containers solve the operations cost problem, but they create three new problems at the next layer of abstraction. First, **fragmentation**: because deduplication shares chunks across versions, the chunks needed to reconstruct any single version become scattered across containers written at different times, degrading read performance. Second, **garbage collection**: deleting old versions only removes references to chunks, but a container can only be freed when every chunk in it is unreferenced, so dead space accumulates. Third, **design tradeoffs**: container size, chunk size, rewriting aggressiveness, and GC policy all interact in ways that make tuning surprisingly difficult. Each of these has been the subject of over a decade of focused research.
 
 ### The Fragmentation Problem
 
@@ -546,24 +575,6 @@ The Data Domain Cloud Tier paper by Duggal et al. (ATC '19) extended the contain
 
 These are not independent knobs. Container size, chunk size, rewriting aggressiveness, GC frequency, cache budget, and index structure all interact. The FAST '15 paper found that tuning one parameter without considering the others can produce worse results than the untuned default, because improving one dimension (say, dedup ratio via smaller chunks) can degrade another (restore speed via increased fragmentation). This interdependence is why the research community has spent over a decade refining the relationships between these parameters, and why production systems like Data Domain have developed sophisticated auto-tuning mechanisms rather than exposing raw knobs to operators.
 
-### Why I Care About This
-
-This series grew out of my master's thesis research, where I'm evaluating structure-aware chunking as a deduplication strategy for source code files on large version control platforms. Source code is a particularly interesting domain for chunking because individual files are typically small<span class="cdc-cite"><a href="#ref-27">[27]</a></span> and edits tend to be localized, small changes concentrated in specific functions or blocks<span class="cdc-cite"><a href="#ref-28">[28]</a></span>. This means even smaller chunk sizes may be appropriate since the overhead is bounded by the small file sizes involved.
-
-If edits concentrate in specific functions and blocks, the natural extension of content-defined chunking is to define boundaries using the structure of the source code itself: functions, methods, classes, and modules. Rather than scanning bytes for rolling hash matches, you can parse the code into its syntactic units and chunk along those boundaries directly. **cAST** (Zhang et al., 2025)<span class="cdc-cite"><a href="#ref-14">[14]</a></span> does exactly this for retrieval-augmented code generation (RAG): it parses source code into an Abstract Syntax Tree and recursively splits large AST nodes while merging small siblings, producing chunks that respect function, class, and module boundaries. The result is semantically coherent code fragments that improve both retrieval precision and downstream generation quality across diverse programming languages and tasks.
-
-My thesis asks whether this same structure-awareness can improve deduplication for source code on large version control platforms. Can syntax-aware chunk boundaries, aligned to functions, classes, and modules via AST parsing, outperform byte-level CDC for deduplicating code across versions? I'm comparing three approaches along a granularity spectrum: **whole-file content-addressable storage** as a baseline, modeling Git's approach without its packfile and delta compression layers, then **FastCDC** for byte-level content-defined chunking, and finally **cAST-style structural chunking** with AST-aware boundaries. Each makes a different tradeoff between deduplication ratio, metadata overhead, and language independence. The results should help answer whether the added cost of parsing source code into an AST pays for itself in storage savings compared to language-agnostic byte-level chunking, or whether whole-file storage with delta compression remains the pragmatic choice.
-
-## Conclusion
-
-Every solution at one layer of abstraction creates problems at the next. In [Part 1](/writings/content-defined-chunking-part-1), we started with a simple observation: fixed-size chunking breaks down when data is inserted or deleted, because every boundary after the edit shifts. Content-Defined Chunking solves this by letting the data itself determine where boundaries fall. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC and saw how normalized chunking with dual masks produces tighter, more predictable chunk size distributions. In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline and explored the system-level costs that chunk size controls. In this post, we saw that deploying CDC on cloud object storage reveals a new cost dimension: per-operation pricing makes fine-grained chunks ruinously expensive. Containers solved that by decoupling logical chunk granularity from physical object count. But containers introduced fragmentation, made garbage collection hard, and created a design space where container size, rewriting strategy, and GC policy all interact.
-
-The field has largely converged on how to manage these tradeoffs. MFDedup's insight that deduplicating against the most recent version preserves locality while capturing most savings, GCCDF's unification of garbage collection and defragmentation into a single I/O pass, and the Data Domain Cloud Tier's cost-aware adaptation of containers to object storage: these represent a maturing understanding of container-based deduplication. The fundamental tension between dedup ratio and read locality is well-characterized. The research community has developed a toolkit of techniques, including rewriting, container capping, forward assembly, and piggybacked defragmentation, for managing it. The question is no longer whether these problems are solvable, but which combination of techniques best fits a given workload.
-
-The beauty of the container abstraction is that it is invisible to the CDC layer. The chunking algorithm does not need to know whether chunks will be stored individually or packed into containers. This separation of concerns is what makes CDC so durable as a technique. The same Rabin or Gear hash that LBFS used in 2001 works just as well in a 2025 cloud storage system with container packing, locality-preserved caching, and piggybacked GC-defragmentation. The chunking logic and the storage logic are cleanly decoupled. Each can evolve independently, and that modularity is why both have continued to improve over more than two decades.
-
-Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power. Chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
-
 ### References
 
 <div class="cdc-references">
@@ -589,39 +600,6 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
   <div class="bib-citation">M. Lillibridge, K. Eshghi, D. Bhagwat, V. Deolalikar, G. Trezise &amp; P. Camble, "Sparse Indexing: Large Scale, Inline Deduplication Using Sampling and Locality," <em>7th USENIX Conference on File and Storage Technologies (FAST '09)</em>, San Jose, CA, February 2009.</div>
   <div class="bib-links">
     <a href="https://www.usenix.org/conference/fast-09/sparse-indexing-large-scale-inline-deduplication-using-sampling-and-locality" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-23">
-  <div class="bib-number">[23]</div>
-  <div class="bib-citation">N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.</div>
-  <div class="bib-links">
-    <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-24">
-  <div class="bib-number">[24]</div>
-  <div class="bib-citation">R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.</div>
-  <div class="bib-links">
-    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-25">
-  <div class="bib-number">[25]</div>
-  <div class="bib-citation">Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.</div>
-  <div class="bib-links">
-    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-26">
-  <div class="bib-number">[26]</div>
-  <div class="bib-citation">Seafile Ltd., "Data Model," <em>Seafile Administration Manual</em>. CDC implementation: <a href="https://github.com/haiwen/seafile-server/blob/master/common/cdc/cdc.c">seafile-server/common/cdc/cdc.c</a>.</div>
-  <div class="bib-links">
-    <a href="https://manual.seafile.com/latest/develop/data_model/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
-    <a href="https://github.com/haiwen/seafile-server" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> GitHub</a>
   </div>
 </div>
 
@@ -689,34 +667,10 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
   </div>
 </div>
 
-<div class="bib-entry" id="ref-14">
-  <div class="bib-number">[14]</div>
-  <div class="bib-citation">Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.</div>
-  <div class="bib-links">
-    <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-27">
-  <div class="bib-number">[27]</div>
-  <div class="bib-citation">I. Herraiz, D. M. German &amp; A. E. Hassan, "On the Distribution of Source Code File Sizes," <em>6th International Conference on Software and Data Technologies (ICSOFT '11)</em>, 2011.</div>
-  <div class="bib-links">
-    <a href="https://www.researchgate.net/publication/220737991_On_the_Distribution_of_Source_Code_File_Sizes" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ResearchGate</a>
-  </div>
-</div>
-
-<div class="bib-entry" id="ref-28">
-  <div class="bib-number">[28]</div>
-  <div class="bib-citation">O. Arafat &amp; D. Riehle, "The Commit Size Distribution of Open Source Software," <em>42nd Hawaii International Conference on System Sciences (HICSS-42)</em>, 2009.</div>
-  <div class="bib-links">
-    <a href="https://ieeexplore.ieee.org/document/4755633" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
-  </div>
-</div>
-
 </div>
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a> &middot; Back to <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
+&larr; <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a> &middot; Continue reading &rarr; <a href="/writings/content-defined-chunking-part-5">Part 5: The Cost of CDC at Scale</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

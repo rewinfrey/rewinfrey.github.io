@@ -1803,7 +1803,7 @@ MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 
 <div class="cdc-series-nav">
-Part 1 of 4 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
+Part 1 of 5 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
 Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.
@@ -1840,17 +1840,29 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       <a href="/writings/content-defined-chunking-part-3#deduplication-in-action">Deduplication in Action</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
       <ul>
         <li><a href="/writings/content-defined-chunking-part-3#the-deduplication-pipeline">The Deduplication Pipeline</a></li>
-        <li><a href="/writings/content-defined-chunking-part-3#why-cdc-beats-fixed-chunking">Why CDC Beats Fixed Chunking</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#the-core-cost-tradeoffs">The Core Cost Tradeoffs</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#where-cdc-lives-today">Where CDC Lives Today</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#when-cdc-is-not-the-right-choice">When CDC Is Not the Right Choice</a></li>
+        <li><a href="/writings/content-defined-chunking-part-3#why-cloud-storage-is-the-cost-that-matters">Why Cloud Storage is the Cost that Matters</a></li>
       </ul>
     </li>
     <li>
-      <a href="/writings/content-defined-chunking-part-3#conclusion">Conclusion</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 3)</em>
+      <a href="/writings/content-defined-chunking-part-4">From Chunks to Containers</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 4)</em>
       <ul>
-        <li><a href="/writings/content-defined-chunking-part-3#where-cdc-lives-today">Where CDC Lives Today</a></li>
-        <li><a href="/writings/content-defined-chunking-part-3#beyond-deduplication-structure-aware-chunking">Beyond Deduplication: Structure-Aware Chunking</a></li>
-        <li><a href="/writings/content-defined-chunking-part-3#why-i-care-about-this">Why I Care About This</a></li>
-        <li><a href="/writings/content-defined-chunking-part-3#key-takeaways">Key Takeaways</a></li>
-        <li><a href="/writings/content-defined-chunking-part-3#references">References</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#the-cost-comparison">The Cost Comparison</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#reducing-costs-through-containers">Reducing Costs through Containers</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#more-containers-more-problems">More Containers More Problems</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#the-fragmentation-problem">The Fragmentation Problem</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#garbage-collection">Garbage Collection</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#design-tradeoffs">Design Tradeoffs</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/writings/content-defined-chunking-part-5">The Cost of CDC at Scale</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 5)</em>
+      <ul>
+        <li><a href="/writings/content-defined-chunking-part-5#the-cost-comparison-continued">The Cost Comparison Continued</a></li>
+        <li><a href="/writings/content-defined-chunking-part-5#reducing-costs-through-caching">Reducing Costs through Caching</a></li>
+        <li><a href="/writings/content-defined-chunking-part-5#why-i-care-about-this">Why I Care About This</a></li>
       </ul>
     </li>
   </ol>

@@ -2141,13 +2141,48 @@ categories:
 .cdc-footnotes .back-ref:hover {
   text-decoration: underline;
 }
+
+/* Cost dimension cards */
+.cdc-cost-card {
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem 1.25rem 1.25rem;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.08);
+  border-left: 3px solid var(--cost-color, #c45a3b);
+  border-radius: 0 6px 6px 0;
+  line-height: 1.6;
+}
+
+.cdc-cost-card::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -0.6rem;
+  left: 1rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cost-color, #c45a3b);
+  background: #faf9f7;
+  padding: 0 0.4rem;
+}
+
+.cdc-cost-summary {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--cost-color, #c45a3b);
+  margin-bottom: 0.75rem;
+}
 </style>
 
 <div class="cdc-series-nav">
-Part 3 of 4 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a> · <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
+Part 3 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
 </div>
 
-In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today, and explore the cost tradeoffs that shape real-world systems.
+In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today and where it is not, and explore the cost tradeoffs that shape real-world systems.
 
 ---
 
@@ -2330,27 +2365,33 @@ Walking through the stages: the raw file bytes enter the pipeline and are split 
 
 Each stage in the pipeline maps to just a few lines of code, but together they form a system where redundant data is identified and eliminated before it ever reaches disk or network. When a file changes, only the chunks that were actually modified produce new hashes. The rest match what is already in the store, so they are never written again.
 
-### Where CDC Lives Today
+### The Core Cost Tradeoffs
 
-Content-defined chunking has become infrastructure, often invisible but always essential. It shows up across three broad categories: backup and archival, file sync and distribution, and content-addressable storage.
+Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The core CDC costs fall into four categories, and they all interact.
 
-**Backup and archival tools** were the earliest adopters. **[Restic](https://restic.net/)** uses Rabin fingerprints with configurable chunk sizes,<span class="cdc-cite"><a href="#ref-29">[29]</a></span> **[Borg](https://www.borgbackup.org/)** uses Buzhash with a secret seed (preventing attackers from predicting chunk boundaries based on known content),<span class="cdc-cite"><a href="#ref-30">[30]</a></span> and newer tools like **[Kopia](https://kopia.io/)**,<span class="cdc-cite"><a href="#ref-31">[31]</a></span> **[Duplicacy](https://duplicacy.com/)**,<span class="cdc-cite"><a href="#ref-32">[32]</a></span> **[Bupstash](https://bupstash.io/)**,<span class="cdc-cite"><a href="#ref-33">[33]</a></span> and **[Tarsnap](https://www.tarsnap.com/)**<span class="cdc-cite"><a href="#ref-34">[34]</a></span> all rely on CDC to deduplicate across snapshots. The pattern is the same in each: split data into content-defined chunks, fingerprint each chunk, and store only the unique ones.
+<div class="cdc-cost-card" data-label="CPU" style="--cost-color: #c45a3b;">
+<div class="cdc-cost-summary">Hashing, compression, and chunking</div>
 
-**File sync and software distribution** use CDC to minimize transfer sizes. **[Seafile](https://www.seafile.com/)** uses Rabin fingerprint-based CDC with ~1 MB average chunks for file sync, proving that deduplication and efficient transport can coexist.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> **[Riot Games](https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher)** rebuilt the League of Legends patcher around FastCDC, replacing an older binary-delta system and achieving a tenfold improvement in patching speeds.<span class="cdc-cite"><a href="#ref-27">[27]</a></span> **[casync](https://github.com/systemd/casync)**, created by Lennart Poettering, applies CDC to OS and container image distribution, chunking across file boundaries so that updates to a filesystem image only transfer the chunks that actually changed.<span class="cdc-cite"><a href="#ref-35">[35]</a></span>
+CPU is the first cost you pay, and it shows up in three places. The CDC rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. But the cryptographic hash that follows is more expensive. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint.<span id="fn1-ref" class="cdc-footnote-marker"><a href="#fn1">1</a></span> With fast chunking algorithms like FastCDC, fingerprinting becomes the CPU bottleneck in the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero. Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work that scales linearly with data volume. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
+</div>
 
-**Content-addressable storage** systems like **[IPFS](https://ipfs.tech/)** use CDC to split files into variable-size blocks before distributing them across a peer-to-peer network.<span class="cdc-cite"><a href="#ref-28">[28]</a></span> Because chunk boundaries are determined by content rather than position, identical regions of different files naturally converge on the same chunks and the same content addresses.
+<div class="cdc-cost-card" data-label="Memory" style="--cost-color: #8b7355;">
+<div class="cdc-cost-summary">Chunk index lookups at scale</div>
 
-### The Cost Tradeoffs
+Memory is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query (every chunk triggers a lookup). At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span> The index size scales with the number of unique chunks, not with total data volume, which is good. But here's the catch: smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data. Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
+</div>
 
-Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The costs fall into four categories, and they all interact.
+<div class="cdc-cost-card" data-label="Network" style="--cost-color: #466ea0;">
+<div class="cdc-cost-summary">Transfer efficiency through deduplication</div>
 
-**CPU** is the first cost you pay, and it shows up in three places. The CDC rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. But the cryptographic hash that follows is more expensive. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint.<span id="fn1-ref" class="cdc-footnote-marker"><a href="#fn1">1</a></span> With fast chunking algorithms like FastCDC, fingerprinting becomes the CPU bottleneck in the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero. Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work that scales linearly with data volume. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
+Network is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. The [Low-Bandwidth Network File System](https://pdos.csail.mit.edu/archive/lbfs/) (LBFS) demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes. Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
+</div>
 
-**Memory** is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query (every chunk triggers a lookup). At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span> The index size scales with the number of unique chunks, not with total data volume, which is good. But here's the catch: smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data. Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
+<div class="cdc-cost-card" data-label="Storage" style="--cost-color: #d4a574;">
+<div class="cdc-cost-summary">Unique chunks plus metadata overhead</div>
 
-**Network** is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. The [Low-Bandwidth Network File System](https://pdos.csail.mit.edu/archive/lbfs/) (LBFS) demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes. Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
-
-**Storage** (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> At extremely small chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself. Meyer and Bolosky found that for live desktop file systems, where most duplication consists of identical files stored in multiple locations, whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup.<span class="cdc-cite"><a href="#ref-20">[20]</a></span> But that result is workload-dependent. When files churn frequently and edits are localized within larger files (the pattern that dominates backup, sync, and software distribution), whole-file dedup sees zero savings on each modified file while CDC captures nearly everything. The value of sub-file chunking scales with both how much duplicated content exists and how frequently that content changes.
+Storage (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> At extremely small chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself. Meyer and Bolosky found that for live desktop file systems, where most duplication consists of identical files stored in multiple locations, whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup.<span class="cdc-cite"><a href="#ref-20">[20]</a></span> But that result is workload-dependent. When files churn frequently and edits are localized within larger files (the pattern that dominates backup, sync, and software distribution), whole-file dedup sees zero savings on each modified file while CDC captures nearly everything. The value of sub-file chunking scales with both how much duplicated content exists and how frequently that content changes.
+</div>
 
 <div class="cdc-callout" data-label="The Central Knob">
 Average chunk size is the single parameter that ties all four costs together.<span class="cdc-cite"><a href="#ref-15">[15]</a></span><span class="cdc-cite"><a href="#ref-21">[21]</a></span> Turning it down (smaller chunks) improves deduplication ratio and network efficiency but increases CPU work, index memory, and metadata overhead. Turning it up (larger chunks) reduces overhead but sacrifices dedup granularity. The right setting depends on your domain.
@@ -2382,7 +2423,33 @@ The explorer below visualizes these four dimensions as you move the chunk size s
 
 If you experimented with the [Parametric Chunking Explorer](/writings/content-defined-chunking-part-2#parametric-demo) in Part 2, you saw this tradeoff firsthand: smaller average sizes produced more chunks with tighter size distributions, while larger averages produced fewer, more variable chunks. Those demos showed the statistical effect. In production, the right balance depends on your workload: the volume of duplicated content, the rate at which that content changes, and how each cost dimension (CPU, memory, network, storage) maps onto your constraints. These are the competing forces that determine whether CDC is a valuable strategy for your system, and if so, what average chunk size best balances them. That answer depends on your domain, and only you as the expert in your particular system can make that call. My hope is that the intuitions developed here help you make a more informed decision.
 
-### The Cost of Cloud Storage
+### Where CDC Lives Today
+
+Content-defined chunking has become infrastructure, often invisible but always essential. It shows up across three broad categories: backup and archival, file sync and distribution, and content-addressable storage.
+
+**Backup and archival tools** were the earliest adopters. **[Restic](https://restic.net/)** uses Rabin fingerprints with configurable chunk sizes,<span class="cdc-cite"><a href="#ref-29">[29]</a></span> **[Borg](https://www.borgbackup.org/)** uses Buzhash with a secret seed (preventing attackers from predicting chunk boundaries based on known content),<span class="cdc-cite"><a href="#ref-30">[30]</a></span> and newer tools like **[Kopia](https://kopia.io/)**,<span class="cdc-cite"><a href="#ref-31">[31]</a></span> **[Duplicacy](https://duplicacy.com/)**,<span class="cdc-cite"><a href="#ref-32">[32]</a></span> **[Bupstash](https://bupstash.io/)**,<span class="cdc-cite"><a href="#ref-33">[33]</a></span> and **[Tarsnap](https://www.tarsnap.com/)**<span class="cdc-cite"><a href="#ref-34">[34]</a></span> all rely on CDC to deduplicate across snapshots. The pattern is the same in each: split data into content-defined chunks, fingerprint each chunk, and store only the unique ones.
+
+**File sync and software distribution** use CDC to minimize transfer sizes. **[Riot Games](https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher)** rebuilt the League of Legends patcher around FastCDC, replacing an older binary-delta system and achieving a tenfold improvement in patching speeds.<span class="cdc-cite"><a href="#ref-27">[27]</a></span> **[casync](https://github.com/systemd/casync)**, created by Lennart Poettering, applies CDC to OS and container image distribution, chunking across file boundaries so that updates to a filesystem image only transfer the chunks that actually changed.<span class="cdc-cite"><a href="#ref-35">[35]</a></span>
+
+**Content-addressable storage** systems like **[IPFS](https://ipfs.tech/)** use CDC to split files into variable-size blocks before distributing them across a peer-to-peer network.<span class="cdc-cite"><a href="#ref-28">[28]</a></span> Because chunk boundaries are determined by content rather than position, identical regions of different files naturally converge on the same chunks and the same content addresses.
+
+### When CDC Is Not the Right Choice
+
+Not every system chooses CDC, and the cost tradeoffs help explain why. CDC optimizes for one thing above all: stable chunk boundaries across edits. That stability enables fine-grained deduplication, but it comes at a cost, and not every application prioritizes deduplication over other concerns.
+
+Dropbox is the most prominent example. Their architecture uses fixed-size 4 MiB blocks with SHA-256 hashing, and has since the early days of the product.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> Dropbox's primary engineering challenge was not deduplication, it was *transport*: syncing files across hundreds of millions of devices as fast as possible while keeping infrastructure costs predictable.
+
+Fixed-size blocks give Dropbox properties that CDC cannot. Block *N* always starts at offset `N * 4 MiB`, so a client can request any block without first receiving a boundary list. Upload work can be split across threads by byte offset with zero coordination, because boundaries are known before the content is read. The receiver knows when each block ends, enabling Dropbox's streaming sync architecture where downloads begin before the upload finishes, achieving up to 2x improvement on large file sync.<span class="cdc-cite"><a href="#ref-23">[23]</a></span> And because every block is exactly 4 MiB (except the last), memory allocation, I/O scheduling, and storage alignment are all simple to model and predict at scale.
+
+There is also the metadata question. CDC's chunk index must be backed by a persistent, highly available data store once it outgrows a single machine. For Dropbox, serving hundreds of millions of users, the difference between a fixed-size block index and a variable-size CDC chunk index is not just memory; it is the size and complexity of the metadata infrastructure required to support it. Fixed-size blocks produce fewer, more predictable index entries, which simplifies that infrastructure considerably.
+
+The tradeoff is real. The QuickSync study found that a minor edit in Dropbox can generate sync traffic 10x the size of the actual modification, because insertions shift every subsequent block boundary.<span class="cdc-cite"><a href="#ref-25">[25]</a></span> This is precisely the boundary-shift problem that CDC was designed to solve, as we explored in [Part 1](/writings/content-defined-chunking-part-1). But Dropbox chose to absorb that cost and compensate elsewhere: their Broccoli compression encoder achieves ~33% upload bandwidth savings<span class="cdc-cite"><a href="#ref-24">[24]</a></span>, and the streaming sync architecture pipelines work so effectively that the extra bytes matter less than they otherwise would.
+
+In short, Dropbox traded storage efficiency for transport speed and operational simplicity. Fixed-size blocks mean a predictable, easily modeled object count, which is critical when your storage bill depends on API call volume. The ability to parallelize everything without content-dependent coordination was worth more than the deduplication gains CDC would have provided.
+
+**Seafile**, an open-source file sync platform, takes the opposite approach: it uses Rabin fingerprint-based CDC with ~1 MB average chunks to achieve block-level deduplication across file versions and libraries.<span class="cdc-cite"><a href="#ref-26">[26]</a></span> Where Dropbox chose to optimize purely for transport, Seafile shows that CDC-based sync systems can work in practice. [Part 4](/writings/content-defined-chunking-part-4) explores how the container abstraction makes this economically viable.
+
+### Why Cloud Storage is the Cost that Matters
 
 So far, the costs we have discussed are engineering costs: CPU cycles, memory footprint, bytes on the wire, bytes on disk. They are real, but they are also somewhat abstract. There is another cost dimension that makes these tradeoffs painfully concrete: money.
 
@@ -2390,7 +2457,7 @@ The four dimensions above assume a local or self-managed storage backend where t
 
 Cloud providers charge not just per GB stored but also per API operation. Every PUT and every GET has a price. When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. The same knob that the explorer above illustrates (smaller chunks improve dedup but increase chunk count) takes on a new, financially painful dimension: more chunks means more API calls means a larger cloud bill, even if the total bytes stored are fewer.
 
-This is the problem that <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a> tackles head-on. We build an interactive cost model for cloud object storage, introduce the container abstraction that collapses operations costs by orders of magnitude, and then explore the new challenges containers create: fragmentation, garbage collection, and restore performance degradation.
+This is the problem that <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a> tackles head-on. Grouping chunks into larger, fixed-size containers collapses the object count and makes CDC viable on cloud storage. But containers introduce their own challenges: fragmentation, garbage collection complexity, and restore performance degradation. <a href="/writings/content-defined-chunking-part-5">Part 5</a> then takes a deep dive into the full cost picture, exploring how different storage providers, caching layers, and container configurations combine to determine the real monthly bill.
 <div class="cdc-footnotes">
 <ol>
 <li id="fn1">Collision resistance requires that it is computationally infeasible to find two different inputs that produce the same hash. For this guarantee to hold, every bit of the input must influence the output. If the function skipped even a single byte, two inputs differing only in that byte would hash identically, a trivial collision. This is the fundamental difference from rolling hashes used for boundary detection: Gear hash only looks at a sliding window and is not collision-resistant, which is fine for finding chunk boundaries but not for content addressing, where a collision means two different chunks are treated as identical and one gets silently discarded. BLAKE3 is notably faster than SHA-256 here because it uses a Merkle tree structure internally, allowing parts of the input to be hashed in parallel across cores and SIMD lanes, but it still processes every byte. <a href="#fn1-ref" class="back-ref">&#8617;</a></li>
@@ -2471,6 +2538,22 @@ This is the problem that <a href="/writings/content-defined-chunking-part-4">Par
   <div class="bib-citation">N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.</div>
   <div class="bib-links">
     <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-24">
+  <div class="bib-number">[24]</div>
+  <div class="bib-citation">R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry" id="ref-25">
+  <div class="bib-number">[25]</div>
+  <div class="bib-citation">Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE</a>
   </div>
 </div>
 
