@@ -2778,9 +2778,11 @@ class CostTradeoffsDemo {
 // =============================================================================
 
 class ContainerCostDemo {
-  constructor(containerId) {
+  constructor(containerId, options = {}) {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
+
+    this.mode = options.mode; // 'naive', 'packed', or undefined (legacy)
 
     // User-activity-driven workload (same as CostTradeoffsDemo)
     this.numUsers = 100_000_000;
@@ -2836,18 +2838,26 @@ class ContainerCostDemo {
   }
 
   init() {
-    this.chunkSlider = document.getElementById('container-cost-chunk-slider');
-    this.chunkValueEl = document.getElementById('container-cost-chunk-value');
-    this.packingToggle = document.getElementById('container-cost-packing-toggle');
-    this.containerSlider = document.getElementById('container-cost-container-slider');
-    this.containerValueEl = document.getElementById('container-cost-container-value');
-    this.cloudSection = document.getElementById('container-cost-cloud-section');
-    this.savingsRow = document.getElementById('container-cost-savings');
+    const el = (sel) => this.container.querySelector(sel);
+    this.chunkSlider = el('input[type="range"][id$="chunk-slider"]');
+    this.chunkValueEl = el('strong[id$="chunk-value"]');
+    this.packingToggle = el('input[type="checkbox"][id$="packing-toggle"]');
+    this.containerSlider = el('input[type="range"][id$="container-slider"]');
+    this.containerValueEl = el('strong[id$="container-value"]');
+    this.cloudSection = el('[id$="cloud-section"]');
+
+    // Mode-specific initialization
+    if (this.mode === 'packed' && this.packingToggle) {
+      this.packingToggle.checked = true;
+      if (this.containerSlider) this.containerSlider.disabled = false;
+    }
 
     this.buildCloudTable();
     this.chunkSlider?.addEventListener('input', () => this.update());
-    this.packingToggle?.addEventListener('change', () => this.onToggle());
-    this.containerSlider?.addEventListener('input', () => this.update());
+    if (this.mode !== 'naive') {
+      this.packingToggle?.addEventListener('change', () => this.onToggle());
+      this.containerSlider?.addEventListener('input', () => this.update());
+    }
     this.update();
   }
 
@@ -2934,7 +2944,7 @@ class ContainerCostDemo {
       { label: 'Operations (PUT + GET)', key: 'operations' },
       { label: 'Network egress', key: 'egress' },
       { label: 'Monthly total', key: 'total' },
-      { label: 'Savings vs. naive', key: 'savings' }
+      ...(this.mode === 'naive' ? [] : [{ label: 'Savings vs. naive', key: 'savings' }])
     ];
 
     this.cloudCells = {};
@@ -3125,20 +3135,22 @@ class ContainerCostDemo {
       tot.calc1.textContent = '';
       tot.calc2.textContent = '';
 
-      // Savings
-      const sav = this.cloudCells['savings'][i];
-      const savings = naiveTotal - totalCost;
-      if (packed && savings > 0) {
-        sav.value.textContent = `${this.formatDollars(savings)}/mo`;
-        const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
-        sav.calc1.textContent = `${pctSaved}% reduction`;
-        sav.calc2.textContent = `vs. ${this.formatDollars(naiveTotal)} naive`;
-        sav.td.style.color = '#2d7a4f';
-      } else {
-        sav.value.textContent = packed ? '$0' : '\u2014';
-        sav.calc1.textContent = packed ? 'no savings at this chunk size' : 'enable packing to compare';
-        sav.calc2.textContent = '';
-        sav.td.style.color = '';
+      // Savings (not present in naive mode)
+      if (this.cloudCells['savings']) {
+        const sav = this.cloudCells['savings'][i];
+        const savings = naiveTotal - totalCost;
+        if (packed && savings > 0) {
+          sav.value.textContent = `${this.formatDollars(savings)}/mo`;
+          const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
+          sav.calc1.textContent = `${pctSaved}% reduction`;
+          sav.calc2.textContent = `vs. ${this.formatDollars(naiveTotal)} naive`;
+          sav.td.style.color = '#2d7a4f';
+        } else {
+          sav.value.textContent = packed ? '$0' : '\u2014';
+          sav.calc1.textContent = packed ? 'no savings at this chunk size' : 'enable packing to compare';
+          sav.calc2.textContent = '';
+          sav.td.style.color = '';
+        }
       }
     }
   }
@@ -4908,7 +4920,9 @@ function initCDCAnimations() {
   // Cost tradeoffs explorer
   new CostTradeoffsDemo('cost-tradeoffs-demo');
 
-  // Container cost explorer (Part 4)
+  // Container cost explorers (Part 4)
+  new ContainerCostDemo('naive-cost-demo', { mode: 'naive' });
+  new ContainerCostDemo('packed-cost-demo', { mode: 'packed' });
   new ContainerCostDemo('container-cost-demo');
 
   // Newcomer cloud cost explorer (Part 4)

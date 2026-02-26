@@ -11,119 +11,6 @@ categories:
 <style>
 /* ==========================================================================
    CDC Animation Styles
-   ========================================================================== */
-
-/* Demo container */
-.cdc-demo {
-  margin: 2rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.cdc-demo canvas {
-  display: block;
-  width: 100%;
-  background: #faf9f7;
-  border-radius: 8px 8px 0 0;
-}
-
-/* Text/Block visualization container */
-.cdc-viz {
-  padding: 1.5rem;
-  background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-.cdc-viz-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
-}
-
-.cdc-viz-title {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #3d3a36;
-}
-
-.cdc-viz-hint {
-  width: 100%;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.75rem;
-  color: #8b7355;
-  margin: 0.25rem 0 0 0;
-  line-height: 1.4;
-}
-
-/* Parametric controls */
-.parametric-control-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.parametric-control-row input[type="range"] {
-  flex: 1;
-  min-width: 120px;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: linear-gradient(to right, #d4a574, #c45a3b);
-  border-radius: 3px;
-  outline: none;
-}
-
-.parametric-control-row input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #c45a3b;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: transform 0.15s ease;
-}
-
-.parametric-control-row input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.parametric-control-row input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: #c45a3b;
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.parametric-control-row input[type="range"]:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.parametric-control-label {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  color: #3d3a36;
-  white-space: nowrap;
-}
-
 /* Cloud cost table */
 .cost-cloud-section {
   padding: 0 1.25rem 0.5rem;
@@ -294,121 +181,6 @@ categories:
   border-bottom: none !important;
 }
 
-/* Citation style */
-.cdc-cite {
-  font-size: 0.8em;
-  vertical-align: super;
-}
-
-.cdc-cite a {
-  color: #c45a3b;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.cdc-cite a:hover {
-  text-decoration: underline;
-}
-
-/* References */
-.cdc-references {
-  margin-top: 1.5rem;
-}
-
-.cdc-references .bib-entry {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.06);
-}
-
-.cdc-references .bib-entry:last-child {
-  border-bottom: none;
-}
-
-.cdc-references .bib-number {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #c45a3b;
-  margin-bottom: 0.3rem;
-}
-
-.cdc-references .bib-citation {
-  font-size: 0.9rem;
-  color: #3d3a36;
-  line-height: 1.7;
-}
-
-.cdc-references .bib-citation em {
-  color: #5a5550;
-}
-
-.cdc-references .bib-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.cdc-references .bib-link {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  text-decoration: none;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.cdc-references .bib-link.external {
-  background: rgba(61, 58, 54, 0.06);
-  color: #5a5550;
-}
-
-.cdc-references .bib-link.external:hover {
-  background: rgba(61, 58, 54, 0.12);
-}
-
-/* Callout box */
-.cdc-callout {
-  position: relative;
-  margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem 1.25rem 1.25rem;
-  background: linear-gradient(135deg, rgba(196, 90, 59, 0.06) 0%, rgba(212, 165, 116, 0.08) 100%);
-  border-left: 3px solid #c45a3b;
-  border-radius: 0 6px 6px 0;
-  font-style: italic;
-  color: #3d3a36;
-  line-height: 1.6;
-}
-
-.cdc-callout::before {
-  content: attr(data-label);
-  position: absolute;
-  top: -0.6rem;
-  left: 1rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  font-style: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #c45a3b;
-  background: #faf9f7;
-  padding: 0 0.4rem;
-}
-
-/* Series navigation */
-.cdc-series-nav {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  color: #8b7355;
-  padding: 0.75rem 1rem;
-  background: rgba(61, 58, 54, 0.03);
-  border-radius: 6px;
-  border: 1px solid rgba(61, 58, 54, 0.06);
-  margin: 1.5rem 0;
-}
-.cdc-series-nav a { color: #c45a3b; text-decoration: none; }
-.cdc-series-nav a:hover { text-decoration: underline; }
-
 /* Jazz Cloud single-column table */
 .jazz-cost-table {
   max-width: 24rem;
@@ -470,52 +242,37 @@ categories:
 Part 4 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a> &middot; Next: <a href="/writings/content-defined-chunking-part-5">Part 5: The Cost of CDC at Scale</a>
 </div>
 
-In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline, explored its cost tradeoffs, and saw where CDC is deployed today. The cloud cost explorer revealed a surprising result: when every chunk lives as a separate object on cloud storage, the per-operation pricing model means API calls (PUT and GET) dominate total cost, not storage. Shrinking chunks improves deduplication ratio but multiplies operations costs by orders of magnitude. At 1 KB average chunk size, operations cost hundreds of thousands of dollars per month for a workload where storage itself costs only tens of thousands.
+In [Part 3](/writings/content-defined-chunking-part-3), we built a deduplication pipeline, explored its cost tradeoffs, and saw where CDC is deployed today. The deduplication ratios looked great, but we left a critical question unanswered: what happens when you actually store those billions of variable-size chunks on cloud object storage? Cloud providers charge per API operation, and the answer is not pretty.
 
-The solution is containers: grouping many small chunks into larger, fixed-size storage objects, writing one object per container instead of one per chunk. This post starts with the cost comparison that makes containers essential, then explains the container abstraction as it was defined in the research literature. But every solution at one layer of abstraction creates problems at the next. Containers introduce fragmentation, make garbage collection hard, and create a design space where container size, rewriting strategy, and GC policy all interact. Each of these has been the subject of over a decade of focused research at venues like USENIX FAST, ACM SYSTOR, and EuroSys. [Part 5](/writings/content-defined-chunking-part-5) picks up the cost story from here, exploring how newcomer storage providers, caching layers, and container configurations combine to determine the real monthly bill.
+This post starts with the cost problem that naive chunk storage creates, then introduces the solution: containers, grouping many small chunks into larger, fixed-size storage objects. But every solution at one layer of abstraction creates problems at the next. Containers introduce fragmentation, make garbage collection hard, and create a design space where container size, rewriting strategy, and GC policy all interact. Each of these has been the subject of over a decade of focused research at venues like USENIX FAST, ACM SYSTOR, and EuroSys. [Part 5](/writings/content-defined-chunking-part-5) pushes the cost story farther, looking at how to optimize cloud object storage costs with new storage providers, caching layers, and container configurations.
 
-### The Cost Comparison
+### The Cloud Cost Problem
 
-The Part 3 cloud cost explorer modeled a naive architecture where every chunk is stored as a separate object on cloud storage. That is the worst case for API operations cost, and it is what you would get if you took a textbook CDC pipeline and deployed it directly on S3 without any storage-layer optimization. With containers, the math changes fundamentally: instead of one PUT per unique chunk, you write one PUT per container (which holds hundreds or thousands of chunks). Instead of one GET per chunk during reads, you issue range requests on containers, and if the chunks you need happen to be co-located, a single request can serve many chunks at once.
+Traditional cloud object storage providers charge per API operation. Every PUT writes one object; every GET reads one object. If you take a textbook CDC pipeline and store each unique chunk as its own object on S3, you get one PUT per chunk on the write path and one GET per chunk on the read path. With billions of small chunks, the per-operation costs add up fast.
 
-The explorer below uses the same workload assumptions as Part 3 (100M users, 1 PB total data, 1B document reads per month, 50 edits per user per month) but adds a container packing toggle. Enable it to see how containers collapse operations costs.
+The explorer below models exactly this scenario: a naive architecture where every chunk is a separate object. Use the same workload assumptions from Part 3 (100M users, 1 PB total data, 1B document reads per month, 50 edits per user per month) and drag the chunk size slider to see what happens.
 
-<div class="cdc-viz" id="container-cost-demo">
+<div class="cdc-viz" id="naive-cost-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Container Cost Explorer</span>
+    <span class="cdc-viz-title">Cloud Cost Explorer</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
-      Average Chunk Size: <strong id="container-cost-chunk-value">32 KB</strong>
+      Average Chunk Size: <strong id="naive-cost-chunk-value">32 KB</strong>
     </span>
-    <input type="range" id="container-cost-chunk-slider" min="0" max="100" value="50" step="1">
+    <input type="range" id="naive-cost-chunk-slider" min="0" max="100" value="50" step="1">
   </div>
-  <div class="parametric-control-row">
-    <label class="container-toggle">
-      <input type="checkbox" id="container-cost-packing-toggle">
-      <span>Enable container packing</span>
-    </label>
-    <span class="parametric-control-label">
-      Container Size: <strong id="container-cost-container-value">4 MB</strong>
-    </span>
-    <input type="range" id="container-cost-container-slider" min="0" max="2" value="0" step="1" disabled>
-  </div>
-  <div class="cost-cloud-section" id="container-cost-cloud-section">
-  </div>
-  <div class="cdc-viz-hint">
-    Toggle container packing to see how grouping chunks into containers changes cloud costs. Try sliding chunk size to 1 KB with packing off, then enable packing.
+  <div class="cost-cloud-section" id="naive-cost-cloud-section">
   </div>
 </div>
 
-The savings are dramatic. At 4 KB average chunk size with 4 MB containers, each container holds roughly 1,000 chunks. That means PUT operations drop by a factor of 1,000, and GET operations drop similarly (assuming reasonable locality, where chunks needed for a read tend to cluster in the same containers). Storage cost is identical in both modes because the same bytes are stored either way. But operations cost goes from dominating the monthly bill to being negligible.
+At small chunk sizes, operations cost orders of magnitude more than storage. At 4 KB average chunk size, PUT and GET costs dominate the monthly bill across all three providers. At 1 KB, operations cost hundreds of thousands of dollars per month for a workload where storage itself costs only tens of thousands. Smaller chunks give better deduplication ratios, but the per-operation pricing model punishes you for using them.
 
-This is why container packing is not an optimization. It is a **prerequisite** for running CDC-based deduplication on cloud object storage at any meaningful scale. Without it, the per-operation pricing model of S3, GCS, and Azure Blob Storage makes fine-grained chunking economically impossible. With it, the system can use whatever chunk size gives the best deduplication ratio, because the storage layer absorbs the object-count explosion transparently.
-
-The cost picture changes further when you look beyond the major cloud providers. A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce per-operation and egress costs, and caching adds another dimension entirely. [Part 5: The Cost of CDC at Scale](/writings/content-defined-chunking-part-5) explores this full cost landscape: newcomer providers, per-request caching, and a comprehensive model that combines storage, cache, chunk size, and container packing into a single view.
+This is the fundamental tension: smaller chunks improve deduplication, but cloud object storage charges you per object. Storing each chunk as its own object means the number of API operations scales with the number of chunks, not the number of bytes. The solution is to decouple the two.
 
 ### Reducing Costs through Containers
 
-The Data Domain paper by Zhu et al. (FAST '08) defined the container abstraction that the field has used ever since.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> A container is a self-describing, immutable, fixed-size storage unit, typically a few megabytes, that groups many variable-size chunks together. Instead of storing each chunk as its own object, the system packs hundreds or thousands of chunks into a single container and writes that container as one I/O operation.
+Most developers know "container" as a Linux, Docker, or OCI concept. In the deduplication literature, the word means something entirely different. Zhu et al. (FAST '08) defined the container abstraction in the Data Domain paper as a way to decouple chunk granularity from the number of objects written to storage.<span class="cdc-cite"><a href="#ref-16">[16]</a></span> A deduplication container is a self-describing, immutable, fixed-size storage unit, typically a few megabytes, that groups many variable-size chunks together. Instead of storing each chunk as its own object, the system packs hundreds or thousands of chunks into a single container and writes that container as one I/O operation.
 
 A container has two sections. The **metadata section** contains the fingerprint (cryptographic hash) of every chunk in the container, along with each chunk's byte offset and length within the data section. The **data section** holds the actual chunk bytes, often compressed. The metadata section is compact enough to be read independently, which lets the system know what a container holds without reading the full data. This separation is critical for the optimizations that make container-based deduplication practical.
 
@@ -528,6 +285,43 @@ Zhu et al. introduced a key optimization that exploits container structure: **lo
 A note on terminology: the deduplication research literature consistently uses the term "container" for this abstraction (Zhu et al., Lillibridge et al., Xia et al., and others).<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span><span class="cdc-cite"><a href="#ref-15">[15]</a></span> Backup tools like Restic and Git use "packfile" for a similar concept. Git's packfile format serves a somewhat different purpose (it includes delta compression between objects, not just packing), so this post uses the literature's term to avoid conflation.
 
 The key insight of the container abstraction is that it **decouples logical chunk granularity from physical object count**. You can have billions of 4 KB chunks but only millions of 4 MB containers. The chunk index grows with the number of unique chunks, but the storage layer deals with far fewer, larger objects. The CDC algorithm does not need to change. The same Gear hash or Rabin fingerprint that produces variable-size chunks feeds into the same deduplication lookup. The container is purely a storage-layer concern, invisible to the chunking logic above it.
+
+### The Impact of Containers on Cost
+
+Now that we understand the container abstraction, let's revisit the cost picture. The explorer below uses the same workload but with container packing enabled by default. Toggle it off to compare with the naive per-chunk approach from above.
+
+<div class="cdc-viz" id="packed-cost-demo">
+  <div class="cdc-viz-header">
+    <span class="cdc-viz-title">Container Cost Explorer</span>
+  </div>
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Average Chunk Size: <strong id="packed-cost-chunk-value">32 KB</strong>
+    </span>
+    <input type="range" id="packed-cost-chunk-slider" min="0" max="100" value="50" step="1">
+  </div>
+  <div class="parametric-control-row">
+    <label class="container-toggle">
+      <input type="checkbox" id="packed-cost-packing-toggle" checked>
+      <span>Container packing</span>
+    </label>
+    <span class="parametric-control-label">
+      Container Size: <strong id="packed-cost-container-value">4 MB</strong>
+    </span>
+    <input type="range" id="packed-cost-container-slider" min="0" max="2" value="0" step="1">
+  </div>
+  <div class="cost-cloud-section" id="packed-cost-cloud-section">
+  </div>
+  <div class="cdc-viz-hint">
+    Container packing is enabled. Toggle it off to compare with the naive per-chunk approach.
+  </div>
+</div>
+
+The savings are dramatic. At 4 KB average chunk size with 4 MB containers, each container holds roughly 1,000 chunks. That means PUT operations drop by a factor of 1,000, and GET operations drop similarly (assuming reasonable locality, where chunks needed for a read tend to cluster in the same containers). Storage cost is identical in both modes because the same bytes are stored either way. But operations cost goes from dominating the monthly bill to being negligible.
+
+This is why container packing is not an optimization. It is a **prerequisite** for running CDC-based deduplication on cloud object storage at any meaningful scale. Without it, the per-operation pricing model of S3, GCS, and Azure Blob Storage makes fine-grained chunking economically impossible. With it, the system can use whatever chunk size gives the best deduplication ratio, because the storage layer absorbs the object-count explosion transparently.
+
+The cost picture changes further when you look beyond the major cloud providers. A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce per-operation and egress costs, and caching adds another dimension entirely. [Part 5: The Cost of CDC at Scale](/writings/content-defined-chunking-part-5) explores this full cost landscape: newcomer providers, per-request caching, and a comprehensive model that combines storage, cache, chunk size, and container packing into a single view.
 
 ### More Containers More Problems
 

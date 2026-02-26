@@ -11,48 +11,6 @@ categories:
 <style>
 /* ==========================================================================
    CDC Animation Styles
-   ========================================================================== */
-
-/* Demo container */
-.cdc-demo {
-  margin: 2rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.cdc-demo canvas {
-  display: block;
-  width: 100%;
-  background: #faf9f7;
-  border-radius: 8px 8px 0 0;
-}
-
-/* Text/Block visualization container */
-.cdc-viz {
-  padding: 1.5rem;
-  background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-.cdc-viz-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
-}
-
-.cdc-viz-title {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #3d3a36;
-}
-
 /* View mode tabs (Text / Blocks / Hex) */
 .cdc-view-tabs {
   display: flex;
@@ -769,34 +727,6 @@ categories:
   .cdc-version-cols { grid-template-columns: 1fr; }
 }
 
-/* Educational callouts */
-.cdc-callout {
-  position: relative;
-  margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem 1.25rem 1.25rem;
-  background: linear-gradient(135deg, rgba(196, 90, 59, 0.06) 0%, rgba(212, 165, 116, 0.08) 100%);
-  border-left: 3px solid #c45a3b;
-  border-radius: 0 6px 6px 0;
-  font-style: italic;
-  color: #3d3a36;
-  line-height: 1.6;
-}
-
-.cdc-callout::before {
-  content: attr(data-label);
-  position: absolute;
-  top: -0.6rem;
-  left: 1rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  font-style: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #c45a3b;
-  background: #faf9f7;
-  padding: 0 0.4rem;
-}
-
 /* Beginner breadcrumb */
 /* Table of Contents */
 .cdc-toc {
@@ -973,89 +903,6 @@ categories:
   color: #a89b8c;
 }
 
-/* Citations */
-.cdc-cite {
-  font-size: 0.7em;
-  vertical-align: super;
-  line-height: 0;
-  margin-left: 1px;
-}
-
-.cdc-cite a {
-  color: #c45a3b;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.cdc-cite a:hover {
-  text-decoration: underline;
-}
-
-.cdc-references {
-  margin-top: 1.5rem;
-}
-
-.cdc-references .bib-entry {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.06);
-}
-
-.cdc-references .bib-entry:last-child {
-  border-bottom: none;
-}
-
-.cdc-references .bib-number {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #c45a3b;
-  margin-bottom: 0.3rem;
-}
-
-.cdc-references .bib-citation {
-  font-size: 0.9rem;
-  color: #3d3a36;
-  line-height: 1.7;
-}
-
-.cdc-references .bib-citation em {
-  color: #5a5550;
-}
-
-.cdc-references .bib-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.cdc-references .bib-link {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  text-decoration: none;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.cdc-references .bib-link.pdf {
-  background: rgba(196, 90, 59, 0.1);
-  color: #c45a3b;
-}
-
-.cdc-references .bib-link.pdf:hover {
-  background: rgba(196, 90, 59, 0.2);
-}
-
-.cdc-references .bib-link.external {
-  background: rgba(61, 58, 54, 0.06);
-  color: #5a5550;
-}
-
-.cdc-references .bib-link.external:hover {
-  background: rgba(61, 58, 54, 0.12);
-}
-
 .cdc-learn-more {
   display: inline-flex;
   align-items: center;
@@ -1071,16 +918,6 @@ categories:
 
 .cdc-learn-more::before {
   content: "💡";
-}
-
-/* Hint text for viz sections */
-.cdc-viz-hint {
-  width: 100%;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.75rem;
-  color: #8b7355;
-  margin: 0.25rem 0 0 0;
-  line-height: 1.4;
 }
 
 /* Combined text + hex view */
@@ -1667,63 +1504,6 @@ categories:
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Parametric slider control layout */
-.parametric-control-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.parametric-control-row input[type="range"] {
-  flex: 1;
-  min-width: 120px;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: linear-gradient(to right, #d4a574, #c45a3b);
-  border-radius: 3px;
-  outline: none;
-}
-
-.parametric-control-row input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #c45a3b;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: transform 0.15s ease;
-}
-
-.parametric-control-row input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.parametric-control-row input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: #c45a3b;
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.parametric-control-label {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  color: #3d3a36;
-  white-space: nowrap;
-}
-
 .parametric-derived-params {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.75rem;
@@ -1939,19 +1719,6 @@ categories:
 
 }
 
-/* Series navigation */
-.cdc-series-nav {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  color: #8b7355;
-  padding: 0.75rem 1rem;
-  background: rgba(61, 58, 54, 0.03);
-  border-radius: 6px;
-  border: 1px solid rgba(61, 58, 54, 0.06);
-  margin: 1.5rem 0;
-}
-.cdc-series-nav a { color: #c45a3b; text-decoration: none; }
-.cdc-series-nav a:hover { text-decoration: underline; }
 </style>
 
 <!-- MathJax for rendering mathematical notation -->
