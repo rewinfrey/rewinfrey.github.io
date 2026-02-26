@@ -2142,39 +2142,76 @@ categories:
   text-decoration: underline;
 }
 
-/* Cost dimension cards */
-.cdc-cost-card {
-  position: relative;
+/* Cost dimension tabs */
+.cdc-cost-tabs {
   margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem 1.25rem 1.25rem;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 6px;
   background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.08);
-  border-left: 3px solid var(--cost-color, #c45a3b);
-  border-radius: 0 6px 6px 0;
+}
+
+.cdc-tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.cdc-tab {
+  background: none;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  color: #6b6560;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.cdc-tab:hover {
+  color: #3d3a36;
+}
+
+.cdc-tab.active {
+  color: #3d3a36;
+  font-weight: 600;
+}
+
+.cdc-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #c45a3b;
+}
+
+.cdc-tab-panels {
+  padding: 1.25rem 1.5rem;
+}
+
+.cdc-tab-panel {
+  display: none;
   line-height: 1.6;
 }
 
-.cdc-cost-card::before {
-  content: attr(data-label);
-  position: absolute;
-  top: -0.6rem;
-  left: 1rem;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--cost-color, #c45a3b);
-  background: #faf9f7;
-  padding: 0 0.4rem;
+.cdc-tab-panel.active {
+  display: block;
 }
 
-.cdc-cost-summary {
+.cdc-tab-panel .cdc-cost-summary {
   font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-style: italic;
-  color: var(--cost-color, #c45a3b);
-  margin-bottom: 0.75rem;
+  color: #6b6560;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 42em) {
+  .cdc-tab { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+  .cdc-tab-panels { padding: 1rem; }
 }
 </style>
 
@@ -2369,46 +2406,40 @@ Each stage in the pipeline maps to just a few lines of code, but together they f
 
 Deduplication is not free. Every stage of the pipeline above consumes resources, and the central engineering challenge is deciding where to spend and where to save.<span class="cdc-cite"><a href="#ref-15">[15]</a></span> The core CDC costs fall into four categories, and they all interact.
 
-<div class="cdc-cost-card" markdown="1" data-label="CPU" style="--cost-color: #c45a3b;">
-<div class="cdc-cost-summary">Hashing, compression, and chunking</div>
-
-CPU is the first cost you pay, and it shows up in three places: the rolling hash that finds chunk boundaries, the cryptographic hash that fingerprints each chunk, and the compression that shrinks chunks before storage.
-
-The rolling hash itself is cheap: as we saw in [Part 2](/writings/content-defined-chunking-part-2.html), Gear hash processes each byte with just a shift and a table lookup. The cryptographic hash that follows is the primary CPU bottleneck. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint.<span id="fn1-ref" class="cdc-footnote-marker"><a href="#fn1">1</a></span> With fast chunking algorithms like FastCDC, fingerprinting dominates the CPU profile of the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero.
-
-Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network.
-
-All three costs scale linearly with data volume. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work on every byte that enters the system. Systems whose chunks have predictable internal structure can push further: Meta's [OpenZL](https://openzl.org/) generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span>
-</div>
-
-<div class="cdc-cost-card" markdown="1" data-label="Memory" style="--cost-color: #8b7355;">
-<div class="cdc-cost-summary">Chunk index lookups at scale</div>
-
-Memory is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query because every incoming chunk triggers a lookup. At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span>
-
-The primary cost driver is chunk count. The index size scales with the number of unique chunks, not with total data volume, which is good. But smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data.
-
-Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.
-</div>
-
-<div class="cdc-cost-card" markdown="1" data-label="Network" style="--cost-color: #466ea0;">
-<div class="cdc-cost-summary">Transfer efficiency through deduplication</div>
-
-Network is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. The primary cost driver is the dedup ratio: the fraction of chunks that already exist at the destination and never need to be sent.
-
-The [Low-Bandwidth Network File System](https://pdos.csail.mit.edu/archive/lbfs/) (LBFS) demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes.
-
-Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.
-</div>
-
-<div class="cdc-cost-card" markdown="1" data-label="Storage" style="--cost-color: #d4a574;">
-<div class="cdc-cost-summary">Unique chunks plus metadata overhead</div>
-
-Storage (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. The primary cost driver is the balance between dedup savings and metadata overhead. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> On cloud object stores, chunk count also drives API operations costs: every PUT and GET is priced per request, so more chunks means more billable operations (Part 4 explores how containers address this).
-
-At extremely small chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself.
-
-Meyer and Bolosky found that for live desktop file systems, where most duplication consists of identical files stored in multiple locations, whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup.<span class="cdc-cite"><a href="#ref-20">[20]</a></span> But that result is workload-dependent. When files churn frequently and edits are localized within larger files (the pattern that dominates backup, sync, and software distribution), whole-file dedup sees zero savings on each modified file while CDC captures nearly everything. The value of sub-file chunking scales with both how much duplicated content exists and how frequently that content changes.
+<div class="cdc-cost-tabs" id="cost-tabs">
+  <div class="cdc-tab-bar" role="tablist">
+    <button class="cdc-tab active" role="tab" aria-selected="true" data-tab="cpu">CPU</button>
+    <button class="cdc-tab" role="tab" aria-selected="false" data-tab="memory">Memory</button>
+    <button class="cdc-tab" role="tab" aria-selected="false" data-tab="network">Network</button>
+    <button class="cdc-tab" role="tab" aria-selected="false" data-tab="storage">Storage</button>
+  </div>
+  <div class="cdc-tab-panels">
+  <div class="cdc-tab-panel active" id="tab-cpu" role="tabpanel">
+    <p class="cdc-cost-summary"><em>Hashing, compression, and chunking</em></p>
+    <p>CPU is the first cost you pay, and it shows up in three places: the rolling hash that finds chunk boundaries, the cryptographic hash that fingerprints each chunk, and the compression that shrinks chunks before storage.</p>
+    <p>The rolling hash itself is cheap: as we saw in <a href="/writings/content-defined-chunking-part-2.html">Part 2</a>, Gear hash processes each byte with just a shift and a table lookup. The cryptographic hash that follows is the primary CPU bottleneck. SHA-256 and BLAKE3 must process every byte of every chunk to produce a collision-resistant fingerprint.<span id="fn1-ref" class="cdc-footnote-marker"><a href="#fn1">1</a></span> With fast chunking algorithms like FastCDC, fingerprinting dominates the CPU profile of the pipeline.<span class="cdc-cite"><a href="#ref-17">[17]</a></span> Stronger hashes cost more cycles but reduce the probability of two different chunks sharing the same hash to effectively zero.</p>
+    <p>Then there is compression: most production systems (Restic, Borg, and others) compress each chunk before storing it, typically with zstd or LZ4. Compression adds meaningful CPU cost on writes and a smaller cost on reads (decompression), but it can dramatically reduce the bytes that actually hit disk and network.</p>
+    <p>All three costs scale linearly with data volume. In practice, BLAKE3 is fast enough that hashing rarely bottlenecks a modern pipeline, and modern compressors like zstd offer tunable speed-vs-ratio tradeoffs, but both represent real work on every byte that enters the system. Systems whose chunks have predictable internal structure can push further: Meta's <a href="https://openzl.org/">OpenZL</a> generates compressors tailored to a specific data format, achieving better compression ratios at higher speeds than general-purpose tools can manage.<span class="cdc-cite"><a href="#ref-22">[22]</a></span></p>
+  </div>
+  <div class="cdc-tab-panel" id="tab-memory" role="tabpanel">
+    <p class="cdc-cost-summary"><em>Chunk index lookups at scale</em></p>
+    <p>Memory is where the chunk index lives. The content-addressable store needs a searchable mapping from hash to storage location, and that index must be fast to query because every incoming chunk triggers a lookup. At scale, keeping a full chunk index in RAM becomes impractical, and a disk-based index with one seek per incoming chunk is far too slow.<span class="cdc-cite"><a href="#ref-16">[16]</a></span><span class="cdc-cite"><a href="#ref-18">[18]</a></span></p>
+    <p>The primary cost driver is chunk count. The index size scales with the number of unique chunks, not with total data volume, which is good. But smaller average chunk sizes mean more chunks per file, which means a larger index. A system with 4 KB average chunks will produce roughly four times as many index entries as one with 16 KB chunks for the same data.</p>
+    <p>Once the index outgrows a single machine, or needs to be shared across a fleet, it becomes a distributed systems problem: you need a persistent, highly available data store (typically a database or distributed key-value system) to hold the mapping and serve lookups at low latency. That infrastructure has its own operational cost, and it scales with chunk count.</p>
+  </div>
+  <div class="cdc-tab-panel" id="tab-network" role="tabpanel">
+    <p class="cdc-cost-summary"><em>Transfer efficiency through deduplication</em></p>
+    <p>Network is often where deduplication pays for itself most visibly. In distributed systems (backup to a remote server, syncing across devices), only new chunks need to traverse the wire. The primary cost driver is the dedup ratio: the fraction of chunks that already exist at the destination and never need to be sent.</p>
+    <p>The <a href="https://pdos.csail.mit.edu/archive/lbfs/">Low-Bandwidth Network File System</a> (LBFS) demonstrated this early on, achieving over an order of magnitude less bandwidth than traditional network file systems by transmitting only chunks not already present at the receiver.<span class="cdc-cite"><a href="#ref-19">[19]</a></span> If you edit a paragraph in a 10 MB document and the system produces 200 chunks, perhaps only 3 of those are new. That is a transfer of kilobytes instead of megabytes.</p>
+    <p>Smaller chunks generally improve this ratio because edits are less likely to span an entire small chunk, but each chunk also carries metadata overhead (its hash, its length, its position in the manifest), so there is a point of diminishing returns.</p>
+  </div>
+  <div class="cdc-tab-panel" id="tab-storage" role="tabpanel">
+    <p class="cdc-cost-summary"><em>Unique chunks plus metadata overhead</em></p>
+    <p>Storage (disk or object store) holds the unique chunks plus all the metadata that lets you reconstruct files from them: hashes, chunk-to-file mappings, version manifests. The primary cost driver is the balance between dedup savings and metadata overhead. Smaller chunks improve deduplication (more sharing opportunities), but they also increase the metadata-to-data ratio.<span class="cdc-cite"><a href="#ref-21">[21]</a></span> On cloud object stores, chunk count also drives API operations costs: every PUT and GET is priced per request, so more chunks means more billable operations (Part 4 explores how containers address this).</p>
+    <p>At extremely small chunk sizes (say, 256 bytes), the overhead of storing a 32-byte hash and associated bookkeeping for each chunk becomes a significant fraction of the chunk itself.</p>
+    <p>Meyer and Bolosky found that for live desktop file systems, where most duplication consists of identical files stored in multiple locations, whole-file deduplication already captures roughly 75% of the savings of fine-grained block-level dedup.<span class="cdc-cite"><a href="#ref-20">[20]</a></span> But that result is workload-dependent. When files churn frequently and edits are localized within larger files (the pattern that dominates backup, sync, and software distribution), whole-file dedup sees zero savings on each modified file while CDC captures nearly everything. The value of sub-file chunking scales with both how much duplicated content exists and how frequently that content changes.</p>
+  </div>
+  </div>
 </div>
 
 <div class="cdc-callout" data-label="The Central Knob">

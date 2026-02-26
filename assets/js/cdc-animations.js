@@ -2403,6 +2403,50 @@ class ComparisonDemo {
 }
 
 // =============================================================================
+// Cost Tabs (Part 3)
+// =============================================================================
+
+class CostTabsController {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.tabs = this.container.querySelectorAll('.cdc-tab');
+    this.panels = this.container.querySelectorAll('.cdc-tab-panel');
+    this.panelsWrapper = this.container.querySelector('.cdc-tab-panels');
+
+    this.tabs.forEach(tab => {
+      tab.addEventListener('click', () => this.activate(tab.dataset.tab));
+    });
+
+    this.setFixedHeight();
+    window.addEventListener('resize', () => this.setFixedHeight());
+  }
+
+  setFixedHeight() {
+    this.panelsWrapper.style.minHeight = '';
+    let maxHeight = 0;
+    this.panels.forEach(panel => {
+      panel.style.display = 'block';
+      maxHeight = Math.max(maxHeight, panel.offsetHeight);
+      panel.style.display = '';
+    });
+    this.panelsWrapper.style.minHeight = maxHeight + 'px';
+  }
+
+  activate(tabName) {
+    this.tabs.forEach(tab => {
+      const isActive = tab.dataset.tab === tabName;
+      tab.classList.toggle('active', isActive);
+      tab.setAttribute('aria-selected', isActive);
+    });
+    this.panels.forEach(panel => {
+      panel.classList.toggle('active', panel.id === 'tab-' + tabName);
+    });
+  }
+}
+
+// =============================================================================
 // Cost Tradeoffs Explorer
 // =============================================================================
 
@@ -4857,6 +4901,9 @@ function initCDCAnimations() {
 
   // Basic vs Normalized comparison
   new ComparisonDemo('comparison-demo');
+
+  // Cost tabs (Part 3)
+  new CostTabsController('cost-tabs');
 
   // Cost tradeoffs explorer
   new CostTradeoffsDemo('cost-tradeoffs-demo');
