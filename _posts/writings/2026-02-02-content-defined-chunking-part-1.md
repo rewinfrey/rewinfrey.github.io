@@ -1611,7 +1611,7 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       </ul>
     </li>
     <li>
-      <a href="/writings/content-defined-chunking-part-4">From Chunks to Containers</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 4)</em>
+      <a href="/writings/content-defined-chunking-part-4">CDC in the Cloud</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 4)</em>
       <ul>
         <li><a href="/writings/content-defined-chunking-part-4#the-cost-comparison">The Cost Comparison</a></li>
         <li><a href="/writings/content-defined-chunking-part-4#reducing-costs-through-containers">Reducing Costs through Containers</a></li>
@@ -1622,7 +1622,7 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       </ul>
     </li>
     <li>
-      <a href="/writings/content-defined-chunking-part-5">The Cost of CDC at Scale</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 5)</em>
+      <a href="/writings/content-defined-chunking-part-5">CDC at Scale on a Budget</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 5)</em>
       <ul>
         <li><a href="/writings/content-defined-chunking-part-5#the-cost-comparison-continued">The Cost Comparison Continued</a></li>
         <li><a href="/writings/content-defined-chunking-part-5#reducing-costs-through-caching">Reducing Costs through Caching</a></li>

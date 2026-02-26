@@ -1982,7 +1982,7 @@ categories:
 </style>
 
 <div class="cdc-series-nav">
-Part 3 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
+Part 3 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
 </div>
 
 In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today and where it is not, and explore the cost tradeoffs that shape real-world systems.
@@ -2270,7 +2270,7 @@ The four dimensions above assume a local or self-managed storage backend where t
 
 Cloud providers charge not just per GB stored but also per API operation. Every PUT and every GET has a price. When each chunk is its own object, the number of API calls scales with the number of chunks, and that operations cost can dominate the bill entirely. The same knob that the explorer above illustrates (smaller chunks improve dedup but increase chunk count) takes on a new, financially painful dimension: more chunks means more API calls means a larger cloud bill, even if the total bytes stored are fewer.
 
-This is the problem that <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a> tackles head-on. Grouping chunks into larger, fixed-size containers collapses the object count and makes CDC viable on cloud storage. But containers introduce their own challenges: fragmentation, garbage collection complexity, and restore performance degradation. <a href="/writings/content-defined-chunking-part-5">Part 5</a> then takes a deep dive into the full cost picture, exploring how different storage providers, caching layers, and container configurations combine to determine the real monthly bill.
+This is the problem that <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a> tackles head-on. Grouping chunks into larger, fixed-size containers collapses the object count and makes CDC viable on cloud storage. But containers introduce their own challenges: fragmentation, garbage collection complexity, and restore performance degradation. <a href="/writings/content-defined-chunking-part-5">Part 5</a> then takes a deep dive into the full cost picture, exploring how different storage providers, caching layers, and container configurations combine to determine the real monthly bill.
 <div class="cdc-footnotes">
 <ol>
 <li id="fn1">Collision resistance requires that it is computationally infeasible to find two different inputs that produce the same hash. For this guarantee to hold, every bit of the input must influence the output. If the function skipped even a single byte, two inputs differing only in that byte would hash identically, a trivial collision. This is the fundamental difference from rolling hashes used for boundary detection: Gear hash only looks at a sliding window and is not collision-resistant, which is fine for finding chunk boundaries but not for content addressing, where a collision means two different chunks are treated as identical and one gets silently discarded. BLAKE3 is notably faster than SHA-256 here because it uses a Merkle tree structure internally, allowing parts of the input to be hashed in parallel across cores and SIMD lanes, but it still processes every byte. <a href="#fn1-ref" class="back-ref">&#8617;</a></li>
@@ -2469,7 +2469,7 @@ This is the problem that <a href="/writings/content-defined-chunking-part-4">Par
 *The interactive animations in this post are available for experimentation. Try modifying the input text, adjusting chunk size parameters, and watching how CDC adapts to your changes.*
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Continue reading &rarr; <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
+&larr; <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Continue reading &rarr; <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

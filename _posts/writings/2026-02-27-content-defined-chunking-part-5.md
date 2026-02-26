@@ -1,7 +1,7 @@
 ---
 layout: writing
 group: Writings
-title: "Content-Defined Chunking, Part 5: The Cost of CDC at Scale"
+title: "Content-Defined Chunking, Part 5: CDC at Scale on a Budget"
 summary: "What does CDC actually cost on cloud storage? This post models the full cost picture across seven storage providers, six cache providers, and the interplay of chunk size, container packing, and cache hit rate."
 date: 2026-02-27 12:00:00
 categories:
@@ -239,7 +239,7 @@ categories:
 </style>
 
 <div class="cdc-series-nav">
-Part 5 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a>
+Part 5 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
 </div>
 
 In [Part 3](/writings/content-defined-chunking-part-3), the cloud cost explorer showed that when every chunk is stored as a separate object, API operations dominate the monthly bill. In [Part 4](/writings/content-defined-chunking-part-4), the Container Cost Explorer showed how packing chunks into fixed-size containers collapses that operations cost by orders of magnitude. With the container abstraction in hand, we can now explore the full cost landscape: how different storage providers, caching layers, and container configurations combine to determine what CDC actually costs at scale. This post also wraps up the series with a look at what motivated this deep dive in the first place.
@@ -463,7 +463,7 @@ Content-Defined Chunking is one of those algorithms that seems almost too simple
 </div>
 
 <div class="cdc-series-nav">
-&larr; <a href="/writings/content-defined-chunking-part-4">Part 4: From Chunks to Containers</a> &middot; Back to <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
+&larr; <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a> &middot; Back to <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
 </div>
 
 <script type="module" src="/assets/js/cdc-animations.js"></script>

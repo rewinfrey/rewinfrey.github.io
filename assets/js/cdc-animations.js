@@ -2689,8 +2689,9 @@ class CostTradeoffsDemo {
     const chunkBytes = chunkKB * 1024;
     const numObjects = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    // PUT ops: each chunk from an edit needs an API call (check hash, store if new)
-    const monthlyPuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
+    // Approximate net new fraction as 1/dedup (higher dedup → fewer new chunks).
+    const monthlyPuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
     // GET ops: each doc fetch downloads all chunks (no cache)
     const monthlyGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
     // Ingress: only unique new chunks actually upload (dedup filters the rest)
@@ -2943,8 +2944,15 @@ class ContainerCostDemo {
       { label: 'Storage', key: 'storage' },
       { label: 'Operations (PUT + GET)', key: 'operations' },
       { label: 'Network egress', key: 'egress' },
-      { label: 'Monthly total', key: 'total' },
-      ...(this.mode === 'naive' ? [] : [{ label: 'Savings vs. naive', key: 'savings' }])
+      ...(this.mode === 'packed' ? [
+        { label: 'Total without containers', key: 'naive_total' },
+        { label: 'Total with containers', key: 'total' }
+      ] : this.mode === 'naive' ? [
+        { label: 'Monthly total', key: 'total' }
+      ] : [
+        { label: 'Monthly total', key: 'total' },
+        { label: 'Savings vs. naive', key: 'savings' }
+      ])
     ];
 
     this.cloudCells = {};
@@ -3033,7 +3041,8 @@ class ContainerCostDemo {
     // Assumptions
     const assumptions = document.createElement('div');
     assumptions.className = 'cost-cloud-assumptions';
-    assumptions.textContent = 'Assumes 100M users, 1 PB total data (~1B docs, ~1 MB avg), 1B doc reads/month, 50 edits per user/month (10 MB avg change). No client-side cache. US East / US multi-region, standard and hot tiers. Pricing as of Feb 2026.';
+    const localityNote = this.mode !== 'naive' ? ' Container read savings assume ideal chunk locality; real savings vary with fragmentation.' : '';
+    assumptions.textContent = `Assumes 100M users, 1 PB total data (~1B docs, ~1 MB avg), 1B doc reads/month, 50 edits per user/month (10 MB avg change). Write operations count only net new unique chunks after dedup filtering. Read operations assume one GET per chunk (no client-side cache).${localityNote} US East / US multi-region, standard and hot tiers. Pricing as of Feb 2026. These are conservative order-of-magnitude estimates, not precise forecasts.`;
     this.cloudSection.appendChild(assumptions);
   }
 
@@ -3051,8 +3060,9 @@ class ContainerCostDemo {
     const chunkBytes = chunkKB * 1024;
     const numChunks = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    // Naive per-chunk operations
-    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
+    // Approximate net new fraction as 1/dedup (higher dedup → fewer new chunks).
+    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
     const naiveGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
 
     // Container packing
@@ -3095,7 +3105,7 @@ class ContainerCostDemo {
       const obj = this.cloudCells['objects'][i];
       obj.value.textContent = this.formatCount(numObjects);
       if (packed) {
-        obj.calc1.textContent = `${this.formatCount(numChunks)} chunks in ${this.containerLabels[this.containerSlider?.value || 0]} containers`;
+        obj.calc1.textContent = `${this.formatCount(numChunks)} chunks in ${this.formatSize(containerSizeKB)} containers`;
       } else {
         obj.calc1.textContent = `${this.formatGB(uniqueGB)} / ${chunkLabel}`;
       }
@@ -3129,13 +3139,36 @@ class ContainerCostDemo {
       egr.calc1.textContent = `${this.formatGB(this.monthlyEgressGB)} \u00d7 $${p.egressPerGB}/GB`;
       egr.calc2.textContent = p.egressNote;
 
+      // Naive total (packed mode only)
+      if (this.cloudCells['naive_total']) {
+        const nt = this.cloudCells['naive_total'][i];
+        nt.value.textContent = this.formatDollars(naiveTotal);
+        nt.calc1.textContent = '';
+        nt.calc2.textContent = '';
+      }
+
       // Total
       const tot = this.cloudCells['total'][i];
       tot.value.textContent = this.formatDollars(totalCost);
-      tot.calc1.textContent = '';
-      tot.calc2.textContent = '';
+      if (this.mode === 'packed' && packed) {
+        const savings = naiveTotal - totalCost;
+        if (savings > 0) {
+          const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
+          tot.calc1.textContent = `${this.formatDollars(savings)} savings (${pctSaved}% reduction)`;
+          tot.calc2.textContent = '';
+          tot.td.style.color = '#2d7a4f';
+        } else {
+          tot.calc1.textContent = '';
+          tot.calc2.textContent = '';
+          tot.td.style.color = '';
+        }
+      } else {
+        tot.calc1.textContent = '';
+        tot.calc2.textContent = '';
+        tot.td.style.color = '';
+      }
 
-      // Savings (not present in naive mode)
+      // Savings row (legacy mode only, not present in naive or packed modes)
       if (this.cloudCells['savings']) {
         const sav = this.cloudCells['savings'][i];
         const savings = naiveTotal - totalCost;
@@ -3143,7 +3176,7 @@ class ContainerCostDemo {
           sav.value.textContent = `${this.formatDollars(savings)}/mo`;
           const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
           sav.calc1.textContent = `${pctSaved}% reduction`;
-          sav.calc2.textContent = `vs. ${this.formatDollars(naiveTotal)} naive`;
+          sav.calc2.textContent = '';
           sav.td.style.color = '#2d7a4f';
         } else {
           sav.value.textContent = packed ? '$0' : '\u2014';
@@ -3160,12 +3193,12 @@ class ContainerCostDemo {
     const t = sliderValue / 100;
     const chunkKB = this.sliderToKB(sliderValue);
     const packed = this.packingToggle?.checked || false;
-    const containerIdx = parseInt(this.containerSlider?.value || 0);
-    const containerSizeKB = this.containerSizes[containerIdx];
+    const containerSizeMB = parseInt(this.containerSlider?.value || 4);
+    const containerSizeKB = containerSizeMB * 1024;
 
     this.chunkValueEl.textContent = this.formatSize(chunkKB);
     if (this.containerValueEl) {
-      this.containerValueEl.textContent = this.containerLabels[containerIdx];
+      this.containerValueEl.textContent = `${containerSizeMB} MB`;
     }
 
     this.updateCloudCosts(t, chunkKB, packed, containerSizeKB);
@@ -3435,7 +3468,8 @@ class NewcomerCostDemo {
     const chunkBytes = chunkKB * 1024;
     const numChunks = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
+    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
     const naiveGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
 
     const chunksPerContainer = packed ? Math.max(1, containerSizeKB / chunkKB) : 1;
@@ -3775,7 +3809,8 @@ class JazzCostDemo {
     const chunkBytes = chunkKB * 1024;
     const numObjects = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    const monthlyPuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
+    const monthlyPuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
     const monthlyGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
 
     // Workload summary
@@ -4758,7 +4793,8 @@ class ComprehensiveCostDemo {
     const chunkBytes = chunkKB * 1024;
     const numChunks = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / chunkBytes;
+    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
+    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
     const naiveGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
 
     const chunksPerContainer = packed ? Math.max(1, containerSizeKB / chunkKB) : 1;
