@@ -1023,13 +1023,15 @@ categories:
   font-size: 0.85rem;
   font-weight: 700;
   color: #c45a3b;
-  margin-bottom: 0.3rem;
+  display: inline;
+  margin-right: 0.4rem;
 }
 
 .cdc-references .bib-citation {
   font-size: 0.9rem;
   color: #3d3a36;
   line-height: 1.7;
+  display: inline;
 }
 
 .cdc-references .bib-citation em {
