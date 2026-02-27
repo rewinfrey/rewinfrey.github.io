@@ -4,30 +4,52 @@ group: Sandbox
 title: Sandbox
 ---
 
+{% include line-field-bg.html %}
+
+<section class="landing-section page-card">
+  <div class="section-header">
+    <h2 class="section-title">Sandbox</h2>
+  </div>
+  <p class="page-subtitle">Experiments, animations, and interactive demos.</p>
+
+  <div class="sandbox-grid">
+    <a href="/sandbox/line-field/" class="sandbox-card">
+      <div class="sandbox-card-icon">
+        <span class="fa-solid fa-wind"></span>
+      </div>
+      <div class="sandbox-card-title">Line Field</div>
+      <p class="sandbox-card-description">
+        Point and line field animations with wind simulation, simplex noise, and configurable controls.
+      </p>
+      <div class="sandbox-card-tags">
+        <span class="sandbox-tag">Canvas</span>
+        <span class="sandbox-tag">Animation</span>
+        <span class="sandbox-tag">Simplex Noise</span>
+      </div>
+    </a>
+
+    <a href="/sandbox/cdc/" class="sandbox-card">
+      <div class="sandbox-card-icon">
+        <span class="fa-solid fa-scissors"></span>
+      </div>
+      <div class="sandbox-card-title">CDC Animations</div>
+      <p class="sandbox-card-description">
+        Content-Defined Chunking visualizations: GEAR hash rolling window, chunk boundary detection, and deduplication demos.
+      </p>
+      <div class="sandbox-card-tags">
+        <span class="sandbox-tag">CDC</span>
+        <span class="sandbox-tag">Algorithm</span>
+        <span class="sandbox-tag">Visualization</span>
+      </div>
+    </a>
+  </div>
+</section>
+
 <style>
-  .sandbox-header {
-    padding: 2rem 0 1rem;
-  }
-
-  .sandbox-title {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-size: 2rem;
-    font-weight: 400;
-    color: #3d3a36;
-    margin-bottom: 0.5rem;
-  }
-
-  .sandbox-subtitle {
-    font-size: 0.95rem;
-    color: #8b7355;
-    margin-bottom: 2rem;
-  }
-
   .sandbox-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
-    padding-bottom: 3rem;
   }
 
   @media (max-width: 42em) {
@@ -100,41 +122,3 @@ title: Sandbox
     border-radius: 3px;
   }
 </style>
-
-<div class="sandbox-header">
-  <h1 class="sandbox-title">Sandbox</h1>
-  <p class="sandbox-subtitle">Experiments, animations, and interactive demos.</p>
-</div>
-
-<div class="sandbox-grid">
-  <a href="/sandbox/line-field/" class="sandbox-card">
-    <div class="sandbox-card-icon">
-      <span class="fa-solid fa-wind"></span>
-    </div>
-    <div class="sandbox-card-title">Line Field</div>
-    <p class="sandbox-card-description">
-      Point and line field animations with wind simulation, simplex noise, and configurable controls.
-    </p>
-    <div class="sandbox-card-tags">
-      <span class="sandbox-tag">Canvas</span>
-      <span class="sandbox-tag">Animation</span>
-      <span class="sandbox-tag">Simplex Noise</span>
-    </div>
-  </a>
-
-  <a href="/sandbox/cdc/" class="sandbox-card">
-    <div class="sandbox-card-icon">
-      <span class="fa-solid fa-scissors"></span>
-    </div>
-    <div class="sandbox-card-title">CDC Animations</div>
-    <p class="sandbox-card-description">
-      Content-Defined Chunking visualizations: GEAR hash rolling window, chunk boundary detection, and deduplication demos.
-    </p>
-    <div class="sandbox-card-tags">
-      <span class="sandbox-tag">CDC</span>
-      <span class="sandbox-tag">Algorithm</span>
-      <span class="sandbox-tag">Visualization</span>
-    </div>
-  </a>
-
-</div>

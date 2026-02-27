@@ -4,30 +4,37 @@ group: References
 title: References
 ---
 
+{% include line-field-bg.html %}
+
+<section class="landing-section page-card">
+  <div class="section-header">
+    <h2 class="section-title">References</h2>
+  </div>
+  <p class="page-subtitle">Papers and research behind the writing on this site.</p>
+
+  <div class="references-grid">
+    <a href="/references/cdc" class="references-card">
+      <div class="references-card-icon">
+        <span class="fa-solid fa-scissors"></span>
+      </div>
+      <div class="references-card-title">Content-Defined Chunking</div>
+      <p class="references-card-description">
+        13 papers spanning 1981-2025: rolling hashes, local extrema, statistical chunking, and SIMD acceleration for data deduplication.
+      </p>
+      <div class="references-card-tags">
+        <span class="references-tag">Deduplication</span>
+        <span class="references-tag">Algorithms</span>
+        <span class="references-tag">Systems</span>
+      </div>
+    </a>
+  </div>
+</section>
+
 <style>
-  .references-header {
-    padding: 2rem 0 1rem;
-  }
-
-  .references-title {
-    font-family: 'Libre Baskerville', Georgia, serif;
-    font-size: 2rem;
-    font-weight: 400;
-    color: #3d3a36;
-    margin-bottom: 0.5rem;
-  }
-
-  .references-subtitle {
-    font-size: 0.95rem;
-    color: #8b7355;
-    margin-bottom: 2rem;
-  }
-
   .references-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
-    padding-bottom: 3rem;
   }
 
   @media (max-width: 42em) {
@@ -100,25 +107,3 @@ title: References
     border-radius: 3px;
   }
 </style>
-
-<div class="references-header">
-  <h1 class="references-title">References</h1>
-  <p class="references-subtitle">Papers and research behind the writing on this site.</p>
-</div>
-
-<div class="references-grid">
-  <a href="/references/cdc" class="references-card">
-    <div class="references-card-icon">
-      <span class="fa-solid fa-scissors"></span>
-    </div>
-    <div class="references-card-title">Content-Defined Chunking</div>
-    <p class="references-card-description">
-      13 papers spanning 1981-2025: rolling hashes, local extrema, statistical chunking, and SIMD acceleration for data deduplication.
-    </p>
-    <div class="references-card-tags">
-      <span class="references-tag">Deduplication</span>
-      <span class="references-tag">Algorithms</span>
-      <span class="references-tag">Systems</span>
-    </div>
-  </a>
-</div>

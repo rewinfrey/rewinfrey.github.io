@@ -494,6 +494,38 @@
 }
 
 // ===========================
+// Page Card (shared across non-landing pages)
+// ===========================
+
+.page-card {
+  position: relative;
+  z-index: 1;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: lighten($base-color, 25%);
+  margin-bottom: 2rem;
+  margin-top: -1.5rem;
+}
+
+.page-article {
+  p {
+    font-size: 1rem;
+    color: lighten($base-color, 10%);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+
+  a {
+    color: $secondary-color;
+    &:hover {
+      color: darken($secondary-color, 10%);
+    }
+  }
+}
+
+// ===========================
 // Animations
 // ===========================
 

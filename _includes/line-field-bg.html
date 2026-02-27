@@ -1,0 +1,62 @@
+<canvas id="lineFieldBackground"></canvas>
+
+<style>
+  #lineFieldBackground {
+    position: fixed;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    z-index: 0;
+  }
+
+  @media (max-width: 768px) {
+    #lineFieldBackground {
+      display: none;
+    }
+  }
+</style>
+
+<script type="module">
+import { LineFieldAnimation } from '/assets/js/line-field.js';
+
+const canvas = document.getElementById('lineFieldBackground');
+const isMobile = window.innerWidth <= 768;
+if (isMobile) {
+  canvas.style.display = 'none';
+} else {
+  const animation = new LineFieldAnimation(canvas, {
+    mode: 'viewport',
+    params: {
+      spacing: 7,
+      width: 0.7,
+      wind: 5.0,
+      windDirection: Math.PI * 3 / 4,
+      wind2: 4.0,
+      wind2Direction: -Math.PI * 1 / 4,
+      windDensity: 6,
+      windSize: 99,
+      jitter: 1,
+      jitterDiameter: 20,
+      color: '#d8d4cb',
+      opacity: 1.0,
+      lineOrientation: -Math.PI * 3 / 2,
+      opacityDepthFactor: 0.6,
+      windOscillation: 10,
+      wind2Oscillation: 10,
+      whisp: 80
+    }
+  });
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) {
+    animation.renderOnce();
+  } else {
+    animation.start();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? animation.pause() : animation.resume();
+  });
+}
+</script>
