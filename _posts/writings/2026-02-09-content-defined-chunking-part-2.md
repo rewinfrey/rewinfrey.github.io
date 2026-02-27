@@ -1,9 +1,11 @@
 ---
 layout: writing
 group: Writings
-title: "Content-Defined Chunking, Part 2: A Deep Dive into FastCDC"
-summary: "An interactive exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization, with code in pseudocode, Rust, and TypeScript."
+title: "A Deep Dive into FastCDC"
+subtitle: "Content-Defined Chunking, Part 2"
+summary: "An exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization, with code in pseudocode, Rust, and TypeScript."
 date: 2026-02-09 12:00:00
+interactive: true
 categories:
 - writings
 ---

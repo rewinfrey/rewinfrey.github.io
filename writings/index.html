@@ -10,9 +10,16 @@ title: Writings
         <h1 class="title">
           <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a>
         </h1>
+        {% if post.subtitle %}
+          <span class="subtitle-list">{{ post.subtitle }}</span>
+        {% endif %}
         <div class="title-info">
           <span class="date">{{ post.date | date: "%B %d, %Y" }}</span>
           <span class="spacer">|</span>
+          {% if post.interactive %}
+            <span class="interactive-badge">Interactive</span>
+            <span class="spacer">|</span>
+          {% endif %}
           {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
           <span class="read-time">
             {% if read_time == 0 %}

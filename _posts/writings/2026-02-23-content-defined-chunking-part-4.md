@@ -1,9 +1,11 @@
 ---
 layout: writing
 group: Writings
-title: "Content-Defined Chunking, Part 4: CDC in the Cloud"
-summary: "CDC chunks are the right logical unit for deduplication, but storing them as individual objects is ruinously expensive. This post explores containers, the storage abstraction that makes CDC viable at scale, and the fragmentation, garbage collection, and restore challenges they introduce."
+title: "CDC in the Cloud"
+subtitle: "Content-Defined Chunking, Part 4"
+summary: "CDC chunks are the right logical unit for deduplication, but storing them as individual objects is prohibitively expensive. This post explores containers, the storage abstraction that makes CDC viable at scale, and the fragmentation, garbage collection, and restore challenges they introduce."
 date: 2026-02-23 12:00:00
+interactive: true
 categories:
 - writings
 ---

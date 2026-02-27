@@ -1,9 +1,11 @@
 ---
 layout: writing
 group: Writings
-title: "Content-Defined Chunking, Part 5: CDC at Scale on a Budget"
-summary: "What does CDC actually cost on cloud storage? This post models the full cost picture across seven storage providers, six cache providers, and the interplay of chunk size, container packing, and cache hit rate."
+title: "CDC at Scale on a Budget"
+subtitle: "Content-Defined Chunking, Part 5"
+summary: "Cloud object storage can be expensive for CDC at scale. This post explores cost-saving alternatives: newcomer storage providers with radically different pricing, and the role caching plays under Zipf access patterns to drive costs down further."
 date: 2026-02-26 12:00:00
+interactive: true
 categories:
 - writings
 ---

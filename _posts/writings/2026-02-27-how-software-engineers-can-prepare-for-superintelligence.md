@@ -3,7 +3,7 @@ layout: writing
 group: Writings
 title: "How Software Engineers Can Prepare for Superintelligence"
 summary: "Three visions of 2028, the Industrial Revolution's unfinished lessons, and what the window before superintelligence demands of engineers today."
-date: 2026-02-22 12:00:00
+date: 2026-02-27 12:00:00
 categories:
 - writings
 ---
