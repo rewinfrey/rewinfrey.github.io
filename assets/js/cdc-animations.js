@@ -3272,9 +3272,6 @@ class NewcomerCostDemo {
       }
     ];
 
-    this.containerSizes = [4096, 16384, 65536];
-    this.containerLabels = ['4 MB', '16 MB', '64 MB'];
-
     this.init();
   }
 
@@ -3367,14 +3364,13 @@ class NewcomerCostDemo {
       { label: 'Storage', key: 'storage' },
       { label: 'Operations (PUT + GET)', key: 'operations' },
       { label: 'Network egress', key: 'egress' },
-      { label: 'Monthly total', key: 'total' },
-      { label: 'Savings vs. naive', key: 'savings' }
+      { label: 'Total without containers', key: 'naive_total' },
+      { label: 'Total with containers', key: 'total' }
     ];
 
     this.cloudCells = {};
     for (const rowDef of rowDefs) {
       const tr = document.createElement('tr');
-      if (rowDef.key === 'savings') tr.className = 'container-savings-row';
       const th = document.createElement('td');
       th.textContent = rowDef.label;
       tr.appendChild(th);
@@ -3507,7 +3503,7 @@ class NewcomerCostDemo {
       const obj = this.cloudCells['objects'][i];
       obj.value.textContent = this.formatCount(numObjects);
       if (packed) {
-        obj.calc1.textContent = `${this.formatCount(numChunks)} chunks in ${this.containerLabels[this.containerSlider?.value || 0]} containers`;
+        obj.calc1.textContent = `${this.formatCount(numChunks)} chunks in ${this.formatSize(containerSizeKB)} containers`;
       } else {
         obj.calc1.textContent = `${this.formatGB(uniqueGB)} / ${chunkLabel}`;
       }
@@ -3553,27 +3549,31 @@ class NewcomerCostDemo {
         egr.calc2.textContent = p.egressNote;
       }
 
-      // Total
+      // Naive total
+      const nt = this.cloudCells['naive_total'][i];
+      nt.value.textContent = this.formatDollars(naiveTotal);
+      nt.calc1.textContent = '';
+      nt.calc2.textContent = '';
+
+      // Total with containers (+ inline savings)
       const tot = this.cloudCells['total'][i];
       tot.value.textContent = this.formatDollars(totalCost);
-      tot.calc1.textContent = '';
-      tot.calc2.textContent = '';
-
-      // Savings
-      const sav = this.cloudCells['savings'][i];
-      const savings = naiveTotal - totalCost;
-      if (packed && savings > 0) {
-        sav.value.textContent = `${this.formatDollars(savings)}/mo`;
-        const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
-        sav.calc1.textContent = `${pctSaved}% reduction`;
-        sav.calc2.textContent = `vs. ${this.formatDollars(naiveTotal)} naive`;
-        sav.td.style.color = '#2d7a4f';
+      if (packed) {
+        const savings = naiveTotal - totalCost;
+        if (savings > 0) {
+          const pctSaved = ((savings / naiveTotal) * 100).toFixed(1);
+          tot.calc1.textContent = `${this.formatDollars(savings)} savings (${pctSaved}% reduction)`;
+          tot.calc2.textContent = '';
+          tot.td.style.color = '#2d7a4f';
+        } else {
+          tot.calc1.textContent = '';
+          tot.calc2.textContent = '';
+          tot.td.style.color = '';
+        }
       } else {
-        sav.value.textContent = packed ? '$0' : '\u2014';
-        const noOps = p.putPer1K === 0 && p.getPer1K === 0;
-        sav.calc1.textContent = packed ? (noOps ? 'no per-op charges to save on' : 'no savings at this chunk size') : 'enable packing to compare';
-        sav.calc2.textContent = '';
-        sav.td.style.color = '';
+        tot.calc1.textContent = '';
+        tot.calc2.textContent = '';
+        tot.td.style.color = '';
       }
     }
   }
@@ -3583,15 +3583,666 @@ class NewcomerCostDemo {
     const t = sliderValue / 100;
     const chunkKB = this.sliderToKB(sliderValue);
     const packed = this.packingToggle?.checked || false;
-    const containerIdx = parseInt(this.containerSlider?.value || 0);
-    const containerSizeKB = this.containerSizes[containerIdx];
+    const containerMB = parseInt(this.containerSlider?.value || 4);
+    const containerSizeKB = containerMB * 1024;
 
     this.chunkValueEl.textContent = this.formatSize(chunkKB);
     if (this.containerValueEl) {
-      this.containerValueEl.textContent = this.containerLabels[containerIdx];
+      this.containerValueEl.textContent = `${containerMB} MB`;
     }
 
     this.updateCloudCosts(t, chunkKB, packed, containerSizeKB);
+  }
+}
+
+// =============================================================================
+// Provider Cost Comparison (transposed: providers as rows, costs as columns)
+// =============================================================================
+
+class ProviderComparisonDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+
+    this.numUsers = 100_000_000;
+    this.totalDataGB = 1_048_576;
+    this.monthlyDocReads = 1_000_000_000;
+    this.avgReadMB = 1;
+    this.editsPerUserMonth = 50;
+    this.avgEditMB = 10;
+
+    this.monthlyEgressGB = (this.monthlyDocReads * this.avgReadMB) / 1024;
+    this.grossChurnGB = (this.numUsers * this.editsPerUserMonth * this.avgEditMB) / 1024;
+
+    this.providers = [
+      { name: 'AWS S3', storagePerGB: 0.023, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.09, traditional: true },
+      { name: 'GCP', storagePerGB: 0.026, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.12, traditional: true },
+      { name: 'Azure', storagePerGB: 0.018, putPer1K: 0.0065, getPer1K: 0.0005, egressPerGB: 0.087, traditional: true },
+      { name: 'Cloudflare R2', storagePerGB: 0.015, putPer1K: 0.0045, getPer1K: 0.00036, egressPerGB: 0 },
+      { name: 'Backblaze B2', storagePerGB: 0.005, putPer1K: 0, getPer1K: 0.0004, egressPerGB: 0.01 },
+      { name: 'Wasabi', storagePerGB: 0.0069, putPer1K: 0, getPer1K: 0, egressPerGB: 0 },
+      { name: 'Tigris', storagePerGB: 0.02, putPer1K: 0.005, getPer1K: 0.0005, egressPerGB: 0 }
+    ];
+
+    this.init();
+  }
+
+  init() {
+    this.chunkSlider = this.container.querySelector('[id$="-chunk-slider"]');
+    this.chunkValueEl = this.container.querySelector('[id$="-chunk-value"]');
+    this.containerSlider = this.container.querySelector('[id$="-container-slider"]');
+    this.containerValueEl = this.container.querySelector('[id$="-container-value"]');
+    this.cloudSection = this.container.querySelector('[id$="-cloud-section"]');
+
+    this.buildTable();
+    this.chunkSlider?.addEventListener('input', () => this.update());
+    this.containerSlider?.addEventListener('input', () => this.update());
+    this.update();
+  }
+
+  sliderToKB(value) { return Math.pow(2, value / 10); }
+
+  formatSize(kb) {
+    if (kb >= 1024) return `${(kb / 1024).toFixed(0)} MB`;
+    if (kb >= 10) return `${Math.round(kb)} KB`;
+    return `${kb.toFixed(1)} KB`;
+  }
+
+  formatDollars(amount) {
+    if (amount >= 1e9) return `$${(amount / 1e9).toFixed(1)}B`;
+    if (amount >= 1e6) return `$${(amount / 1e6).toFixed(1)}M`;
+    if (amount >= 1e3) return `$${(amount / 1e3).toFixed(1)}K`;
+    if (amount >= 100) return `$${amount.toFixed(0)}`;
+    if (amount >= 1) return `$${amount.toFixed(2)}`;
+    return `$${amount.toFixed(3)}`;
+  }
+
+  formatCount(n) {
+    if (n >= 1e12) return `${(n / 1e12).toFixed(1)}T`;
+    if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+    return `${Math.round(n)}`;
+  }
+
+  formatGB(gb) {
+    if (gb >= 1_048_576) return `${(gb / 1_048_576).toFixed(1)} PB`;
+    if (gb >= 1024) return `${(gb / 1024).toFixed(0)} TB`;
+    if (gb >= 1) return `${Math.round(gb)} GB`;
+    return `${(gb * 1024).toFixed(0)} MB`;
+  }
+
+  dedupRatio(t) { return 1.2 + 3.8 * Math.pow(1 - t, 0.7); }
+
+  buildTable() {
+    if (!this.cloudSection) return;
+    clearElement(this.cloudSection);
+
+    const header = document.createElement('div');
+    header.className = 'cost-cloud-header';
+    const title = document.createElement('span');
+    title.className = 'cost-cloud-title';
+    title.textContent = 'Estimated Monthly Cloud Costs';
+    this.workloadEl = document.createElement('span');
+    this.workloadEl.className = 'cost-cloud-workload';
+    header.appendChild(title);
+    header.appendChild(this.workloadEl);
+    this.cloudSection.appendChild(header);
+
+    const table = document.createElement('table');
+    table.className = 'cost-cloud-table';
+
+    // Thead
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    for (const label of ['Provider', 'Storage', 'Operations', 'Egress', 'Monthly Total']) {
+      const th = document.createElement('th');
+      th.textContent = label;
+      headRow.appendChild(th);
+    }
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    // Tbody
+    const tbody = document.createElement('tbody');
+    this.providerRows = [];
+
+    for (let i = 0; i < this.providers.length; i++) {
+      // Insert average row before first newcomer
+      if (i === 3) {
+        const avgTr = document.createElement('tr');
+        avgTr.className = 'provider-avg-row';
+        const avgName = document.createElement('td');
+        avgName.textContent = 'Avg. traditional';
+        avgTr.appendChild(avgName);
+        // Empty cells for storage, operations, egress
+        for (let j = 0; j < 3; j++) {
+          avgTr.appendChild(document.createElement('td'));
+        }
+        const avgTotalTd = document.createElement('td');
+        this.avgTotalEl = document.createElement('span');
+        this.avgTotalEl.className = 'cost-cell-value';
+        avgTotalTd.appendChild(this.avgTotalEl);
+        avgTr.appendChild(avgTotalTd);
+        tbody.appendChild(avgTr);
+      }
+
+      const tr = document.createElement('tr');
+      if (!this.providers[i].traditional) tr.className = 'provider-newcomer-row';
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = this.providers[i].name;
+      tr.appendChild(nameCell);
+
+      const cells = {};
+      for (const key of ['storage', 'operations', 'egress', 'total']) {
+        const td = document.createElement('td');
+        const value = document.createElement('span');
+        value.className = 'cost-cell-value';
+        td.appendChild(value);
+
+        if (key === 'total' && !this.providers[i].traditional) {
+          const savings = document.createElement('span');
+          savings.className = 'cost-cell-calc';
+          td.appendChild(savings);
+          cells.savings = savings;
+        }
+
+        tr.appendChild(td);
+        cells[key] = { value, td };
+      }
+
+      tbody.appendChild(tr);
+      this.providerRows.push(cells);
+    }
+
+    table.appendChild(tbody);
+    this.cloudSection.appendChild(table);
+
+    // Assumptions
+    const assumptions = document.createElement('div');
+    assumptions.className = 'cost-cloud-assumptions';
+    assumptions.textContent = 'Container packing is always on. Same workload assumptions as the cost explorers above. Pricing as of Feb 2026.';
+    this.cloudSection.appendChild(assumptions);
+  }
+
+  update() {
+    const sliderValue = parseInt(this.chunkSlider.value);
+    const t = sliderValue / 100;
+    const chunkKB = this.sliderToKB(sliderValue);
+    const containerMB = parseInt(this.containerSlider?.value || 4);
+    const containerSizeKB = containerMB * 1024;
+
+    this.chunkValueEl.textContent = this.formatSize(chunkKB);
+    if (this.containerValueEl) {
+      this.containerValueEl.textContent = `${containerMB} MB`;
+    }
+
+    this.updateCosts(t, chunkKB, containerSizeKB);
+  }
+
+  updateCosts(t, chunkKB, containerSizeKB) {
+    const dedup = this.dedupRatio(t);
+    const uniqueGB = this.totalDataGB / dedup;
+    const chunkBytes = chunkKB * 1024;
+    const chunksPerContainer = Math.max(1, containerSizeKB / chunkKB);
+    const numChunks = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
+    const numObjects = Math.ceil(numChunks / chunksPerContainer);
+
+    const actualPuts = ((this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup)) / chunksPerContainer;
+    const actualGets = ((this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes) / chunksPerContainer;
+
+    if (this.workloadEl) {
+      this.workloadEl.textContent =
+        `${this.formatCount(numObjects)} containers | ${this.formatGB(uniqueGB)} stored | ${dedup.toFixed(1)}x dedup`;
+    }
+
+    let tradTotal = 0;
+    let tradCount = 0;
+    const totals = [];
+
+    for (let i = 0; i < this.providers.length; i++) {
+      const p = this.providers[i];
+      const storageCost = uniqueGB * p.storagePerGB;
+      const putCost = (actualPuts / 1000) * p.putPer1K;
+      const getCost = (actualGets / 1000) * p.getPer1K;
+      const opsCost = putCost + getCost;
+      const egressCost = this.monthlyEgressGB * p.egressPerGB;
+      const totalCost = storageCost + opsCost + egressCost;
+
+      totals.push(totalCost);
+      if (p.traditional) { tradTotal += totalCost; tradCount++; }
+
+      const row = this.providerRows[i];
+      row.storage.value.textContent = this.formatDollars(storageCost);
+      row.operations.value.textContent = opsCost === 0 ? '$0' : this.formatDollars(opsCost);
+      row.egress.value.textContent = egressCost === 0 ? '$0' : this.formatDollars(egressCost);
+      row.total.value.textContent = this.formatDollars(totalCost);
+    }
+
+    const tradAvg = tradTotal / tradCount;
+    if (this.avgTotalEl) {
+      this.avgTotalEl.textContent = this.formatDollars(tradAvg);
+    }
+
+    // Update newcomer savings
+    for (let i = 0; i < this.providers.length; i++) {
+      if (this.providers[i].traditional) continue;
+      const row = this.providerRows[i];
+      const pctSaved = ((tradAvg - totals[i]) / tradAvg * 100).toFixed(0);
+      row.savings.textContent = `(-${pctSaved}% vs. traditional avg.)`;
+      row.total.td.style.color = '#2d7a4f';
+    }
+  }
+}
+
+// =============================================================================
+// Zipf Cache Visualization (popularity curve + cache sizing)
+// =============================================================================
+
+class ZipfCacheDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+    this.N = 1000;
+    this.init();
+  }
+
+  init() {
+    this.alphaSlider = this.container.querySelector('[id$="-alpha-slider"]');
+    this.alphaValueEl = this.container.querySelector('[id$="-alpha-value"]');
+    this.hitRateSlider = this.container.querySelector('[id$="-hitrate-slider"]');
+    this.hitRateValueEl = this.container.querySelector('[id$="-hitrate-value"]');
+    this.canvas = this.container.querySelector('canvas');
+    this.readoutEl = this.container.querySelector('[id$="-readout"]');
+    this.ctx = this.canvas?.getContext('2d');
+
+    this.alphaSlider?.addEventListener('input', () => this.update());
+    this.hitRateSlider?.addEventListener('input', () => this.update());
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.resizeCanvas();
+      this.update();
+    });
+    if (this.canvas?.parentElement) {
+      this.resizeObserver.observe(this.canvas.parentElement);
+    }
+
+    this.resizeCanvas();
+    this.update();
+  }
+
+  resizeCanvas() {
+    if (!this.canvas) return;
+    const parent = this.canvas.parentElement;
+    const width = parent.clientWidth;
+    const height = Math.min(Math.round(width * 0.55), 320);
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = width * dpr;
+    this.canvas.height = height * dpr;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = width;
+    this.h = height;
+  }
+
+  computeCDF(alpha) {
+    const cdf = new Float64Array(this.N + 1);
+    let sum = 0;
+    for (let k = 1; k <= this.N; k++) {
+      sum += 1 / Math.pow(k, alpha);
+    }
+    let cumulative = 0;
+    for (let k = 1; k <= this.N; k++) {
+      cumulative += 1 / Math.pow(k, alpha);
+      cdf[k] = cumulative / sum;
+    }
+    return cdf;
+  }
+
+  findCacheIndex(cdf, targetHitRate) {
+    for (let k = 1; k < cdf.length; k++) {
+      if (cdf[k] >= targetHitRate) return k;
+    }
+    return this.N;
+  }
+
+  update() {
+    if (!this.ctx) return;
+    const alphaInt = parseInt(this.alphaSlider.value);
+    const alpha = alphaInt / 100;
+    const hitRatePct = parseInt(this.hitRateSlider.value);
+    const hitRate = hitRatePct / 100;
+
+    this.alphaValueEl.textContent = alpha.toFixed(2);
+    this.hitRateValueEl.textContent = `${hitRatePct}%`;
+
+    const cdf = this.computeCDF(alpha);
+    const cacheIdx = this.findCacheIndex(cdf, hitRate);
+    const cacheFraction = cacheIdx / this.N;
+
+    if (this.readoutEl) {
+      this.readoutEl.textContent = `Caching ${Math.round(cacheFraction * 100)}% of unique data serves ${hitRatePct}% of all requests`;
+    }
+
+    this.draw(cdf, hitRate, cacheIdx, cacheFraction);
+  }
+
+  draw(cdf, hitRate, cacheIdx, cacheFraction) {
+    const ctx = this.ctx;
+    const w = this.w;
+    const h = this.h;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const margin = { top: 12, right: 15, bottom: 40, left: 65 };
+    const cw = w - margin.left - margin.right;
+    const ch = h - margin.top - margin.bottom;
+
+    const xPos = (frac) => margin.left + frac * cw;
+    const yPos = (frac) => margin.top + (1 - frac) * ch;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(61, 58, 54, 0.08)';
+    ctx.lineWidth = 1;
+    for (const frac of [0.25, 0.5, 0.75, 1.0]) {
+      ctx.beginPath();
+      ctx.moveTo(xPos(frac), yPos(0));
+      ctx.lineTo(xPos(frac), yPos(1));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(xPos(0), yPos(frac));
+      ctx.lineTo(xPos(1), yPos(frac));
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(61, 58, 54, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(0));
+    ctx.lineTo(xPos(1), yPos(0));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(0));
+    ctx.lineTo(xPos(0), yPos(1));
+    ctx.stroke();
+
+    // Diagonal reference (uniform distribution, alpha=0)
+    ctx.strokeStyle = 'rgba(61, 58, 54, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(0));
+    ctx.lineTo(xPos(1), yPos(1));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Label for diagonal
+    ctx.fillStyle = 'rgba(61, 58, 54, 0.35)';
+    ctx.font = '10px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.save();
+    ctx.translate(xPos(0.72), yPos(0.76));
+    ctx.rotate(-Math.atan2(ch, cw));
+    ctx.fillText('uniform (\u03B1 = 0)', 0, -5);
+    ctx.restore();
+
+    // Shaded area under curve up to cacheFraction
+    ctx.fillStyle = 'rgba(45, 122, 79, 0.12)';
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(0));
+    for (let k = 1; k <= cacheIdx; k++) {
+      ctx.lineTo(xPos(k / this.N), yPos(cdf[k]));
+    }
+    ctx.lineTo(xPos(cacheFraction), yPos(0));
+    ctx.closePath();
+    ctx.fill();
+
+    // CDF curve
+    ctx.strokeStyle = '#3d3a36';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(0));
+    const step = Math.max(1, Math.floor(this.N / 500));
+    for (let k = 1; k <= this.N; k += step) {
+      ctx.lineTo(xPos(k / this.N), yPos(cdf[k]));
+    }
+    ctx.lineTo(xPos(1), yPos(1));
+    ctx.stroke();
+
+    // Dashed lines to intersection
+    ctx.strokeStyle = 'rgba(45, 122, 79, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    // Vertical
+    ctx.beginPath();
+    ctx.moveTo(xPos(cacheFraction), yPos(0));
+    ctx.lineTo(xPos(cacheFraction), yPos(hitRate));
+    ctx.stroke();
+    // Horizontal
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(hitRate));
+    ctx.lineTo(xPos(cacheFraction), yPos(hitRate));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Intersection dot
+    ctx.fillStyle = '#2d7a4f';
+    ctx.beginPath();
+    ctx.arc(xPos(cacheFraction), yPos(hitRate), 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Axis tick labels
+    ctx.fillStyle = '#a89b8c';
+    ctx.font = '11px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (const pct of [0, 25, 50, 75, 100]) {
+      ctx.fillText(`${pct}%`, xPos(pct / 100), yPos(0) + 6);
+    }
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (const pct of [0, 25, 50, 75, 100]) {
+      ctx.fillText(`${pct}%`, xPos(0) - 6, yPos(pct / 100));
+    }
+
+    // Axis titles
+    ctx.fillStyle = '#3d3a36';
+    ctx.font = '12px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Fraction of unique data cached (by popularity)', margin.left + cw / 2, h - 12);
+
+    ctx.save();
+    ctx.translate(13, margin.top + ch / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Fraction of requests served', 0, 0);
+    ctx.restore();
+  }
+}
+
+// =============================================================================
+// Zipf Distribution Bar Chart (rank-frequency visualization)
+// =============================================================================
+
+class ZipfDistributionDemo {
+  constructor(containerId) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) return;
+    this.numItems = 30;
+    this.init();
+  }
+
+  init() {
+    this.alphaSlider = this.container.querySelector('[id$="-alpha-slider"]');
+    this.alphaValueEl = this.container.querySelector('[id$="-alpha-value"]');
+    this.canvas = this.container.querySelector('canvas');
+    this.readoutEl = this.container.querySelector('[id$="-readout"]');
+    this.ctx = this.canvas?.getContext('2d');
+
+    this.alphaSlider?.addEventListener('input', () => this.update());
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.resizeCanvas();
+      this.update();
+    });
+    if (this.canvas?.parentElement) {
+      this.resizeObserver.observe(this.canvas.parentElement);
+    }
+
+    this.resizeCanvas();
+    this.update();
+  }
+
+  resizeCanvas() {
+    if (!this.canvas) return;
+    const parent = this.canvas.parentElement;
+    const width = parent.clientWidth;
+    const height = Math.min(Math.round(width * 0.45), 260);
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = width * dpr;
+    this.canvas.height = height * dpr;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = width;
+    this.h = height;
+  }
+
+  computeDistribution(alpha, n) {
+    const probs = new Float64Array(n);
+    let sum = 0;
+    for (let k = 0; k < n; k++) {
+      probs[k] = 1 / Math.pow(k + 1, alpha);
+      sum += probs[k];
+    }
+    for (let k = 0; k < n; k++) {
+      probs[k] /= sum;
+    }
+    return probs;
+  }
+
+  update() {
+    if (!this.ctx) return;
+    const alphaInt = parseInt(this.alphaSlider.value);
+    const alpha = alphaInt / 100;
+
+    this.alphaValueEl.textContent = alpha.toFixed(2);
+
+    const probs = this.computeDistribution(alpha, this.numItems);
+
+    // Compute top-10% stat using a larger population
+    const fullN = 1000;
+    const fullProbs = this.computeDistribution(alpha, fullN);
+    const top10Count = Math.ceil(fullN * 0.1);
+    let top10Sum = 0;
+    for (let k = 0; k < top10Count; k++) {
+      top10Sum += fullProbs[k];
+    }
+    const top10Pct = (top10Sum * 100).toFixed(0);
+
+    if (this.readoutEl) {
+      this.readoutEl.textContent = `Most popular item: ${(probs[0] * 100).toFixed(1)}% of all requests. Top 10% of items: ${top10Pct}% of all requests.`;
+    }
+
+    this.draw(probs);
+  }
+
+  draw(probs) {
+    const ctx = this.ctx;
+    const w = this.w;
+    const h = this.h;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const margin = { top: 12, right: 15, bottom: 35, left: 65 };
+    const cw = w - margin.left - margin.right;
+    const ch = h - margin.top - margin.bottom;
+
+    // Dynamic y-axis scale
+    const maxPct = probs[0] * 100;
+    const tickStep = maxPct <= 10 ? 2 : maxPct <= 20 ? 5 : 10;
+    const yMax = Math.ceil(maxPct / tickStep) * tickStep;
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(61, 58, 54, 0.08)';
+    ctx.lineWidth = 1;
+    for (let pct = tickStep; pct <= yMax; pct += tickStep) {
+      const yFrac = pct / yMax;
+      const y = margin.top + ch - yFrac * ch;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, y);
+      ctx.lineTo(margin.left + cw, y);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(61, 58, 54, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top + ch);
+    ctx.lineTo(margin.left + cw, margin.top + ch);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top);
+    ctx.lineTo(margin.left, margin.top + ch);
+    ctx.stroke();
+
+    // Bars
+    const barGap = 2;
+    const barWidth = (cw - barGap * (this.numItems - 1)) / this.numItems;
+
+    for (let k = 0; k < this.numItems; k++) {
+      const pct = probs[k] * 100;
+      const barHeight = (pct / yMax) * ch;
+      const x = margin.left + k * (barWidth + barGap);
+      const y = margin.top + ch - barHeight;
+
+      ctx.fillStyle = 'rgba(61, 58, 54, 0.55)';
+      ctx.fillRect(x, y, barWidth, barHeight);
+    }
+
+    // Y-axis tick labels
+    ctx.fillStyle = '#a89b8c';
+    ctx.font = '11px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let pct = 0; pct <= yMax; pct += tickStep) {
+      const yFrac = pct / yMax;
+      const y = margin.top + ch - yFrac * ch;
+      ctx.fillText(`${pct}%`, margin.left - 6, y);
+    }
+
+    // X-axis rank labels
+    ctx.fillStyle = '#a89b8c';
+    ctx.font = '10px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (const rank of [1, 10, 20, 30]) {
+      const k = rank - 1;
+      if (k >= this.numItems) continue;
+      const x = margin.left + k * (barWidth + barGap) + barWidth / 2;
+      ctx.fillText(`#${rank}`, x, margin.top + ch + 5);
+    }
+
+    // Axis titles
+    ctx.fillStyle = '#3d3a36';
+    ctx.font = '12px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Items ranked by popularity', margin.left + cw / 2, h - 10);
+
+    ctx.save();
+    ctx.translate(13, margin.top + ch / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Share of requests', 0, 0);
+    ctx.restore();
   }
 }
 
@@ -4961,13 +5612,17 @@ function initCDCAnimations() {
   new ContainerCostDemo('packed-cost-demo', { mode: 'packed' });
   new ContainerCostDemo('container-cost-demo');
 
-  // Newcomer cloud cost explorer (Part 4)
+  // Newcomer cloud cost explorer (Part 5)
   new NewcomerCostDemo('newcomer-cost-demo');
 
-  // Jazz Cloud cost explorer (Part 4)
-  new JazzCostDemo('jazz-cost-demo');
+  // Provider cost comparison (Part 5)
+  new ProviderComparisonDemo('provider-comparison-demo');
 
-  // Cache cost explorers (Part 4)
+  // Zipf cache visualization (Part 5)
+  new ZipfDistributionDemo('zipf-distribution-demo');
+  new ZipfCacheDemo('zipf-cache-demo');
+
+  // Cache cost explorers (Part 5)
   new CacheTraditionalDemo('cache-traditional-demo');
   new CacheNewcomerDemo('cache-newcomer-demo');
   new ComprehensiveCostDemo('comprehensive-cost-demo');
@@ -4981,4 +5636,4 @@ if (document.readyState === 'loading') {
 }
 
 // Export for module usage
-export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, ComparisonDemo, CostTradeoffsDemo, ContainerCostDemo, NewcomerCostDemo, JazzCostDemo, CacheTraditionalDemo, CacheNewcomerDemo, ComprehensiveCostDemo, chunkData, chunkDataBasic, chunkDataFixed, findChunkBoundary, findChunkBoundaryBasic };
+export { FixedVsCDCDemo, ChunkComparisonDemo, GearHashDemo, VersionedDedupDemo, ParametricChunkingDemo, ComparisonDemo, CostTradeoffsDemo, ContainerCostDemo, NewcomerCostDemo, ProviderComparisonDemo, ZipfDistributionDemo, ZipfCacheDemo, CacheTraditionalDemo, CacheNewcomerDemo, ComprehensiveCostDemo, chunkData, chunkDataBasic, chunkDataFixed, findChunkBoundary, findChunkBoundaryBasic };

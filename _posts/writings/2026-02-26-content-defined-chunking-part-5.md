@@ -3,7 +3,7 @@ layout: writing
 group: Writings
 title: "Content-Defined Chunking, Part 5: CDC at Scale on a Budget"
 summary: "What does CDC actually cost on cloud storage? This post models the full cost picture across seven storage providers, six cache providers, and the interplay of chunk size, container packing, and cache hit rate."
-date: 2026-02-27 12:00:00
+date: 2026-02-26 12:00:00
 categories:
 - writings
 ---
@@ -181,9 +181,51 @@ categories:
   border-bottom: none !important;
 }
 
-/* Jazz Cloud single-column table */
-.jazz-cost-table {
-  max-width: 24rem;
+/* Provider comparison table (transposed) */
+.provider-avg-row td {
+  font-weight: bold !important;
+  border-top: 2px solid rgba(61, 58, 54, 0.2) !important;
+  border-bottom: 2px solid rgba(61, 58, 54, 0.2) !important;
+}
+
+.provider-newcomer-row td:last-child .cost-cell-calc {
+  color: #2d7a4f;
+  font-weight: 600;
+}
+
+/* Zipf cache visualization */
+.zipf-chart-container {
+  padding: 0.5rem 1.25rem 0;
+}
+
+.zipf-chart-container canvas {
+  width: 100%;
+  display: block;
+}
+
+.zipf-readout {
+  text-align: center;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  color: #2d7a4f;
+  font-size: 0.95rem;
+}
+
+/* Footnote */
+.cdc-fn-ref {
+  text-decoration: none;
+  color: #a89b8c;
+  font-size: 0.8rem;
+}
+
+.cdc-footnote {
+  font-size: 0.85rem;
+  color: #6b6560;
+  border-top: 1px solid rgba(61, 58, 54, 0.15);
+  padding-top: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
 }
 
 /* Comprehensive / single-column cost table */
@@ -242,7 +284,7 @@ categories:
 Part 5 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
 </div>
 
-In [Part 3](/writings/content-defined-chunking-part-3), the cloud cost explorer showed that when every chunk is stored as a separate object, API operations dominate the monthly bill. In [Part 4](/writings/content-defined-chunking-part-4), the Container Cost Explorer showed how packing chunks into fixed-size containers collapses that operations cost by orders of magnitude. With the container abstraction in hand, we can now explore the full cost landscape: how different storage providers, caching layers, and container configurations combine to determine what CDC actually costs at scale. This post also wraps up the series with a look at what motivated this deep dive in the first place.
+[Part 4](/writings/content-defined-chunking-part-4) showed that containers are a prerequisite for CDC on cloud object storage, collapsing per-operation costs by orders of magnitude. But the major providers still charge for every PUT, GET, and byte of egress. Can we do better? A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce these costs, and caching can cut read expenses further still. This post explores both, then wraps up the series with a look at what motivated this deep dive in the first place.
 
 ---
 
@@ -262,39 +304,41 @@ The dominance of per-operation costs on major cloud providers is what makes cont
   </div>
   <div class="parametric-control-row">
     <label class="container-toggle">
-      <input type="checkbox" id="newcomer-cost-packing-toggle">
-      <span>Enable container packing</span>
+      <input type="checkbox" id="newcomer-cost-packing-toggle" checked>
+      <span>Container packing</span>
     </label>
     <span class="parametric-control-label">
       Container Size: <strong id="newcomer-cost-container-value">4 MB</strong>
     </span>
-    <input type="range" id="newcomer-cost-container-slider" min="0" max="2" value="0" step="1" disabled>
+    <input type="range" id="newcomer-cost-container-slider" min="1" max="64" value="4" step="1">
   </div>
   <div class="cost-cloud-section" id="newcomer-cost-cloud-section">
   </div>
-  <div class="cdc-viz-hint">
-    Compare with the classic providers in Part 4. Each newcomer eliminates a different cost dimension: R2 kills egress, B2 offers free uploads and cheap storage, Wasabi removes both operations and egress fees entirely, and Tigris combines zero egress with built-in edge caching.
-  </div>
 </div>
 
-Beyond traditional object storage, [Jazz Cloud](https://jazz.tools/) takes a different approach entirely. Jazz is a collaborative data platform rather than a general-purpose object store, but its pricing model charges only for storage and blob egress with no per-operation fees.
+The savings over traditional providers are substantial. Each newcomer eliminates a different cost dimension: R2 kills egress, B2 offers free uploads and cheap storage, Wasabi removes both operations and egress fees entirely, and Tigris combines zero egress with built-in edge caching. The explorer below puts all seven providers side by side so you can compare directly.
 
-<div class="cdc-viz" id="jazz-cost-demo">
+<div class="cdc-viz" id="provider-comparison-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Jazz Cloud Cost Explorer</span>
+    <span class="cdc-viz-title">Provider Cost Comparison</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
-      Average Chunk Size: <strong id="jazz-cost-chunk-value">32 KB</strong>
+      Average Chunk Size: <strong id="provider-comparison-chunk-value">8 KB</strong>
     </span>
-    <input type="range" id="jazz-cost-chunk-slider" min="0" max="100" value="50" step="1">
+    <input type="range" id="provider-comparison-chunk-slider" min="0" max="100" value="30" step="1">
   </div>
-  <div class="cost-cloud-section" id="jazz-cost-cloud-section">
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Container Size: <strong id="provider-comparison-container-value">4 MB</strong>
+    </span>
+    <input type="range" id="provider-comparison-container-slider" min="1" max="64" value="4" step="1">
   </div>
-  <div class="cdc-viz-hint">
-    Jazz Cloud is not a traditional object store, but its zero per-operation pricing illustrates what happens when that cost dimension is removed entirely.
+  <div class="cost-cloud-section" id="provider-comparison-cloud-section">
   </div>
 </div>
+
+Egress dominates the traditional provider bills, and the newcomers that eliminate it see the largest absolute savings. Wasabi's model is the most aggressive: with no per-operation or egress fees, the only cost is storage itself. However, Wasabi's pricing comes with constraints. There is a 90-day minimum storage duration (deleting data sooner still incurs the full charge), a 1 TB minimum storage volume, and a fair-use egress policy that caps monthly egress at your total storage volume. For read-heavy workloads where egress significantly exceeds stored data, the "free egress" claim may not hold.
 
 ### Reducing Costs through Caching
 
@@ -302,7 +346,55 @@ The cost explorers above model a direct path: chunks flow from the writer to sto
 
 CDC chunks are unusually well-suited for caching. Every chunk is immutable and content-addressed: its hash *is* its identity. There is no invalidation problem, because a chunk's content never changes. If chunk `a7f3e9...` is in the cache, it will be correct forever. And because deduplication shrinks the working set (many files share the same chunks), the effective cache hit rate is higher than it would be for opaque file-based caching. Popular files that share chunks with other popular files all benefit from the same cached data.
 
-A key question for any cache is how much data must be stored to achieve a given hit rate. The answer depends on the access distribution. Breslau et al. showed that web request frequencies follow a Zipf distribution, where the *k*-th most popular item is accessed with probability proportional to 1/*k*<sup>*&alpha;*</sup>, with measured *&alpha;* values between 0.64 and 0.83.<span class="cdc-cite"><a href="#ref-37">[37]</a></span> More recent measurements by Berger et al. on real CDN and web application traces found *&alpha;* values between 0.85 and 1.0, indicating that modern access patterns are even more skewed: a small cache covers an even larger share of requests.<span class="cdc-cite"><a href="#ref-38">[38]</a></span> Under a Zipf distribution, the cache size needed for a target hit rate *h* is approximately *h*<sup>1/(1-*&alpha;*)</sup> of the total unique data. The explorers below use *&alpha;* = 0.6 (the conservative end of the Breslau range), giving a cache fraction of *h*<sup>2.5</sup>. This deliberately overstates how much cache capacity is needed: with Berger's higher *&alpha;* values, real caches would require less data for the same hit rate. At 50% hit rate, the conservative model means caching about 18% of unique data; at 90%, about 77%; and at 99%, about 98%.
+A key question for any cache is how much data must be stored to achieve a given hit rate. The answer depends on the access distribution. Breslau et al. showed that web request frequencies follow a Zipf distribution, where the *k*-th most popular item is accessed with probability proportional to 1/*k*<sup>*&alpha;*</sup>.<span class="cdc-cite"><a href="#ref-37">[37]</a></span> The *&alpha;* parameter controls how skewed the popularity curve is. At *&alpha;* = 0, every item is equally popular and caching provides no advantage. As *&alpha;* increases, popularity concentrates: a small number of items account for a disproportionate share of requests, which is exactly the condition where caching thrives. Breslau et al. measured *&alpha;* values between 0.64 and 0.83 for web traffic. More recent measurements by Berger et al. on real CDN and web application traces found *&alpha;* values between 0.85 and 1.0, indicating that modern access patterns are even more skewed.<span class="cdc-cite"><a href="#ref-38">[38]</a></span>
+
+The measure of skewness, *&alpha;*, can be seen by dragging the skewness slider in the visualization below. High *&alpha;* values represent the condition in which a high percentage of requests occur for a few very popular items (high skew), while low *&alpha;* values represent traffic spread more equally across all items (low skew).
+
+In the visualization below, each bar represents an item, like a file or chunk, ranked by popularity as a measure of how frequently it is requested. The height of each bar is its overall percentage share of total requests.
+
+<div class="cdc-viz" id="zipf-distribution-demo">
+  <div class="cdc-viz-header">
+    <span class="cdc-viz-title">Zipf Popularity Distribution</span>
+  </div>
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Skewness (&alpha;): <strong id="zipf-dist-alpha-value">0.60</strong>
+    </span>
+    <input type="range" id="zipf-dist-alpha-slider" min="0" max="100" value="60" step="1">
+  </div>
+  <div class="zipf-chart-container">
+    <canvas id="zipf-dist-canvas"></canvas>
+  </div>
+  <div class="zipf-readout" id="zipf-dist-readout"></div>
+</div>
+
+That skewed distribution is exactly why caching works. If you cache only the most popular items, you can serve a disproportionate share of requests without touching the storage backend. Measured *&alpha;* values for web and CDN traffic typically fall between 0.64 and 1.0, but not all workloads follow a Zipf distribution, and yours may differ. Measuring *&alpha;* for a specific workload is feasible but out of scope for this post; see the footnote<sup><a href="#fn-alpha" class="cdc-fn-ref">†</a></sup> for pointers on how it's done. The next visualization shows this relationship directly: given a skewness level and a target hit rate, how much unique data do you actually need to cache?
+
+<div class="cdc-viz" id="zipf-cache-demo">
+  <div class="cdc-viz-header">
+    <span class="cdc-viz-title">Cache Size vs. Hit Rate</span>
+  </div>
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Skewness (&alpha;): <strong id="zipf-cache-alpha-value">0.60</strong>
+    </span>
+    <input type="range" id="zipf-cache-alpha-slider" min="0" max="100" value="60" step="1">
+  </div>
+  <div class="parametric-control-row">
+    <span class="parametric-control-label">
+      Target Hit Rate: <strong id="zipf-cache-hitrate-value">50%</strong>
+    </span>
+    <input type="range" id="zipf-cache-hitrate-slider" min="1" max="99" value="50" step="1">
+  </div>
+  <div class="zipf-chart-container">
+    <canvas id="zipf-cache-canvas"></canvas>
+  </div>
+  <div class="zipf-readout" id="zipf-cache-readout"></div>
+</div>
+
+Under a Zipf distribution, the cache size needed for a target hit rate *h* is approximately *h*<sup>1/(1-*&alpha;*)</sup> of the total unique data. The explorers below use *&alpha;* = 0.6 (below the measured range, deliberately conservative), giving a cache fraction of *h*<sup>2.5</sup>. This overstates how much cache capacity is needed: with Berger's higher *&alpha;* values, real caches would require less data for the same hit rate.
+
+The relationship between hit rate and cache size is worth pausing on, because it is not immediately intuitive. A 50% hit rate means serving half of all *requests* from cache. Because access patterns are skewed, the most popular 18% of unique data accounts for 50% of all requests -- those chunks get hit over and over. To reach a 90% hit rate, you need to also cache the moderately popular long tail, which requires about 77% of unique data. And reaching 99% means caching nearly everything (98%), because that last 9% of requests comes from rarely-accessed chunks that each contribute only a small share of traffic.
 
 The cost impact depends heavily on the pricing model. Traditional cache providers charge for provisioned capacity: you pay for memory whether it is hit or not. Newer providers charge per-request: you pay only for the operations you use, with no idle cost.
 
@@ -415,6 +507,10 @@ The field has largely converged on how to manage these tradeoffs. MFDedup's insi
 The beauty of the container abstraction is that it is invisible to the CDC layer. The chunking algorithm does not need to know whether chunks will be stored individually or packed into containers. This separation of concerns is what makes CDC so durable as a technique. The same Rabin or Gear hash that LBFS used in 2001 works just as well in a 2025 cloud storage system with container packing, locality-preserved caching, and piggybacked GC-defragmentation. The chunking logic and the storage logic are cleanly decoupled. Each can evolve independently, and that modularity is why both have continued to improve over more than two decades.
 
 Content-Defined Chunking is one of those algorithms that seems almost too simple to work: slide a window, compute a hash, check some bits. Yet this simplicity belies remarkable power. Chunk boundaries rely only on neighboring content (**locality**), the same content will always be chunked to produce the same results (**determinism**), and a variety of techniques across the family of CDC algorithms achieves remarkable **efficiency** and throughput. From Rabin's 1981 fingerprinting to VectorCDC's 2025 SIMD acceleration to structure-aware chunking for source code, the core idea has proven remarkably durable and adaptable.
+
+<div class="cdc-footnote" id="fn-alpha">
+<sup>†</sup> The *&alpha;* parameter is measured empirically by fitting real access logs to the Zipf model. The procedure is: collect access traces, rank items by frequency (most popular = rank 1), and plot log(rank) vs. log(frequency). If the access pattern follows a Zipf distribution, this log-log plot is approximately linear, and the slope of that line is &minus;*&alpha;*. A steeper slope means more skewed popularity. Breslau et al. and Berger et al. both used this fitting approach on web traffic and CDN traces to arrive at their measured *&alpha;* ranges.
+</div>
 
 ### References
 
