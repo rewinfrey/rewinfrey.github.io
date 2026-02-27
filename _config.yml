@@ -11,7 +11,7 @@ permalink: /:categories/:title
 
 # http://en.wikipedia.org/wiki/Words_per_minute#Reading_and_comprehension
 words_per_minute: 180
-headings: ["Writings", "About"]
+headings: ["Writings", "Sandbox", "References", "About"]
 
 # Sass settings
 sass:

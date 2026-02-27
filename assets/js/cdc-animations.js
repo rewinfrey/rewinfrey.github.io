@@ -2493,7 +2493,7 @@ class CostTradeoffsDemo {
         key: 'storage',
         label: 'Storage',
         fillClass: 'cost-fill-storage',
-        cost: (t) => 10 + 82 * (Math.pow(1 - t, 2.5) + Math.pow(t, 2)),
+        cost: (t) => 10 + 82 * (0.55 * Math.pow(1 - t, 1.8) + Math.pow(t, 2)),
         annotations: [
           'metadata overhead dominates',
           'sweet spot: metadata and dedup balanced',

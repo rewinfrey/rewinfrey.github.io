@@ -5,58 +5,7 @@ title: CDC Animation Sandbox
 
 <style>
 /* ==========================================================================
-   CDC Animation Styles (extracted from blog post for sandbox iteration)
-   ========================================================================== */
-
-/* Demo container */
-.cdc-demo {
-  margin: 2rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.cdc-demo canvas {
-  display: block;
-  width: 100%;
-  background: #faf9f7;
-  border-radius: 8px 8px 0 0;
-}
-
-/* Text/Block visualization container */
-.cdc-viz {
-  padding: 1.5rem;
-  background: #fff;
-  border: 1px solid rgba(61, 58, 54, 0.1);
-  border-radius: 8px;
-  margin: 1.5rem 0;
-}
-
-.cdc-viz-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
-}
-
-.cdc-viz-title {
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #3d3a36;
-}
-
-.cdc-viz-hint {
-  width: 100%;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.75rem;
-  color: #8b7355;
-  margin: 0.25rem 0 0 0;
-  line-height: 1.4;
-}
-
+   CDC Animation Styles
 /* View mode tabs (Text / Blocks / Hex) */
 .cdc-view-tabs {
   display: flex;
@@ -117,37 +66,7 @@ title: CDC Animation Sandbox
 .cdc-text-view .chunk-4 { background-color: rgba(212, 165, 116, 0.15); }
 .cdc-text-view .chunk-5 { background-color: rgba(139, 115, 85, 0.25); }
 
-/* Combined text + hex view */
-.cdc-combined-view {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1px;
-}
-
-.cdc-byte-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 2px;
-  padding: 0.15rem 0.1rem;
-}
-
-.cdc-byte-char {
-  font-family: 'Source Serif 4', Georgia, serif;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: #3d3a36;
-}
-
-.cdc-byte-hex {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.6rem;
-  line-height: 1;
-  color: #8b7355;
-  margin-top: 1px;
-}
-
-/* Block annotation bar (appended below text/hex views) */
+/* Block view */
 .cdc-blocks-view {
   display: flex;
   align-items: stretch;
@@ -157,72 +76,23 @@ title: CDC Animation Sandbox
   width: 100%;
 }
 
-.cdc-block-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .cdc-block {
   height: 24px;
   border-radius: 3px;
   transition: all 0.2s ease;
-  width: 100%;
-}
-
-/* Underline + tick annotation below each chunk */
-.cdc-block-annotation {
-  width: 100%;
   position: relative;
-  margin-top: 0.3rem;
 }
 
-.cdc-block-line {
-  width: 100%;
-  height: 0;
-  border-top: 1.5px solid #8b7355;
-  opacity: 0.5;
-}
+.cdc-block.chunk-0 { background-color: #c45a3b; }
+.cdc-block.chunk-1 { background-color: #d4a574; }
+.cdc-block.chunk-2 { background-color: #8b7355; }
+.cdc-block.chunk-3 { background-color: #c45a3b; opacity: 0.7; }
+.cdc-block.chunk-4 { background-color: #d4a574; opacity: 0.7; }
+.cdc-block.chunk-5 { background-color: #8b7355; opacity: 0.7; }
 
-.cdc-block-tick {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  width: 1.5px;
-  height: 8px;
-  background: #8b7355;
-  opacity: 0.5;
-}
-
-.cdc-block-label {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.6rem;
-  color: #8b7355;
-  white-space: nowrap;
-  user-select: none;
-  line-height: 1;
-  text-align: center;
-  margin-top: 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Chunk hover: highlight text chars + annotation block together */
-.cdc-combined-view .cdc-byte-col.chunk-hover {
-  filter: brightness(0.85);
-  outline: 1px solid rgba(61, 58, 54, 0.25);
-  outline-offset: -1px;
-}
-
-.cdc-block-wrapper.chunk-hover .cdc-block {
-  filter: brightness(1.15);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
-}
-
-.cdc-block-wrapper.chunk-hover .cdc-block-label {
-  color: #3d3a36;
-  font-weight: 600;
+.cdc-block:hover {
+  transform: scaleY(1.2);
+  z-index: 1;
 }
 
 /* Hex view */
@@ -240,7 +110,72 @@ title: CDC Animation Sandbox
   border-radius: 2px;
 }
 
-/* Chunk spans with box styling */
+/* File icon visualization for fixed vs CDC comparison */
+.cdc-file-icon {
+  position: relative;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 1.5rem;
+  padding-top: 2.25rem;
+  margin: 0.75rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Folded corner effect */
+.cdc-file-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 24px 24px 0;
+  border-color: transparent #faf9f7 transparent transparent;
+  filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.cdc-file-corner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -24px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 24px 24px;
+  border-color: transparent transparent #e8e8e8 transparent;
+}
+
+.cdc-file-label {
+  position: absolute;
+  top: 0.6rem;
+  left: 1rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8b7355;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cdc-file-content {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 2.2;
+  color: #3d3a36;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cdc-chunk-explanation {
+  font-size: 0.8rem;
+  color: #8b7355;
+  margin: 0.25rem 0 0.5rem 0;
+  font-style: italic;
+}
+
+/* Chunk spans with box styling - matches CHUNK_SOLID_COLORS from cdc-animations.js */
 .cdc-chunk {
   padding: 0.2rem 0.35rem;
   border-radius: 3px;
@@ -251,37 +186,185 @@ title: CDC Animation Sandbox
 }
 
 .cdc-chunk.chunk-a {
-  background: rgba(231, 76, 60, 0.18);
-  border-color: #e74c3c;
+  background: rgba(196, 90, 59, 0.15);
+  border-color: #c45a3b;
 }
 
 .cdc-chunk.chunk-b {
-  background: rgba(52, 152, 219, 0.18);
-  border-color: #3498db;
+  background: rgba(90, 138, 90, 0.15);
+  border-color: #5a8a5a;
 }
 
 .cdc-chunk.chunk-c {
-  background: rgba(46, 204, 113, 0.18);
-  border-color: #2ecc71;
+  background: rgba(70, 110, 160, 0.15);
+  border-color: #466ea0;
 }
 
 .cdc-chunk.chunk-d {
-  background: rgba(155, 89, 182, 0.18);
-  border-color: #9b59b6;
+  background: rgba(160, 100, 50, 0.15);
+  border-color: #a06432;
 }
 
 .cdc-chunk.chunk-e {
-  background: rgba(241, 196, 15, 0.25);
-  border-color: #f1c40f;
+  background: rgba(130, 80, 150, 0.15);
+  border-color: #825096;
 }
 
+/* New chunk - terracotta accent to match interactive demos */
 .cdc-chunk.chunk-new {
-  background: rgba(26, 188, 156, 0.2);
-  border-color: #1abc9c;
+  background: rgba(196, 90, 59, 0.2);
+  border-color: #c45a3b;
+  border-style: solid;
 }
 
+/* Unchanged chunk - muted gray, matches shared/dedup style in animations */
+.cdc-chunk.unchanged {
+  background: rgba(61, 58, 54, 0.06);
+  border-color: rgba(61, 58, 54, 0.2);
+  color: #8b8178;
+}
+
+/* Changed chunk - dashed border to signal the chunk content shifted */
 .cdc-chunk.changed {
   border-style: dashed;
+}
+
+/* Chunk Comparison Demo (JS-powered before/after) */
+.cdc-chunk-comparison-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8b7355;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.cdc-chunk-comparison-file {
+  margin-bottom: 0.75rem;
+}
+
+.cdc-chunk-comparison-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.75rem;
+  background: rgba(61, 58, 54, 0.02);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.cdc-cmp-chunk {
+  padding: 0.15rem 0.25rem;
+  border-radius: 3px;
+  border: 2px solid;
+  display: inline-block;
+  cursor: default;
+  transition: filter 0.1s ease;
+}
+
+.cdc-cmp-chunk.unchanged {
+  background: rgba(61, 58, 54, 0.06);
+  border-color: rgba(61, 58, 54, 0.2);
+  color: #8b8178;
+}
+
+.cdc-cmp-chunk.new {
+  border-style: solid;
+}
+
+.cdc-cmp-chunk.chunk-hover {
+  filter: brightness(0.82);
+  outline: 3px solid rgba(61, 58, 54, 0.5);
+  outline-offset: 0px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.cdc-cmp-chunk.unchanged.chunk-hover {
+  filter: brightness(0.85);
+  outline: 3px solid rgba(61, 58, 54, 0.4);
+  background: rgba(61, 58, 54, 0.15);
+}
+
+/* Chunk wrapper: label above, text below */
+.cdc-cmp-chunk-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top;
+  margin: 0.15rem 0.2rem;
+}
+
+.cdc-chunk-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  background: rgba(61, 58, 54, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(61, 58, 54, 0.06);
+}
+
+.cdc-chunk-summary-stat {
+  text-align: center;
+}
+
+.cdc-chunk-summary-value {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cdc-chunk-summary-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #8b7355;
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cdc-cmp-chunk-label {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.15rem;
+}
+
+/* Edit indicator arrow */
+.cdc-edit-indicator {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8b7355;
+  padding: 0.5rem 0;
+}
+
+/* Deduplication result */
+.cdc-dedup-result {
+  text-align: center;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+}
+
+.cdc-dedup-result.bad {
+  background: rgba(196, 90, 59, 0.1);
+  color: #a84832;
+}
+
+.cdc-dedup-result.good {
+  background: rgba(90, 160, 90, 0.1);
+  color: #3d8b3d;
 }
 
 /* Rolling window indicator */
@@ -372,6 +455,7 @@ title: CDC Animation Sandbox
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-top: 1rem;
   padding: 1rem 1.25rem;
   background: rgba(61, 58, 54, 0.02);
   border-top: 1px solid rgba(61, 58, 54, 0.08);
@@ -464,98 +548,6 @@ title: CDC Animation Sandbox
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(61, 58, 54, 0.1);
-}
-
-/* File icon visualization */
-.cdc-file-icon {
-  position: relative;
-  background: #fff;
-  border: 1px solid #d0d0d0;
-  border-radius: 3px;
-  padding: 1.5rem;
-  padding-top: 2.25rem;
-  margin: 0.75rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.cdc-file-corner {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 24px 24px 0;
-  border-color: transparent #faf9f7 transparent transparent;
-  filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.1));
-}
-
-.cdc-file-corner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -24px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 24px 24px;
-  border-color: transparent transparent #e8e8e8 transparent;
-}
-
-.cdc-file-label {
-  position: absolute;
-  top: 0.6rem;
-  left: 1rem;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #8b7355;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.cdc-file-content {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.75rem;
-  line-height: 2.2;
-  color: #3d3a36;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.cdc-chunk-explanation {
-  font-size: 0.8rem;
-  color: #8b7355;
-  margin: 0.25rem 0 0.5rem 0;
-  font-style: italic;
-}
-
-.cdc-edit-indicator {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #8b7355;
-  padding: 0.5rem 0;
-}
-
-/* Deduplication result */
-.cdc-dedup-result {
-  text-align: center;
-  font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-top: 0.75rem;
-}
-
-.cdc-dedup-result.bad {
-  background: rgba(196, 90, 59, 0.1);
-  color: #a84832;
-}
-
-.cdc-dedup-result.good {
-  background: rgba(90, 160, 90, 0.1);
-  color: #3d8b3d;
 }
 
 /* Chunk boundary marker */
@@ -652,7 +644,7 @@ title: CDC Animation Sandbox
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
 }
 
-/* Versioned Dedup — Editor */
+/* Versioned Dedup - Editor */
 .cdc-dedup-editor { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
 
 .cdc-dedup-textarea {
@@ -673,7 +665,7 @@ title: CDC Animation Sandbox
 .cdc-dedup-save-btn:hover { background: #a84832; transform: translateY(-1px); }
 .cdc-dedup-save-btn:active { transform: translateY(0); }
 
-/* Versioned Dedup — Timeline */
+/* Versioned Dedup - Timeline */
 .cdc-dedup-timeline { position: relative; margin-bottom: 1.5rem; }
 
 .cdc-version-entry { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
@@ -730,40 +722,353 @@ title: CDC Animation Sandbox
   .cdc-version-cols { grid-template-columns: 1fr; }
 }
 
-/* Sandbox section styling */
-.sandbox-section {
-  padding: 3rem 0;
-  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+/* Beginner breadcrumb */
+/* Table of Contents */
+.cdc-toc {
+  margin: 2rem 0;
+  padding: 1.25rem 1.5rem;
+  background: rgba(61, 58, 54, 0.03);
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
 }
 
-.sandbox-section:last-child {
-  border-bottom: none;
-}
-
-.sandbox-section-title {
+.cdc-toc strong {
   font-family: 'Libre Baskerville', Georgia, serif;
-  font-size: 1.6rem;
-  font-weight: 400;
+  font-size: 0.95rem;
   color: #3d3a36;
-  margin-bottom: 0.5rem;
 }
 
-.sandbox-section-description {
-  font-size: 0.95rem;
+.cdc-toc ol {
+  margin: 0.75rem 0 0 0;
+  padding-left: 1.25rem;
+}
+
+.cdc-toc li {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #5a564f;
+}
+
+.cdc-toc a {
+  color: #c45a3b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cdc-toc a:hover {
+  text-decoration: underline;
+}
+
+.cdc-toc ul {
+  margin: 0.25rem 0 0.25rem 0;
+  padding-left: 1.25rem;
+  list-style: none;
+}
+
+.cdc-toc ul li {
+  margin-bottom: 0.15rem;
+  font-size: 0.82rem;
   color: #8b7355;
-  margin-bottom: 2rem;
+}
+
+.cdc-toc ul li a {
+  font-weight: 400;
+  color: #8b7355;
+}
+
+.cdc-toc ul li a:hover {
+  color: #c45a3b;
+}
+
+/* Taxonomy tree diagram */
+.cdc-taxonomy {
+  padding: 1.25rem 1.5rem;
+  background: rgba(61, 58, 54, 0.03);
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+}
+
+.cdc-taxonomy strong {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  color: #3d3a36;
+}
+
+.cdc-taxonomy-tree {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Root node */
+.cdc-tax-root {
+  padding: 0.4rem 1rem;
+  background: #3d3a36;
+  color: #fff;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Vertical connector from root */
+.cdc-tax-vline {
+  width: 2px;
+  height: 16px;
+  background: rgba(61, 58, 54, 0.25);
+}
+
+/* Horizontal bar connecting the three families */
+.cdc-tax-hbar {
+  width: 80%;
+  height: 2px;
+  background: rgba(61, 58, 54, 0.25);
+  position: relative;
+}
+
+/* Three-column family layout */
+.cdc-tax-families {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0;
+}
+
+.cdc-tax-family {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Vertical connector from hbar to family label */
+.cdc-tax-family .cdc-tax-vline {
+  height: 12px;
+}
+
+.cdc-tax-family-label {
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cdc-tax-family-label.bsw {
+  background: rgba(196, 90, 59, 0.12);
+  color: #c45a3b;
+  border: 1px solid rgba(196, 90, 59, 0.25);
+}
+
+.cdc-tax-family-label.extrema {
+  background: rgba(42, 125, 79, 0.1);
+  color: #2a7d4f;
+  border: 1px solid rgba(42, 125, 79, 0.2);
+}
+
+.cdc-tax-family-label.statistical {
+  background: rgba(139, 115, 85, 0.12);
+  color: #8b7355;
+  border: 1px solid rgba(139, 115, 85, 0.25);
+}
+
+.cdc-tax-algorithms {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.cdc-tax-algo {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.65rem;
+  color: #5a564f;
+  line-height: 1.3;
+}
+
+.cdc-tax-algo .cdc-tax-year {
+  color: #a89b8c;
+}
+
+.cdc-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(212, 165, 116, 0.15);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-style: normal;
+  color: #8b7355;
+}
+
+.cdc-learn-more::before {
+  content: "\1F4A1";
+}
+
+/* Combined text + hex view */
+.cdc-combined-view {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+}
+
+.cdc-byte-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 2px;
+  padding: 0.15rem 0.1rem;
+}
+
+.cdc-byte-char {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #3d3a36;
+}
+
+.cdc-byte-hex {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: #8b7355;
+  margin-top: 1px;
+}
+
+/* Block annotation bar (below text/hex views) */
+.cdc-block-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cdc-block {
+  width: 100%;
+}
+
+.cdc-block-annotation {
+  width: 100%;
+  position: relative;
+  margin-top: 0.3rem;
+}
+
+.cdc-block-line {
+  width: 100%;
+  height: 0;
+  border-top: 1.5px solid #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 8px;
+  background: #8b7355;
+  opacity: 0.5;
+}
+
+.cdc-block-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #8b7355;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+  text-align: center;
+  margin-top: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Fix chunk bar height in Gear Hash demo to prevent layout shift */
+#gear-hash-demo .cdc-blocks-view {
+  min-height: 60px;
+}
+
+/* Default text for Gear Hash demo */
+#gear-hash-demo .cdc-byte-char {
+  color: #000;
+  font-weight: 600;
+}
+#gear-hash-demo .cdc-byte-hex {
+  color: #6b5a42;
+}
+
+/* Chunk hover highlights */
+.cdc-combined-view .cdc-byte-col.chunk-hover {
+  filter: brightness(0.85);
+  outline: 1px solid rgba(61, 58, 54, 0.25);
+  outline-offset: -1px;
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block {
+  filter: brightness(1.15);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.cdc-block-wrapper.chunk-hover .cdc-block-label {
+  color: #3d3a36;
+  font-weight: 600;
+}
+
+.cdc-text-view .chunk.chunk-hover {
+  filter: brightness(0.9);
+  outline: 1px solid rgba(61, 58, 54, 0.3);
+  outline-offset: -1px;
 }
 
 /* GEAR Lookup Table grid */
 .gear-table-grid {
   display: grid;
-  grid-template-columns: repeat(16, 1fr);
+  grid-template-columns: 1.2rem repeat(16, 1fr);
+  grid-template-rows: 0.7rem repeat(16, 13px);
   gap: 1px;
   margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.gear-table-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.5rem;
+  color: #8b7355;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  padding: 0 2px;
+}
+
+.gear-table-label.col-header {
+  padding-bottom: 2px;
+}
+
+.gear-table-label.row-header {
+  padding-right: 3px;
+}
+
+.gear-table-legend {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  margin-top: 0.4rem;
+  text-align: center;
 }
 
 .gear-table-cell {
-  height: 15px;
+  min-height: 10px;
   border-radius: 1px;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.15s ease;
@@ -788,7 +1093,7 @@ title: CDC Animation Sandbox
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.8rem;
   color: #8b7355;
-  min-height: 1.4em;
+  min-height: 2.8em;
 }
 
 .gear-table-readout strong {
@@ -847,7 +1152,7 @@ title: CDC Animation Sandbox
 
 /* Bit-shift visualization */
 .gear-shift-viz {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.6rem;
 }
@@ -899,28 +1204,18 @@ title: CDC Animation Sandbox
   color: #3d3a36;
 }
 
-/* MSB being dropped */
 .gear-bit.dropped {
   background: rgba(196, 90, 59, 0.25);
   color: #c45a3b;
   text-decoration: line-through;
 }
 
-/* New zero entering on the right */
 .gear-bit.entering {
   background: rgba(90, 138, 90, 0.25);
   color: #5a8a5a;
   font-weight: 700;
 }
 
-/* Shift arrow between rows */
-.gear-shift-arrow {
-  color: #8b7355;
-  font-size: 0.7rem;
-  padding: 0 0.15rem;
-}
-
-/* Slide-left animation */
 @keyframes gear-slide-left {
   0% { transform: translateX(7px); opacity: 0.5; }
   100% { transform: translateX(0); opacity: 1; }
@@ -930,7 +1225,6 @@ title: CDC Animation Sandbox
   animation: gear-slide-left 0.25s ease-out;
 }
 
-/* Shift box: bordered container around the << 1 operation */
 .gear-shift-box {
   border: 1.5px solid rgba(196, 90, 59, 0.3);
   border-radius: 6px;
@@ -938,7 +1232,6 @@ title: CDC Animation Sandbox
   background: rgba(196, 90, 59, 0.02);
 }
 
-/* Connector arrow between shift box and addition */
 .gear-shift-connector {
   text-align: center;
   color: #8b7355;
@@ -947,7 +1240,6 @@ title: CDC Animation Sandbox
   padding: 0.15rem 0;
 }
 
-/* Addition section */
 .gear-shift-add {
   border: 1.5px solid rgba(61, 58, 54, 0.12);
   border-radius: 6px;
@@ -955,64 +1247,71 @@ title: CDC Animation Sandbox
   background: rgba(61, 58, 54, 0.02);
 }
 
-/* Separator between shift rows */
 .gear-shift-separator {
   width: calc(32 * 7px);
   border-top: 1px solid rgba(61, 58, 54, 0.15);
   margin: 2px 0;
 }
 
-/* Operation breakdown panel */
-.gear-operation-panel {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
-  font-size: 0.82rem;
-  line-height: 1.7;
-  padding: 0.75rem 1rem;
-  background: rgba(61, 58, 54, 0.03);
-  border-radius: 6px;
-  white-space: pre;
-  overflow-x: auto;
-}
-
-.gear-op-value {
-  font-weight: 500;
-  transition: color 0.15s ease;
-}
-
-.gear-op-value.sage { color: #5a8a5a; }
-.gear-op-value.terracotta { color: #c45a3b; }
-.gear-op-value.bold { font-weight: 700; color: #3d3a36; }
-.gear-op-value.boundary { color: #2a7d4f; font-weight: 700; }
-
-/* Flash animation for updated values */
-@keyframes gear-flash {
-  0% { opacity: 0.3; transform: translateX(-4px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-
-.gear-op-value.fresh {
-  animation: gear-flash 0.3s ease-out;
-}
-
-/* Two-column layout: Operation panel + GEAR table side-by-side */
+/* Two-column layout: Operation panel + GEAR table */
 .gear-two-col {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 0 1.5rem;
   margin-top: 1rem;
-  align-items: flex-start;
 }
 
 .gear-col-left {
-  flex: 1 1 0;
-  min-width: 0;
+  display: contents;
 }
 
 .gear-col-right {
-  flex: 1 1 0;
-  min-width: 0;
+  display: contents;
 }
 
-/* Chunk boundary marker (vertical separator at chunk splits) */
+.gear-col-left > .cdc-viz-header {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.gear-col-right > .cdc-viz-header {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.gear-col-left > .gear-table-readout {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.gear-col-right > .cdc-hash-display {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.gear-col-left > .gear-table-grid {
+  grid-column: 1;
+  grid-row: 3 / 5;
+}
+
+.gear-col-left > .gear-table-legend {
+  grid-column: 1;
+  grid-row: 5;
+}
+
+.gear-col-right > .gear-hash-window {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.gear-col-right > .gear-shift-viz {
+  grid-column: 2;
+  grid-row: 4;
+  align-self: start;
+}
+
+/* Chunk boundary marker (vertical separator) */
 .chunk-boundary-marker {
   display: inline-block;
   width: 2px;
@@ -1024,7 +1323,6 @@ title: CDC Animation Sandbox
   opacity: 0.6;
 }
 
-/* Chunk label (small tag at start of each chunk) */
 .chunk-label {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.6rem;
@@ -1038,44 +1336,104 @@ title: CDC Animation Sandbox
   user-select: none;
 }
 
-/* Mobile responsive */
-@media (max-width: 42em) {
-  .gear-two-col {
-    flex-direction: column;
-  }
-  .cdc-controls {
-    grid-template-columns: 1fr;
-  }
+/* KDE density curve (ComparisonDemo) */
 
-  .cdc-dedup-files {
-    grid-template-columns: 1fr;
-  }
-
-  .cdc-dedup-arrow {
-    transform: rotate(90deg);
-    padding: 1rem 0;
-  }
-
-  .cdc-hex-view {
-    font-size: 0.65rem;
-  }
-
-  .gear-table-grid {
-    gap: 0px;
-  }
-
-  .gear-table-cell {
-    border-radius: 0;
-    height: 12px;
-  }
-
-  .gear-operation-panel {
-    font-size: 0.68rem;
-    padding: 0.5rem 0.75rem;
-  }
+/* Override container when used for KDE */
+.kde-distribution-chart {
+  display: block;
+  height: 170px;
+  padding: 0;
+  margin-top: 0.75rem;
 }
 
-/* Parametric Chunking Explorer — distribution chart */
+/* Plot area wrapper */
+.kde-chart-wrapper {
+  position: absolute;
+  top: 0;
+  left: 52px;
+  right: 5px;
+  bottom: 30px;
+  overflow: visible;
+}
+
+/* SVG fills the wrapper */
+.kde-chart-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tick labels (shared) */
+.kde-tick {
+  position: absolute;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* X-axis ticks: below the chart */
+.kde-tick-x {
+  bottom: 0;
+  transform: translate(-50%, calc(100% + 2px));
+}
+
+/* Y-axis ticks: left of the chart */
+.kde-tick-y {
+  left: 0;
+  transform: translate(calc(-100% - 4px), -50%);
+  text-align: right;
+}
+
+/* Axis title labels */
+.kde-axis-title {
+  position: absolute;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* X-axis title: centered below ticks */
+.kde-axis-title-x {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, calc(100% + 16px));
+}
+
+/* Y-axis title: rotated, centered left of ticks */
+.kde-axis-title-y {
+  top: 50%;
+  left: 0;
+  transform: translate(calc(-100% - 30px), -50%) rotate(-90deg);
+  transform-origin: center center;
+}
+
+/* Caption below charts explaining density */
+.kde-caption {
+  font-size: 0.78rem;
+  color: #8b7355;
+  text-align: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+/* Reference label inside wrapper */
+.kde-ref-label {
+  position: absolute;
+  top: 0;
+  margin-left: 5px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #c45a3b;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Parametric Chunking Explorer - distribution chart */
 .parametric-distribution-chart {
   position: relative;
   display: flex;
@@ -1136,21 +1494,274 @@ title: CDC Animation Sandbox
   white-space: nowrap;
 }
 
-/* Cross-hover highlights for parametric demo */
 .parametric-dist-bar.chunk-hover {
   filter: brightness(1.15);
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
 }
 
-.cdc-text-view .chunk.chunk-hover {
-  filter: brightness(0.9);
-  outline: 1px solid rgba(61, 58, 54, 0.3);
-  outline-offset: -1px;
+.parametric-derived-params {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  color: #8b7355;
+  white-space: nowrap;
 }
 
-.cdc-block-wrapper.chunk-hover .cdc-block {
-  filter: brightness(1.15);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+/* Basic vs Normalized Comparison */
+.comparison-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.comparison-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3d3a36;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  margin-bottom: 0.75rem;
+}
+
+.comparison-label-text {
+  white-space: nowrap;
+}
+
+.comparison-sublabel {
+  font-weight: 400;
+  color: #8b7355;
+  font-size: 0.85rem;
+}
+
+.comparison-col {
+  min-width: 0;
+  overflow: visible;
+}
+
+.comparison-col .cdc-blocks-view {
+  overflow: hidden;
+  height: 76px;
+  position: relative;
+}
+
+.comparison-col .cdc-block-wrapper {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.comparison-col .cdc-block {
+  margin-top: auto;
+}
+
+/* Distribution illustration (static SVG curves) */
+.dist-illustration {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 42em) {
+  .dist-illustration {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dist-illustration-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.dist-illustration-note {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.cdc-blocks-target-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed rgba(61, 58, 54, 0.7);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.comparison-summary {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #8b7355;
+}
+
+.comparison-summary span {
+  color: #c45a3b;
+  font-weight: 600;
+}
+
+.parametric-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.parametric-section-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3d3a36;
+  white-space: nowrap;
+}
+
+#parametric-blocks-bar {
+  height: 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block-wrapper {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block {
+  margin-top: auto;
+}
+
+.parametric-summary {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.75rem;
+  color: #8b7355;
+  margin-bottom: 0.5rem;
+}
+
+.parametric-summary span {
+  color: #c45a3b;
+  font-weight: 600;
+}
+
+.comparison-blocks-hint {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #a09080;
+  margin-top: 0.35rem;
+  line-height: 1.35;
+}
+
+/* Mobile responsive */
+@media (max-width: 42em) {
+  .cdc-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .cdc-dedup-files {
+    grid-template-columns: 1fr;
+  }
+
+  .cdc-dedup-arrow {
+    transform: rotate(90deg);
+    padding: 1rem 0;
+  }
+
+  .cdc-chunk-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cdc-hex-view {
+    font-size: 0.65rem;
+  }
+
+  .gear-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .gear-col-left > .cdc-viz-header { grid-row: auto; }
+  .gear-col-right > .cdc-viz-header { grid-row: auto; }
+  .gear-col-left > .gear-table-readout { grid-row: auto; }
+  .gear-col-right > .cdc-hash-display { grid-row: auto; }
+  .gear-col-left > .gear-table-grid { grid-row: auto; }
+  .gear-col-left > .gear-table-legend { grid-row: auto; }
+  .gear-col-right > .gear-hash-window { grid-row: auto; }
+  .gear-col-right > .gear-shift-viz { grid-row: auto; }
+
+  .gear-col-left > *,
+  .gear-col-right > * {
+    grid-column: 1;
+  }
+
+  .gear-table-grid {
+    gap: 0px;
+  }
+
+  .gear-table-cell {
+    border-radius: 0;
+    height: 12px;
+  }
+
+  .gear-table-label {
+    font-size: 0.4rem;
+  }
+
+}
+
+/* Code tabs */
+.code-tabs {
+  margin: 1.5rem 0;
+  border: 1px solid rgba(61, 58, 54, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.code-tab-buttons {
+  display: flex;
+  background: rgba(61, 58, 54, 0.03);
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.code-tab-btn {
+  padding: 0.6rem 1.25rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #8b7355;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.code-tab-btn:hover {
+  color: #3d3a36;
+  background: rgba(61, 58, 54, 0.05);
+}
+
+.code-tab-btn.active {
+  color: #c45a3b;
+  background: #fff;
+  border-bottom: 2px solid #c45a3b;
+  margin-bottom: -1px;
+}
+
+.code-tab-content {
+  display: none;
+}
+
+.code-tab-content.active {
+  display: block;
+}
+
+.code-tab-content pre {
+  margin: 0;
+  border-radius: 0;
 }
 
 /* Parametric slider control layout */
@@ -1210,58 +1821,547 @@ title: CDC Animation Sandbox
   white-space: nowrap;
 }
 
-.parametric-derived-params {
+/* Sandbox section styling */
+.sandbox-section {
+  padding: 3rem 0;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.sandbox-section:last-child {
+  border-bottom: none;
+}
+
+.sandbox-section-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #3d3a36;
+  margin-bottom: 0.5rem;
+}
+
+.sandbox-section-description {
+  font-size: 0.95rem;
+  color: #8b7355;
+  margin-bottom: 2rem;
+}
+
+/* ========================================================================== */
+/* Part 2: Parametric blocks bar overrides                                     */
+/* ========================================================================== */
+
+#parametric-blocks-bar {
+  height: 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block-wrapper {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#parametric-blocks-bar .cdc-block {
+  margin-top: auto;
+}
+
+/* ========================================================================== */
+/* Part 2: Comparison Demo                                                     */
+/* ========================================================================== */
+
+.comparison-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.comparison-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3d3a36;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  margin-bottom: 0.75rem;
+}
+
+.comparison-label-text {
+  white-space: nowrap;
+}
+
+.comparison-sublabel {
+  font-weight: 400;
+  color: #8b7355;
+  font-size: 0.85rem;
+}
+
+.comparison-col {
+  min-width: 0;
+  overflow: visible;
+}
+
+.comparison-col .cdc-blocks-view {
+  overflow: hidden;
+  height: 76px;
+  position: relative;
+}
+
+.comparison-col .cdc-block-wrapper {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.comparison-col .cdc-block {
+  margin-top: auto;
+}
+
+.comparison-summary {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
   font-size: 0.75rem;
+  font-weight: 400;
   color: #8b7355;
-  white-space: nowrap;
+}
+
+.comparison-summary span {
+  color: #c45a3b;
+  font-weight: 600;
+}
+
+.comparison-blocks-hint {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #a09080;
+  margin-top: 0.35rem;
+  line-height: 1.35;
+}
+
+.cdc-blocks-target-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed rgba(61, 58, 54, 0.7);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ========================================================================== */
+/* Part 3: Cost Tradeoffs Explorer                                             */
+/* ========================================================================== */
+
+.cost-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.cost-bar-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr 14rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cost-bar-label {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #3d3a36;
+  text-align: right;
+}
+
+.cost-bar-track {
+  height: 24px;
+  background: rgba(61, 58, 54, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cost-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.cost-fill-cpu {
+  background: linear-gradient(to right, #d4a574, #c45a3b);
+}
+
+.cost-fill-memory {
+  background: linear-gradient(to right, #94b3c8, #5a7d94);
+}
+
+.cost-fill-network {
+  background: linear-gradient(to right, #8ab88a, #5a8a5a);
+}
+
+.cost-fill-storage {
+  background: linear-gradient(to right, #d4b878, #b8943b);
+}
+
+.cost-bar-annotation {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  color: #8b7355;
+  line-height: 1.5;
+  min-height: 3em;
+}
+
+.cost-bars-axis-label {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #a89b8c;
+  text-align: right;
+  padding: 0.25rem 1.25rem 0 0;
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.75rem;
+}
+
+.cost-bars-axis-note {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  color: #8b7355;
+  padding: 0.5rem 1.25rem 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 50em) {
+  .cost-bar-row {
+    grid-template-columns: 5rem 1fr 10rem;
+  }
+}
+
+@media (max-width: 42em) {
+  .cost-bar-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .cost-bar-label {
+    text-align: left;
+  }
+  .cost-bar-track {
+    height: 20px;
+  }
+}
+
+/* ========================================================================== */
+/* Parts 3-5: Cloud Cost Table                                                 */
+/* ========================================================================== */
+
+.cost-cloud-section {
+  padding: 0 1.25rem 0.5rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.cost-cloud-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cost-cloud-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #3d3a36;
+}
+
+.cost-cloud-workload {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.7rem;
+  color: #8b7355;
+}
+
+.cost-cloud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cost-cloud-table th {
+  font-weight: bold;
+  color: #3d3a36;
+  text-align: right;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 2px solid rgba(61, 58, 54, 0.15);
+}
+
+.cost-cloud-table th:first-child {
+  text-align: left;
+}
+
+.cost-cloud-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: right;
+  color: #3d3a36;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.07);
+}
+
+.cost-cloud-table td:first-child {
+  text-align: left;
+  color: #8b7355;
+}
+
+.cost-cloud-table tr:last-child td {
+  font-weight: bold;
+  border-top: 2px solid rgba(61, 58, 54, 0.15);
+  border-bottom: none;
+}
+
+.cost-cell-value {
+  display: block;
+}
+
+.cost-cell-calc {
+  display: block;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+  font-size: 0.6rem;
+  color: #a08b6e;
+  line-height: 1.3;
+}
+
+.cost-cloud-assumptions {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.65rem;
+  color: #8b7355;
+  line-height: 1.5;
+}
+
+.cost-cloud-assumptions a {
+  color: #c45a3b;
+}
+
+.cost-pricing-ref {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.cost-pricing-ref summary {
+  cursor: pointer;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.7rem;
+  color: #8b7355;
+  list-style: none;
+  padding: 0.25rem 0;
+}
+
+.cost-pricing-ref summary::-webkit-details-marker { display: none; }
+.cost-pricing-ref summary::marker { display: none; }
+
+.cost-pricing-ref summary::before {
+  content: "\25B8  ";
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.cost-pricing-ref[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.cost-ref-table tr:last-child td {
+  font-weight: normal;
+  border-top: none;
+  border-bottom: 1px solid rgba(61, 58, 54, 0.07);
+}
+
+@media (max-width: 42em) {
+  .cost-cloud-table {
+    font-size: 0.65rem;
+  }
+  .cost-cloud-table th,
+  .cost-cloud-table td {
+    padding: 0.25rem 0.3rem;
+  }
+  .cost-cell-calc {
+    display: none;
+  }
+}
+
+/* ========================================================================== */
+/* Part 4: Container Toggle & Savings                                          */
+/* ========================================================================== */
+
+.container-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: #3d3a36;
+}
+
+.container-toggle input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  background: rgba(61, 58, 54, 0.2);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.container-toggle input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.container-toggle input[type="checkbox"]:checked {
+  background: #2d7a4f;
+}
+
+.container-toggle input[type="checkbox"]:checked::after {
+  transform: translateX(16px);
+}
+
+.container-savings-row td {
+  font-weight: bold !important;
+  border-top: 2px solid rgba(45, 122, 79, 0.2) !important;
+  border-bottom: none !important;
+}
+
+.jazz-cost-table {
+  max-width: 24rem;
+}
+
+.comprehensive-cost-table {
+  max-width: 28rem;
+}
+
+/* ========================================================================== */
+/* Parts 4-5: Provider Select                                                  */
+/* ========================================================================== */
+
+.cost-provider-select {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.8rem;
+  color: #3d3a36;
+  background: #fff;
+  border: 1px solid rgba(61, 58, 54, 0.2);
+  border-radius: 6px;
+  padding: 0.35rem 2rem 0.35rem 0.6rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b7355'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.cost-provider-select:hover {
+  border-color: rgba(61, 58, 54, 0.4);
+}
+
+.cost-provider-select:focus {
+  outline: none;
+  border-color: #c45a3b;
+  box-shadow: 0 0 0 2px rgba(196, 90, 59, 0.15);
+}
+
+.cost-provider-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ========================================================================== */
+/* Part 5: Provider Comparison Rows                                            */
+/* ========================================================================== */
+
+.provider-avg-row td {
+  font-weight: bold !important;
+  border-top: 2px solid rgba(61, 58, 54, 0.2) !important;
+  border-bottom: 2px solid rgba(61, 58, 54, 0.2) !important;
+}
+
+.provider-newcomer-row td:last-child .cost-cell-calc {
+  color: #2d7a4f;
+  font-weight: 600;
+}
+
+/* ========================================================================== */
+/* Part 5: Zipf Distribution & Cache                                           */
+/* ========================================================================== */
+
+.zipf-chart-container {
+  padding: 0.5rem 1.25rem 0;
+}
+
+.zipf-chart-container canvas {
+  width: 100%;
+  display: block;
+}
+
+.zipf-readout {
+  text-align: center;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  color: #2d7a4f;
+  font-size: 0.95rem;
 }
 </style>
 
 <!-- ============================================================
-     Demo 1: GEAR Hash Rolling Window
+     Section 1: GEAR Hash Rolling Window
      ============================================================ -->
 <section class="sandbox-section">
-  <h1 class="sandbox-section-title">FastCDC: GEAR Rolling Hash</h1>
+  <h1 class="sandbox-section-title">GEAR Hash Rolling Window</h1>
   <p class="sandbox-section-description">
-    Step through the GEAR rolling hash byte-by-byte as it slides across the input.
-    The hash is computed as: <code>hash = (hash &lt;&lt; 1) + GEAR[byte]</code>
+    Step through the GEAR rolling hash byte-by-byte. Hash = (hash &lt;&lt; 1) + GEAR[byte].
   </p>
 
   <div class="cdc-viz" id="gear-hash-demo">
+    <div class="cdc-viz-header">
+      <div class="cdc-viz-title">Gear Hash in Action</div>
+    </div>
     <div class="cdc-content">
       <div id="gear-content-display" class="cdc-combined-view">
-        The quick brown fox jumps over the lazy dog.
+        The quick brown fox jumps over the lazy dog. She packed her seven boxes and left. A warm breeze drifted through the open window.
       </div>
     </div>
 
     <!-- Two-column layout: GEAR table on left, Operation + Hash on right -->
     <div class="gear-two-col">
       <div class="gear-col-left">
-        <!-- GEAR Lookup Table -->
         <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
           <div class="cdc-viz-title">GEAR Lookup Table</div>
-          <p class="cdc-viz-hint">Each byte maps to a random 32-bit value. Hover a cell to see its mapping.</p>
+          <p class="cdc-viz-hint">Each colored block is one of 256 pre-computed random 32-bit values, keyed by byte. Hover a cell to see its mapping.</p>
         </div>
         <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>
         <div class="gear-table-grid" id="gear-table-grid">
-          <!-- 256 cells populated by JS -->
+          <!-- axis labels + 256 cells populated by JS -->
         </div>
+        <div class="gear-table-legend">Rows 0-1: control bytes &middot; Rows 2-7: printable ASCII &middot; Row 7F: DEL &middot; Rows 8-F: extended bytes</div>
       </div>
 
       <div class="gear-col-right">
         <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
           <div class="cdc-viz-title">Rolling Hash Window</div>
-          <p class="cdc-viz-hint">The hash rolls forward one byte at a time. When it matches a bit pattern, a chunk boundary is placed.</p>
+          <p class="cdc-viz-hint">The hash rolls forward one byte at a time. When it matches a bit pattern, a chunk boundary is placed. Target chunk size: min 8, avg 16, max 32 bytes.</p>
         </div>
-
-        <!-- Current Hash Display -->
         <div class="cdc-hash-display" id="gear-hash-display">Current Hash: <strong>0x00000000</strong></div>
-
-        <!-- Visual hash window strip -->
         <div class="gear-hash-window" id="gear-hash-window"></div>
-
-        <!-- Bit-shift visualization -->
         <div class="gear-shift-viz" id="gear-shift-viz"></div>
       </div>
     </div>
@@ -1282,167 +2382,467 @@ title: CDC Animation Sandbox
       </div>
       <div class="cdc-speed-control">
         <span class="cdc-speed-label">Speed</span>
-        <input type="range" id="gear-speed" min="1" max="10" value="2" style="width: 80px;" title="Playback speed">
+        <input type="range" id="gear-speed" min="1" max="10" value="7" style="width: 80px;" title="Playback speed">
       </div>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     Demo: Parametric Chunking Explorer
+     Section 2: Parametric Chunking Explorer
      ============================================================ -->
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">Parametric Chunking Explorer</h1>
   <p class="sandbox-section-description">
-    Drag the slider to adjust the target average chunk size and instantly see how
-    FastCDC re-chunks the same text. The min and max sizes are derived automatically
-    (min = avg/2, max = avg&times;3).
+    Drag the slider to adjust the target average chunk size and see how FastCDC re-chunks the same text.
   </p>
 
   <div class="cdc-viz" id="parametric-demo">
+    <div class="cdc-viz-header">
+      <div class="cdc-viz-title">Parametric Chunking Explorer</div>
+      <p class="cdc-viz-hint">See how target average size affects chunk boundaries and size distribution.</p>
+    </div>
     <!-- Slider control -->
     <div class="parametric-control-row">
       <span class="parametric-control-label">
-        Target Average: <strong id="parametric-slider-value">32</strong> bytes
+        Target Average: <strong id="parametric-slider-value">88</strong> bytes
       </span>
-      <input type="range" id="parametric-slider" min="16" max="128" value="32" step="2">
-      <span class="parametric-derived-params" id="parametric-derived-params">(min: 16, max: 96)</span>
+      <input type="range" id="parametric-slider" min="48" max="128" value="88" step="2">
+      <span class="parametric-derived-params" id="parametric-derived-params">(min: 44, max: 264)</span>
     </div>
 
     <!-- Text with chunk highlighting -->
     <div id="parametric-text-display" class="cdc-content cdc-text-view"></div>
 
-    <!-- Proportional blocks bar -->
+    <!-- Chunk summary section -->
+    <div class="parametric-section-header">
+      <div class="parametric-section-title">Chunk Summary</div>
+      <div class="parametric-summary">
+        <span id="parametric-stat-count">--</span> chunks · target <span id="parametric-stat-target">--</span> · avg <span id="parametric-stat-actual">--</span> · min <span id="parametric-stat-min">--</span> · max <span id="parametric-stat-max">--</span>
+      </div>
+    </div>
+    <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
     <div id="parametric-blocks-bar" class="cdc-blocks-view"></div>
-
-    <!-- Vertical bar distribution chart -->
-    <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-      <div class="cdc-viz-title">Chunk Size Distribution</div>
-      <p class="cdc-viz-hint">Each bar is one chunk. Height shows relative size. Dashed line marks the target average.</p>
-    </div>
-    <div id="parametric-distribution" class="parametric-distribution-chart"></div>
-
-    <!-- Stats -->
-    <div id="parametric-stats" class="cdc-stats">
-      <div class="cdc-stat">
-        <div id="parametric-stat-count" class="cdc-stat-value">--</div>
-        <div class="cdc-stat-label">Chunks</div>
-      </div>
-      <div class="cdc-stat">
-        <div id="parametric-stat-target" class="cdc-stat-value">--</div>
-        <div class="cdc-stat-label">Target Avg</div>
-      </div>
-      <div class="cdc-stat">
-        <div id="parametric-stat-actual" class="cdc-stat-value">--</div>
-        <div class="cdc-stat-label">Actual Avg</div>
-      </div>
-      <div class="cdc-stat">
-        <div id="parametric-stat-min" class="cdc-stat-value">--</div>
-        <div class="cdc-stat-label">Smallest</div>
-      </div>
-      <div class="cdc-stat">
-        <div id="parametric-stat-max" class="cdc-stat-value">--</div>
-        <div class="cdc-stat-label">Largest</div>
-      </div>
-    </div>
   </div>
 </section>
 
 <!-- ============================================================
-     Demo 2: Chunk Boundary Detection
+     Section 3: Chunk Boundary Detection (Fixed vs CDC)
      ============================================================ -->
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">Chunk Boundary Detection</h1>
   <p class="sandbox-section-description">
-    See how FastCDC's dual-mask strategy finds chunk boundaries. The strict mask is used
-    until the average chunk size, then a looser mask takes over approaching the maximum.
+    See how fixed-size chunking vs content-defined chunking handle file modifications.
   </p>
 
-  <div class="cdc-comparison" id="fixed-vs-cdc-demo">
-    <div class="cdc-comparison-panel">
-      <div class="cdc-comparison-title">Fixed-Size Chunking</div>
-      <p class="cdc-chunk-explanation">Chunks split at fixed byte intervals</p>
+  <div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
+    <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
+    <!-- Populated dynamically by ChunkComparisonDemo -->
+  </div>
 
-      <div class="cdc-file-icon">
-        <div class="cdc-file-corner"></div>
-        <div class="cdc-file-label">Before edit</div>
-        <div class="cdc-file-content"><span class="cdc-chunk chunk-a">The quick brown fox jumps over the lazy dog.</span>
+  <div class="cdc-comparison-panel" id="cdc-chunking-demo" style="margin: 2rem 0;">
+    <div class="cdc-comparison-title">Content-Defined Chunking (sentence boundaries)</div>
+    <!-- Populated dynamically by ChunkComparisonDemo -->
+  </div>
+</section>
 
-<span class="cdc-chunk chunk-a">Pack my box with five d</span><span class="cdc-chunk chunk-b">ozen liquor jugs.</span>
+<!-- ============================================================
+     Section 4: Deduplication Explorer
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Deduplication Explorer</h1>
+  <p class="sandbox-section-description">
+    Edit text and save versions to see which chunks are new and which are shared.
+  </p>
 
-<span class="cdc-chunk chunk-b">How vexingly quick daft zebras jump! Sphi</span><span class="cdc-chunk chunk-c">nx of black quartz, judge my vow.</span>
-
-<span class="cdc-chunk chunk-c">The jay, pig, fox, zebra and wolves quack!</span></div>
-      </div>
-
-      <div class="cdc-edit-indicator">&#8595; Insert text at beginning &#8595;</div>
-
-      <div class="cdc-file-icon">
-        <div class="cdc-file-corner"></div>
-        <div class="cdc-file-label">After edit</div>
-        <div class="cdc-file-content"><span class="cdc-chunk chunk-a changed">NEW INTRO.</span>
-
-<span class="cdc-chunk chunk-a changed">The quick brown fox jumps over the lazy dog.</span>
-
-<span class="cdc-chunk chunk-b changed">Pack my box with five dozen liquor jugs.</span>
-
-<span class="cdc-chunk chunk-b changed">How vexin</span><span class="cdc-chunk chunk-c changed">gly quick daft zebras jump! Sphinx of black quartz, judge my vow.</span>
-
-<span class="cdc-chunk chunk-c changed">The jay, pig, fox, zebra and wolves quack!</span></div>
-      </div>
-
-      <div class="cdc-dedup-result bad">3/3 chunks changed, 0% deduplication</div>
+  <div class="cdc-viz">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Deduplication Explorer</span>
     </div>
-
-    <div class="cdc-comparison-panel">
-      <div class="cdc-comparison-title">Content-Defined Chunking</div>
-      <p class="cdc-chunk-explanation">Chunks split at paragraph boundaries (\n\n)</p>
-
-      <div class="cdc-file-icon">
-        <div class="cdc-file-corner"></div>
-        <div class="cdc-file-label">Before edit</div>
-        <div class="cdc-file-content"><span class="cdc-chunk chunk-a">The quick brown fox jumps over the lazy dog.</span>
-
-<span class="cdc-chunk chunk-b">Pack my box with five dozen liquor jugs.</span>
-
-<span class="cdc-chunk chunk-c">How vexingly quick daft zebras jump! Sphinx of black quartz, judge my vow.</span>
-
-<span class="cdc-chunk chunk-d">The jay, pig, fox, zebra and wolves quack!</span></div>
-      </div>
-
-      <div class="cdc-edit-indicator">&#8595; Insert text at beginning &#8595;</div>
-
-      <div class="cdc-file-icon">
-        <div class="cdc-file-corner"></div>
-        <div class="cdc-file-label">After edit</div>
-        <div class="cdc-file-content"><span class="cdc-chunk chunk-new changed">NEW INTRO.</span>
-
-<span class="cdc-chunk chunk-a">The quick brown fox jumps over the lazy dog.</span>
-
-<span class="cdc-chunk chunk-b">Pack my box with five dozen liquor jugs.</span>
-
-<span class="cdc-chunk chunk-c">How vexingly quick daft zebras jump! Sphinx of black quartz, judge my vow.</span>
-
-<span class="cdc-chunk chunk-d">The jay, pig, fox, zebra and wolves quack!</span></div>
-      </div>
-
-      <div class="cdc-dedup-result good">1/5 chunks changed, 80% deduplication</div>
+    <p class="cdc-viz-hint">Click "Save Version" after editing to see which chunks are new and which are shared. Hover over chunks to highlight them across views.</p>
+    <div class="cdc-dedup-viz" id="dedup-demo">
+      <!-- Populated dynamically by VersionedDedupDemo -->
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     Demo 3: Deduplication Demo
+     Section 5: Basic vs Normalized Comparison (Part 2)
      ============================================================ -->
 <section class="sandbox-section">
-  <h1 class="sandbox-section-title">Deduplication Demo</h1>
+  <h1 class="sandbox-section-title">Basic vs Normalized Chunk Size Distribution</h1>
   <p class="sandbox-section-description">
-    See how CDC enables efficient deduplication across document versions.
-    Only changed chunks need to be stored separately.
+    Compare how single-mask and dual-mask strategies distribute chunk sizes across the same data.
   </p>
 
-  <div class="cdc-dedup-viz" id="dedup-demo">
-    <!-- Populated dynamically by VersionedDedupDemo -->
+  <div class="cdc-viz" id="comparison-demo">
+    <div class="cdc-viz-header">
+      <div class="cdc-viz-title">Basic vs Normalized Chunk Size Distribution</div>
+      <p class="cdc-viz-hint">Compare how single-mask and dual-mask strategies distribute chunk sizes across the same data.</p>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Target Average: <strong id="comparison-slider-value">88</strong> bytes
+      </span>
+      <input type="range" id="comparison-slider" min="48" max="128" value="88" step="2">
+      <span class="parametric-derived-params" id="comparison-derived-params">(min: 44, max: 264)</span>
+    </div>
+
+    <div class="comparison-columns">
+      <div class="comparison-col">
+        <div class="comparison-label"><span class="comparison-label-text">Basic CDC <span class="comparison-sublabel">(Single Mask)</span></span>
+          <span class="comparison-summary" id="comparison-basic-stats">
+            <span id="comparison-basic-stat-count">--</span> chunks · avg <span id="comparison-basic-stat-actual">--</span> · min <span id="comparison-basic-stat-min">--</span> · max <span id="comparison-basic-stat-max">--</span>
+          </span>
+        </div>
+        <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
+        <div id="comparison-basic-blocks" class="cdc-blocks-view"></div>
+        <div class="comparison-blocks-hint">Density curve: higher peaks mean more chunks of that size. Dashed line marks the target average.</div>
+        <div id="comparison-basic-distribution" class="parametric-distribution-chart"></div>
+      </div>
+
+      <div class="comparison-col">
+        <div class="comparison-label"><span class="comparison-label-text">Normalized CDC <span class="comparison-sublabel">(Dual Mask)</span></span>
+          <span class="comparison-summary" id="comparison-normalized-stats">
+            <span id="comparison-normalized-stat-count">--</span> chunks · avg <span id="comparison-normalized-stat-actual">--</span> · min <span id="comparison-normalized-stat-min">--</span> · max <span id="comparison-normalized-stat-max">--</span>
+          </span>
+        </div>
+        <div class="comparison-blocks-hint">Each bar is one chunk. Height and width show relative size (dashed line = target).</div>
+        <div id="comparison-normalized-blocks" class="cdc-blocks-view"></div>
+        <div class="comparison-blocks-hint">Density curve: higher peaks mean more chunks of that size. Dashed line marks the target average.</div>
+        <div id="comparison-normalized-distribution" class="parametric-distribution-chart"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 6: Cost Tradeoffs Explorer (Part 3)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Cost Tradeoffs Explorer</h1>
+  <p class="sandbox-section-description">
+    See how average chunk size affects each cost dimension: CPU, memory, network, and storage.
+  </p>
+
+  <div class="cdc-viz" id="cost-tradeoffs-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Cost Tradeoffs Explorer</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="cost-tradeoffs-slider-value">32 KB</strong>
+      </span>
+      <input type="range" id="cost-tradeoffs-slider" min="0" max="100" value="50" step="1">
+      <span class="cdc-viz-hint" style="flex-basis: 100%;">Drag the slider to see how average chunk size affects each cost dimension.</span>
+    </div>
+    <div class="cost-bars-axis-label">
+      <span></span>
+      <span>Relative Pressure &rarr;</span>
+    </div>
+    <div class="cost-bars-container" id="cost-tradeoffs-bars">
+    </div>
+    <div class="cost-bars-axis-note">
+      These bars show the <em>direction</em> and <em>shape</em> of each tradeoff, not exact magnitudes. CPU and memory costs scale with chunk count (more chunks = more hashing, larger index). Network cost decreases with smaller chunks because the higher deduplication ratio means less unique data to transfer. Storage has a U-shape: very small chunks incur metadata overhead, while very large chunks reduce deduplication and store more redundant data.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 7: Cloud Cost Explorer - Naive (Part 4)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Cloud Cost Explorer</h1>
+  <p class="sandbox-section-description">
+    See how per-operation pricing on cloud object storage affects costs when every chunk is a separate object.
+  </p>
+
+  <div class="cdc-viz" id="naive-cost-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Cloud Cost Explorer</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="naive-cost-chunk-value">32 KB</strong>
+      </span>
+      <input type="range" id="naive-cost-chunk-slider" min="0" max="100" value="50" step="1">
+    </div>
+    <div class="cost-cloud-section" id="naive-cost-cloud-section">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 8: Cloud Cost Explorer with Containers (Part 4)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Cloud Cost Explorer with Containers</h1>
+  <p class="sandbox-section-description">
+    See how container packing reduces API operations costs by bundling chunks into larger objects.
+  </p>
+
+  <div class="cdc-viz" id="packed-cost-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Cloud Cost Explorer with Containers</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="packed-cost-chunk-value">32 KB</strong>
+      </span>
+      <input type="range" id="packed-cost-chunk-slider" min="0" max="100" value="50" step="1">
+    </div>
+    <div class="parametric-control-row">
+      <label class="container-toggle">
+        <input type="checkbox" id="packed-cost-packing-toggle" checked>
+        <span>Container packing</span>
+      </label>
+      <span class="parametric-control-label">
+        Container Size: <strong id="packed-cost-container-value">4 MB</strong>
+      </span>
+      <input type="range" id="packed-cost-container-slider" min="1" max="64" value="4" step="1">
+    </div>
+    <div class="cost-cloud-section" id="packed-cost-cloud-section">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 9: Newcomer Cost Explorer (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Newcomer Cost Explorer</h1>
+  <p class="sandbox-section-description">
+    Explore costs on newcomer storage providers with radically different pricing models.
+  </p>
+
+  <div class="cdc-viz" id="newcomer-cost-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Newcomer Cost Explorer</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="newcomer-cost-chunk-value">32 KB</strong>
+      </span>
+      <input type="range" id="newcomer-cost-chunk-slider" min="0" max="100" value="50" step="1">
+    </div>
+    <div class="parametric-control-row">
+      <label class="container-toggle">
+        <input type="checkbox" id="newcomer-cost-packing-toggle" checked>
+        <span>Container packing</span>
+      </label>
+      <span class="parametric-control-label">
+        Container Size: <strong id="newcomer-cost-container-value">4 MB</strong>
+      </span>
+      <input type="range" id="newcomer-cost-container-slider" min="1" max="64" value="4" step="1">
+    </div>
+    <div class="cost-cloud-section" id="newcomer-cost-cloud-section">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 10: Provider Cost Comparison (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Provider Cost Comparison</h1>
+  <p class="sandbox-section-description">
+    Compare costs across all seven storage providers side by side.
+  </p>
+
+  <div class="cdc-viz" id="provider-comparison-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Provider Cost Comparison</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="provider-comparison-chunk-value">8 KB</strong>
+      </span>
+      <input type="range" id="provider-comparison-chunk-slider" min="0" max="100" value="30" step="1">
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Container Size: <strong id="provider-comparison-container-value">4 MB</strong>
+      </span>
+      <input type="range" id="provider-comparison-container-slider" min="1" max="64" value="4" step="1">
+    </div>
+    <div class="cost-cloud-section" id="provider-comparison-cloud-section">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 11: Zipf Popularity Distribution (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Zipf Popularity Distribution</h1>
+  <p class="sandbox-section-description">
+    Visualize how skewness affects the popularity distribution of items under a Zipf model.
+  </p>
+
+  <div class="cdc-viz" id="zipf-distribution-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Zipf Popularity Distribution</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Skewness (&alpha;): <strong id="zipf-dist-alpha-value">0.60</strong>
+      </span>
+      <input type="range" id="zipf-dist-alpha-slider" min="0" max="100" value="60" step="1">
+    </div>
+    <div class="zipf-chart-container">
+      <canvas id="zipf-dist-canvas"></canvas>
+    </div>
+    <div class="zipf-readout" id="zipf-dist-readout"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 12: Cache Size vs. Hit Rate (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Cache Size vs. Hit Rate</h1>
+  <p class="sandbox-section-description">
+    Given a skewness level and a target hit rate, how much unique data do you need to cache?
+  </p>
+
+  <div class="cdc-viz" id="zipf-cache-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Cache Size vs. Hit Rate</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Skewness (&alpha;): <strong id="zipf-cache-alpha-value">0.60</strong>
+      </span>
+      <input type="range" id="zipf-cache-alpha-slider" min="0" max="100" value="60" step="1">
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Target Hit Rate: <strong id="zipf-cache-hitrate-value">50%</strong>
+      </span>
+      <input type="range" id="zipf-cache-hitrate-slider" min="1" max="99" value="50" step="1">
+    </div>
+    <div class="zipf-chart-container">
+      <canvas id="zipf-cache-canvas"></canvas>
+    </div>
+    <div class="zipf-readout" id="zipf-cache-readout"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 13: Traditional Cache Providers (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Traditional Cache Providers</h1>
+  <p class="sandbox-section-description">
+    See how provisioned caching (ElastiCache) and CDN caching (CloudFront) affect origin costs.
+  </p>
+
+  <div class="cdc-viz" id="cache-traditional-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Traditional Cache Providers</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Cache Hit Rate: <strong id="cache-traditional-hit-value">50%</strong>
+      </span>
+      <input type="range" id="cache-traditional-hit-slider" min="0" max="99" value="50" step="1">
+    </div>
+    <div class="cost-cloud-section" id="cache-traditional-section">
+    </div>
+    <div class="cdc-viz-hint">
+      ElastiCache charges for provisioned memory regardless of hit rate. CloudFront charges per-request and per-GB at the edge. Both reduce origin GET and egress costs, but the break-even hit rate differs sharply between the two models.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 14: Per-Request Cache Providers (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Per-Request Cache Providers</h1>
+  <p class="sandbox-section-description">
+    Compare per-request caching services that scale linearly with usage.
+  </p>
+
+  <div class="cdc-viz" id="cache-newcomer-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Per-Request Cache Providers</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Cache Hit Rate: <strong id="cache-newcomer-hit-value">50%</strong>
+      </span>
+      <input type="range" id="cache-newcomer-hit-slider" min="0" max="99" value="50" step="1">
+    </div>
+    <div class="cost-cloud-section" id="cache-newcomer-section">
+    </div>
+    <div class="cdc-viz-hint">
+      Per-request pricing means you pay nothing when the cache is cold and costs scale linearly with usage. Compare the net impact at different hit rates: lower per-read prices (Momento, Workers KV) break even earlier than higher per-read prices (Upstash).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 15: Comprehensive Cost Model (Part 5)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Comprehensive Cost Model</h1>
+  <p class="sandbox-section-description">
+    Combine storage provider, cache layer, chunk size, and container packing into a single cost view.
+  </p>
+
+  <div class="cdc-viz" id="comprehensive-cost-demo">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Comprehensive Cost Model</span>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">Storage:</span>
+      <select class="cost-provider-select" id="comprehensive-storage-select">
+        <option value="0">AWS S3</option>
+        <option value="1">GCP</option>
+        <option value="2">Azure</option>
+        <option value="3">Cloudflare R2</option>
+        <option value="4">Backblaze B2</option>
+        <option value="5">Wasabi</option>
+        <option value="6">Tigris</option>
+      </select>
+      <span class="parametric-control-label">Cache:</span>
+      <select class="cost-provider-select" id="comprehensive-cache-select">
+        <option value="0">None</option>
+        <option value="1">CloudFront</option>
+        <option value="2">ElastiCache</option>
+        <option value="3">Upstash</option>
+        <option value="4">Momento</option>
+        <option value="5">Workers KV</option>
+      </select>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Cache Hit Rate: <strong id="comprehensive-hit-value">0%</strong>
+      </span>
+      <input type="range" id="comprehensive-hit-slider" min="0" max="99" value="0" step="1" disabled>
+    </div>
+    <div class="parametric-control-row">
+      <span class="parametric-control-label">
+        Average Chunk Size: <strong id="comprehensive-chunk-value">32 KB</strong>
+      </span>
+      <input type="range" id="comprehensive-chunk-slider" min="0" max="100" value="50" step="1">
+    </div>
+    <div class="parametric-control-row">
+      <label class="container-toggle">
+        <input type="checkbox" id="comprehensive-packing-toggle">
+        <span>Enable container packing</span>
+      </label>
+      <span class="parametric-control-label">
+        Container Size: <strong id="comprehensive-container-value">4 MB</strong>
+      </span>
+      <input type="range" id="comprehensive-container-slider" min="0" max="2" value="0" step="1" disabled>
+    </div>
+    <div class="cost-cloud-section" id="comprehensive-cost-section">
+    </div>
+    <div class="cdc-viz-hint">
+      With cache set to "None", this explorer matches the per-provider cost explorers above. Select a cache provider and adjust the hit rate to see how caching reduces origin read operations and egress while adding its own cost line. Try combining a zero-egress storage provider (R2, Wasabi) with a CDN cache to see why egress-free storage changes the cache calculus.
+    </div>
   </div>
 </section>
 

@@ -1683,20 +1683,28 @@ categories:
   transition: width 0.2s ease;
 }
 
-.cost-fill-cpu,
-.cost-fill-memory,
-.cost-fill-storage {
+.cost-fill-cpu {
   background: linear-gradient(to right, #d4a574, #c45a3b);
+}
+
+.cost-fill-memory {
+  background: linear-gradient(to right, #94b3c8, #5a7d94);
 }
 
 .cost-fill-network {
   background: linear-gradient(to right, #8ab88a, #5a8a5a);
 }
 
+.cost-fill-storage {
+  background: linear-gradient(to right, #d4b878, #b8943b);
+}
+
 .cost-bar-annotation {
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 0.75rem;
   color: #8b7355;
+  line-height: 1.5;
+  min-height: 3em;
 }
 
 .cost-bars-axis-label {

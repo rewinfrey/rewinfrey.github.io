@@ -1,8 +1,10 @@
 ---
 layout: default
 group: References
-title: "CDC Research Bibliography"
+title: "CDC Series Bibliography"
 ---
+
+{% include line-field-bg.html %}
 
 <style>
   .bib-header {
@@ -115,7 +117,6 @@ title: "CDC Research Bibliography"
     line-height: 1.5;
   }
 
-
   .bib-posts {
     margin-top: 2.5rem;
     padding: 1rem 1.2rem;
@@ -147,21 +148,26 @@ title: "CDC Research Bibliography"
   }
 </style>
 
+<section class="landing-section page-card">
+
 <div class="bib-header">
   <h1 class="bib-title">Content-Defined Chunking</h1>
   <p class="bib-subtitle">
-    Research bibliography for the CDC post series. Papers are organized chronologically within each category. Where available, PDFs are hosted locally for convenience.
+    Research bibliography for the CDC post series. Papers are organized by topic. Where available, PDFs are hosted locally for convenience.
   </p>
   <a href="/references" class="bib-back">&larr; All references</a>
 </div>
 
+<!-- ==================== -->
+<!-- Foundations           -->
+<!-- ==================== -->
+
 <div class="bib-section-title">Foundations</div>
 
-<div class="bib-entry" id="ref-1">
-  <div class="bib-number">[1]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     M. O. Rabin, "Fingerprinting by Random Polynomials," Technical Report TR-15-81, Center for Research in Computing Technology, Harvard University, 1981.
-     </div>
+  </div>
   <div class="bib-note">Introduced polynomial fingerprinting over GF(2) as a rolling hash with provable collision bounds. The foundational technique behind all BSW-family CDC algorithms.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/rabin-1981-fingerprinting.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -169,8 +175,7 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-2">
-  <div class="bib-number">[2]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     A. Muthitacharoen, B. Chen &amp; D. Mazieres, "A Low-Bandwidth Network File System," <em>Proceedings of the 18th ACM Symposium on Operating Systems Principles (SOSP)</em>, 2001.
   </div>
@@ -181,11 +186,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-3">
-  <div class="bib-number">[3]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     J. D. Cohen, "Recursive Hashing Functions for N-Grams," <em>ACM Transactions on Information Systems</em>, vol. 15, no. 3, pp. 291-320, 1997.
-     </div>
+  </div>
   <div class="bib-note">Introduced the cyclic polynomial (Buzhash) rolling hash. Replaces Rabin's polynomial division with barrel shifts and XORs, significantly improving throughput while maintaining comparable distribution properties.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/buzhash-1997-cohen.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -193,13 +197,16 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
+<!-- ==================== -->
+<!-- BSW Family            -->
+<!-- ==================== -->
+
 <div class="bib-section-title">BSW Family</div>
 
-<div class="bib-entry" id="ref-4">
-  <div class="bib-number">[4]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     W. Xia, H. Jiang, D. Feng &amp; L. Tian, "Ddelta: A Deduplication-Inspired Fast Delta Compression Approach," <em>Performance Evaluation</em>, vol. 79, pp. 258-272, 2014.
-     </div>
+  </div>
   <div class="bib-note">Introduced the Gear hash, a feedforward rolling hash that eliminates the sliding window entirely. Demonstrated 2x throughput over Rabin by reducing per-byte operations from 7 (Rabin) to 3 (one shift, one add, one table lookup).</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/ddelta-2014-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -207,11 +214,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-5">
-  <div class="bib-number">[5]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     W. Xia, H. Jiang, D. Feng, L. Tian, M. Fu &amp; Y. Zhou, "FastCDC: A Fast and Efficient Content-Defined Chunking Approach for Data Deduplication," <em>Proceedings of the USENIX Annual Technical Conference (ATC)</em>, 2016.
-     </div>
+  </div>
   <div class="bib-note">Combined Gear hashing with normalized chunking (dual-mask strategy) and cut-point skipping. Reported 10x throughput over Rabin-based CDC and 3x over standalone Gear and AE, while matching or exceeding deduplication ratios.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/fastcdc-2016-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -219,11 +225,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-6">
-  <div class="bib-number">[6]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     W. Xia, Y. Zhou, H. Jiang, D. Feng, Y. Hua, Y. Hu, Q. Liu &amp; Y. Zhang, "The Design of Fast Content-Defined Chunking for Data Deduplication Based Storage Systems," <em>IEEE Transactions on Parallel and Distributed Systems</em>, vol. 31, no. 9, pp. 2017-2031, 2020.
-     </div>
+  </div>
   <div class="bib-note">Extended FastCDC with a "rolling two bytes per iteration" optimization, adding 30-40% throughput over the 2016 version. Adopted as the default chunker in open-source projects including Rdedup.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/fastcdc-2020-xia.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -231,11 +236,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-10">
-  <div class="bib-number">[10]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     C. Zhang, D. Qi, W. Li &amp; J. Guo, "Function of Content Defined Chunking Algorithms in Incremental Synchronization," <em>IEEE Access</em>, vol. 8, pp. 5316-5330, 2020.
-     </div>
+  </div>
   <div class="bib-note">Introduced PCI (Popcount Independence), which uses the Hamming weight of a sliding window for boundary detection. Targets incremental synchronization: improved Rsync calculation speed by up to 70% and reduced detected incremental data by 32-57%.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/pci-2020-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -243,13 +247,16 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
+<!-- ==================== -->
+<!-- Local Extrema Family  -->
+<!-- ==================== -->
+
 <div class="bib-section-title">Local Extrema Family</div>
 
-<div class="bib-entry" id="ref-7">
-  <div class="bib-number">[7]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     Y. Zhang, H. Jiang, D. Feng, W. Xia, M. Fu, F. Huang &amp; Y. Zhou, "AE: An Asymmetric Extremum Content Defined Chunking Algorithm for Fast and Bandwidth-Efficient Data Deduplication," <em>Proceedings of IEEE INFOCOM</em>, 2015.
-     </div>
+  </div>
   <div class="bib-note">First hashless CDC algorithm. Finds boundaries by locating the maximum byte value in an asymmetric local range. Reported 3x throughput over Rabin-based CDC while achieving comparable deduplication ratios.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/ae-2015-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -257,11 +264,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-8">
-  <div class="bib-number">[8]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     R. N. Widodo, H. Lim &amp; M. Atiquzzaman, "A New Content-Defined Chunking Algorithm for Data Deduplication in Cloud Storage," <em>Future Generation Computer Systems</em>, vol. 71, pp. 145-156, 2017.
-     </div>
+  </div>
   <div class="bib-note">Introduced RAM (Rapid Asymmetric Maximum) with a skip optimization that jumps directly to the actual maximum when the current byte is not the maximum, giving sublinear average-case behavior.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/ram-2017-widodo.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -269,11 +275,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-9">
-  <div class="bib-number">[9]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     C. Zhang, D. Qi, W. Li &amp; J. Guo, "MII: A Novel Content Defined Chunking Algorithm for Finding Incremental Data in Data Synchronization," <em>IEEE Access</em>, vol. 7, pp. 86862-86875, 2019.
-     </div>
+  </div>
   <div class="bib-note">Decouples the context window from chunk size parameters, so boundary candidates remain stable when parameters change. Reduced incremental data by 13-34% compared to other algorithms, targeting backup and data synchronization workloads.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/mii-2019-zhang.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -281,11 +286,10 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
-<div class="bib-entry" id="ref-13">
-  <div class="bib-number">[13]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     S. Udayashankar, A. Baba &amp; A. Al-Kiswany, "VectorCDC: Accelerating Data Deduplication with Vector Instructions," <em>Proceedings of the 23rd USENIX Conference on File and Storage Technologies (FAST)</em>, 2025.
-     </div>
+  </div>
   <div class="bib-note">Demonstrated that local-extrema algorithms are inherently SIMD-parallelizable. VRAM (vectorized RAM) achieved 6.5-30 GB/s with AVX-512, a 17x speedup over scalar RAM. Tested across 10 workloads from VM backups to web archives.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/vectorcdc-2025-udayashankar.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -293,13 +297,16 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
+<!-- ==================== -->
+<!-- Statistical Family    -->
+<!-- ==================== -->
+
 <div class="bib-section-title">Statistical Family</div>
 
-<div class="bib-entry" id="ref-11">
-  <div class="bib-number">[11]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     A. S. M. Saeed &amp; L. E. George, "Data Deduplication System Based on Content-Defined Chunking Using Bytes Pair Frequency Occurrence," <em>Symmetry</em>, vol. 12, no. 11, article 1841, 2020.
-     </div>
+  </div>
   <div class="bib-note">Two-pass algorithm that builds a digram frequency table and uses the most common byte pairs as chunk boundaries. Reported 10x faster chunking than Rabin-based BSW and 3x faster than TTTD.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/bfbc-2020-saeed.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -307,13 +314,16 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
+<!-- ==================== -->
+<!-- Survey                -->
+<!-- ==================== -->
+
 <div class="bib-section-title">Survey</div>
 
-<div class="bib-entry" id="ref-12">
-  <div class="bib-number">[12]</div>
+<div class="bib-entry">
   <div class="bib-citation">
     M. Gregoriadis, L. Balduf, B. Scheuermann &amp; J. Pouwelse, "A Thorough Investigation of Content-Defined Chunking Algorithms for Data Deduplication," <em>arXiv:2409.06066</em>, 2024.
-     </div>
+  </div>
   <div class="bib-note">Comprehensive survey organizing CDC algorithms into three families (BSW, Local Extrema, Statistical). Provides the taxonomic framework used in the CDC post series and includes systematic benchmarks across algorithms and datasets.</div>
   <div class="bib-links">
     <a href="/assets/papers/cdc/gregoriadis-2024-survey.pdf" class="bib-link pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
@@ -321,9 +331,384 @@ title: "CDC Research Bibliography"
   </div>
 </div>
 
+<!-- ==================== -->
+<!-- Deduplication Systems -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Deduplication Systems</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    B. Zhu, K. Li &amp; H. Patterson, "Avoiding the Disk Bottleneck in the Data Domain Deduplication File System," <em>6th USENIX Conference on File and Storage Technologies (FAST '08)</em>, San Jose, CA, February 2008.
+  </div>
+  <div class="bib-note">Introduced the container abstraction for CDC chunk storage and the Summary Vector index for deduplication lookup without per-chunk disk I/O. The foundation for most modern deduplication storage architectures.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/legacy/event/fast08/tech/full_papers/zhu/zhu.pdf" class="bib-link external"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    W. Xia, H. Jiang, D. Feng, F. Douglis, P. Shilane, Y. Hua, M. Fu, Y. Zhang &amp; Y. Zhou, "A Comprehensive Study of the Past, Present, and Future of Data Deduplication," <em>Proceedings of the IEEE</em>, vol. 104, no. 9, pp. 1681-1710, September 2016.
+  </div>
+  <div class="bib-note">Broad survey of deduplication techniques covering chunking, indexing, storage, and optimization. Provides context for how CDC fits into full deduplication system architectures.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7529062" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    M. Lillibridge, K. Eshghi, D. Bhagwat, V. Deolalikar, G. Trezise &amp; P. Camble, "Sparse Indexing: Large Scale, Inline Deduplication Using Sampling and Locality," <em>7th USENIX Conference on File and Storage Technologies (FAST '09)</em>, San Jose, CA, February 2009.
+  </div>
+  <div class="bib-note">Introduced sparse indexing for deduplication at scale by sampling a subset of chunk fingerprints rather than maintaining a complete index. Exploits locality to achieve high deduplication with much lower memory overhead.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast-09/sparse-indexing-large-scale-inline-deduplication-using-sampling-and-locality" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    D. T. Meyer &amp; W. J. Bolosky, "A Study of Practical Deduplication," <em>9th USENIX Conference on File and Storage Technologies (FAST '11)</em>, San Jose, CA, February 2011.
+  </div>
+  <div class="bib-note">Large-scale empirical study of deduplication across 857 desktop systems. Showed that cross-user deduplication yields modest gains relative to single-user, and that most deduplication comes from file-level rather than sub-file matches.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/legacy/event/fast11/tech/full_papers/Meyer.pdf" class="bib-link external"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    H. Wu, C. Wang, K. Lu, Y. Fu &amp; L. Zhu, "One Size Does Not Fit All: The Case for Chunking Configuration in Backup Deduplication," <em>18th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid '18)</em>, 2018.
+  </div>
+  <div class="bib-note">Studied the impact of chunk size configuration on deduplication effectiveness across different backup workloads. Argues that no single chunk size is optimal for all data types.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/8411025" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<!-- ===================================== -->
+<!-- Containers, Fragmentation &amp; GC    -->
+<!-- ===================================== -->
+
+<div class="bib-section-title">Containers, Fragmentation &amp; GC</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    M. Kaczmarczyk, M. Barczynski, W. Kilian &amp; C. Dubnicki, "Reducing Impact of Data Fragmentation Caused by In-line Deduplication," <em>SYSTOR '12</em>, Haifa, Israel, June 2012.
+  </div>
+  <div class="bib-note">First systematic study of fragmentation in deduplication systems. Introduced the concept of forward assembly areas and capping to limit the read amplification caused by scattered chunk references across containers.</div>
+  <div class="bib-links">
+    <a href="https://dl.acm.org/doi/10.1145/2367589.2367600" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    M. Lillibridge, K. Eshghi &amp; D. Bhagwat, "Improving Restore Speed for Backup Systems that Use Inline Chunk-Based Deduplication," <em>11th USENIX Conference on File and Storage Technologies (FAST '13)</em>, San Jose, CA, February 2013.
+  </div>
+  <div class="bib-note">Analyzed restore performance degradation as backup generations accumulate. Proposed container capping and read-ahead strategies to improve restore throughput for deduplicated backups.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast13/technical-sessions/presentation/lillibridge" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    M. Fu, D. Feng, Y. Hua, X. He, Z. Chen, W. Xia, Y. Zhang &amp; Y. Tan, "Accelerating Restore and Garbage Collection in Deduplication-based Backup Systems via Exploiting Historical Information," <em>USENIX ATC '14</em>, Philadelphia, PA, June 2014.
+  </div>
+  <div class="bib-note">Used historical backup metadata to predict future access patterns, improving both restore speed and garbage collection efficiency in deduplication systems.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/atc14/technical-sessions/presentation/fu_min" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    M. Fu, D. Feng, Y. Hua, X. He, Z. Chen, W. Xia, Y. Zhang &amp; Y. Tan, "Design Tradeoffs for Data Deduplication Performance in Backup Workloads," <em>13th USENIX Conference on File and Storage Technologies (FAST '15)</em>, Santa Clara, CA, February 2015.
+  </div>
+  <div class="bib-note">Systematic study of design tradeoffs in deduplication systems: container size, index structure, and rewriting strategies. Showed how each parameter affects deduplication ratio, backup throughput, and restore speed.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast15/technical-sessions/presentation/fu" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    F. Douglis, A. Duggal, P. Shilane, T. Wong, S. Yan &amp; F. Botelho, "The Logic of Physical Garbage Collection in Deduplicating Storage," <em>15th USENIX Conference on File and Storage Technologies (FAST '17)</em>, Santa Clara, CA, February 2017.
+  </div>
+  <div class="bib-note">Detailed analysis of garbage collection in the Data Domain system. Describes the challenges of reclaiming space when chunks are shared across containers and backup generations.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast17/technical-sessions/presentation/douglis" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    X. Zou et al., "The Dilemma between Deduplication and Locality: Can Both be Achieved?" <em>19th USENIX Conference on File and Storage Technologies (FAST '21)</em>, February 2021.
+  </div>
+  <div class="bib-note">Directly addresses the fundamental tension between deduplication ratio and data locality. Proposes techniques for improving restore performance without sacrificing deduplication effectiveness.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/fast21/presentation/zou" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    D. Liu et al., "Garbage Collection Does Not Only Collect Garbage: Piggybacking-Style Defragmentation for Deduplicated Backup Storage," <em>EuroSys '25</em>, 2025.
+  </div>
+  <div class="bib-note">Combines garbage collection with defragmentation by rewriting live chunks into locality-optimized containers during GC passes. Improves restore speed as a side effect of reclaiming space.</div>
+  <div class="bib-links">
+    <a href="https://dl.acm.org/doi/10.1145/3689031.3717493" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Cloud Storage         -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Cloud Storage</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Duggal, F. Jenkins, P. Shilane, R. Chinthekindi, R. Shah &amp; M. Kamat, "Data Domain Cloud Tier: Backup here, backup there, deduplicated everywhere!" <em>USENIX ATC '19</em>, Renton, WA, July 2019.
+  </div>
+  <div class="bib-note">Describes the engineering of moving deduplicated data to cloud object storage while preserving deduplication benefits. Addresses the specific challenges of per-operation cloud pricing for small-object workloads.</div>
+  <div class="bib-links">
+    <a href="https://www.usenix.org/conference/atc19/presentation/duggal" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> USENIX</a>
+  </div>
+</div>
+
+<!-- ================================ -->
+<!-- Caching &amp; Access Patterns    -->
+<!-- ================================ -->
+
+<div class="bib-section-title">Caching &amp; Access Patterns</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    L. Breslau, P. Cao, L. Fan, G. Phillips &amp; S. Shenker, "Web Caching and Zipf-like Distributions: Evidence and Implications," <em>IEEE INFOCOM '99</em>, 1999.
+  </div>
+  <div class="bib-note">Showed that web request frequencies follow a Zipf distribution. Measured &alpha; values between 0.64 and 0.83 for web traffic, establishing the empirical basis for cache sizing models.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/749260" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    D. S. Berger, N. Beckmann &amp; M. Harchol-Balter, "Practical Bounds on Optimal Caching with Variable Object Sizes," <em>Proceedings of the ACM on Measurement and Analysis of Computing Systems (POMACS)</em>, vol. 2, no. 2, 2018.
+  </div>
+  <div class="bib-note">Found &alpha; values between 0.85 and 1.0 on real CDN and web application traces, indicating modern access patterns are even more skewed than Breslau et al. measured. Provides practical bounds for cache sizing.</div>
+  <div class="bib-links">
+    <a href="https://dl.acm.org/doi/10.1145/3224427" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ACM DL</a>
+  </div>
+</div>
+
+<!-- ================================ -->
+<!-- File &amp; Commit Statistics     -->
+<!-- ================================ -->
+
+<div class="bib-section-title">File &amp; Commit Statistics</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    I. Herraiz, D. M. German &amp; A. E. Hassan, "On the Distribution of Source Code File Sizes," <em>6th International Conference on Software and Data Technologies (ICSOFT '11)</em>, 2011.
+  </div>
+  <div class="bib-note">Empirical study of source code file size distributions across open-source projects. Provides data used for modeling CDC workloads on source code repositories.</div>
+  <div class="bib-links">
+    <a href="https://www.researchgate.net/publication/220737991_On_the_Distribution_of_Source_Code_File_Sizes" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> ResearchGate</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    O. Arafat &amp; D. Riehle, "The Commit Size Distribution of Open Source Software," <em>42nd Hawaii International Conference on System Sciences (HICSS-42)</em>, 2009.
+  </div>
+  <div class="bib-note">Analyzed commit size distributions in open-source projects. Provides empirical grounding for modeling change rates and deduplication effectiveness in version-controlled codebases.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/4755633" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<!-- ================================ -->
+<!-- Code-Aware Chunking              -->
+<!-- ================================ -->
+
+<div class="bib-section-title">Code-Aware Chunking</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Y. Zhang, X. Zhao, Z. Z. Wang, C. Yang, J. Wei &amp; T. Wu, "cAST: Enhancing Code Retrieval-Augmented Generation with Structural Chunking via Abstract Syntax Tree," <em>arXiv:2506.15655</em>, 2025.
+  </div>
+  <div class="bib-note">Uses abstract syntax trees to chunk source code at structural boundaries rather than content-defined boundaries. Explores the frontier of structure-aware chunking for code retrieval and RAG applications.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2506.15655" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Y. Collet, N. Terrell, W. F. Handte, D. Rozenblit, V. Zhang, K. Zhang, Y. Goldschlag, J. Lee, E. Gorokhovsky, Y. Komornik, D. Riegel, S. Angelov &amp; N. Rotem, "OpenZL: A Graph-Based Model for Compression," <em>arXiv:2510.03203</em>, October 2025.
+  </div>
+  <div class="bib-note">Proposes a graph-based model for compression that can represent and optimize across different compression strategies including deduplication.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2510.03203" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://openzl.org/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Project</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Deployments & Tools  -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Deployments &amp; Tools</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    N. Koorapati, "Streaming File Synchronization," <em>Dropbox Tech Blog</em>, July 2014.
+  </div>
+  <div class="bib-note">Describes Dropbox's use of CDC for streaming file synchronization, reducing bandwidth by transmitting only changed chunks.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/streaming-file-synchronization" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Dropbox Tech Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    R. Jain &amp; D. R. Horn, "Broccoli: Syncing Faster by Syncing Less," <em>Dropbox Tech Blog</em>, August 2020.
+  </div>
+  <div class="bib-note">Describes Dropbox's evolution of their CDC-based sync protocol, reducing sync overhead by intelligently skipping unchanged regions.</div>
+  <div class="bib-links">
+    <a href="https://dropbox.tech/infrastructure/-broccoli--syncing-faster-by-syncing-less" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Dropbox Tech Blog</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Y. Cui, Z. Lai, N. Dai &amp; X. Wang, "QuickSync: Improving Synchronization Efficiency for Mobile Cloud Storage Services," <em>IEEE Transactions on Mobile Computing</em>, vol. 16, no. 12, pp. 3513-3526, 2017.
+  </div>
+  <div class="bib-note">Applies CDC to mobile cloud storage synchronization, addressing the specific constraints of mobile bandwidth and battery life.</div>
+  <div class="bib-links">
+    <a href="https://ieeexplore.ieee.org/document/7898362" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> IEEE Xplore</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Seafile Ltd., "Data Model," <em>Seafile Administration Manual</em>.
+  </div>
+  <div class="bib-note">Documents Seafile's CDC implementation for file synchronization and deduplication in their open-source cloud storage platform.</div>
+  <div class="bib-links">
+    <a href="https://manual.seafile.com/latest/develop/data_model/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/haiwen/seafile-server" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Riot Games Technology, "Supercharging Data Delivery: The New League Patcher," 2019.
+  </div>
+  <div class="bib-note">Describes Riot Games' move from binary deltas to FastCDC-based content-defined chunking for League of Legends game updates.</div>
+  <div class="bib-links">
+    <a href="https://technology.riotgames.com/news/supercharging-data-delivery-new-league-patcher" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Riot Games</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    IPFS Documentation, "File Systems: Chunking."
+  </div>
+  <div class="bib-note">Describes IPFS's use of Rabin fingerprinting for content-defined chunking alongside fixed-size splitting in content-addressed distributed storage.</div>
+  <div class="bib-links">
+    <a href="https://docs.ipfs.tech/concepts/file-systems/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/ipfs/boxo/tree/main/chunker" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Neumann, "Restic Foundation - Content Defined Chunking," <em>Restic Blog</em>, September 2015.
+  </div>
+  <div class="bib-note">Describes Restic's use of Rabin fingerprint-based CDC for deduplication in its backup tool.</div>
+  <div class="bib-links">
+    <a href="https://restic.net/blog/2015-09-12/restic-foundation1-cdc/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Blog</a>
+    <a href="https://github.com/restic/chunker" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    BorgBackup Contributors, "Internals: Data Structures," <em>BorgBackup Documentation</em>.
+  </div>
+  <div class="bib-note">Describes Borg's Buzhash-based chunker with a keyed seed for chunk boundary detection.</div>
+  <div class="bib-links">
+    <a href="https://borgbackup.readthedocs.io/en/stable/internals/data-structures.html" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/borgbackup/borg" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Kopia Contributors, "Architecture," <em>Kopia Documentation</em>.
+  </div>
+  <div class="bib-note">Describes Kopia's rolling-hash file splitting for content-addressable deduplication in its backup system.</div>
+  <div class="bib-links">
+    <a href="https://kopia.io/docs/advanced/architecture/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/kopia/kopia" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    G. Chen, "Variable-size Chunking," <em>Duplicacy Design Document</em>.
+  </div>
+  <div class="bib-note">Describes Duplicacy's variable-size CDC with configurable minimum, average, and maximum chunk sizes.</div>
+  <div class="bib-links">
+    <a href="https://github.com/gilbertchen/duplicacy/wiki/Chunk-Size" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Wiki</a>
+    <a href="https://github.com/gilbertchen/duplicacy" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Chambers, "Technical Overview," <em>Bupstash Documentation</em>.
+  </div>
+  <div class="bib-note">Describes Bupstash's GearHash-based content-defined chunking for encrypted, deduplicated backups.</div>
+  <div class="bib-links">
+    <a href="https://github.com/andrewchambers/bupstash/blob/master/doc/technical_overview.md" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+    <a href="https://github.com/andrewchambers/bupstash" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    C. Percival, "How Tarsnap Deduplication Works," <em>Tarsnap Documentation</em>.
+  </div>
+  <div class="bib-note">Describes Tarsnap's context-dependent variable-size chunking for client-side deduplication.</div>
+  <div class="bib-links">
+    <a href="https://www.tarsnap.com/deduplication-explanation" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Docs</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    L. Poettering, "casync: Content-Addressable Data Synchronization Tool," 2017.
+  </div>
+  <div class="bib-note">Uses CDC to split filesystem images into variable-size chunks for efficient OS and container image distribution.</div>
+  <div class="bib-links">
+    <a href="https://github.com/systemd/casync" class="bib-link external"><i class="fa-brands fa-github"></i> GitHub</a>
+    <a href="https://lwn.net/Articles/726625/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> LWN</a>
+  </div>
+</div>
+
 <div class="bib-posts">
   <div class="bib-posts-title">Related posts</div>
-  <a href="/writings/content-defined-chunking-part-1">Part 1: Three Families of CDC</a>
+  <a href="/writings/content-defined-chunking-part-1">Part 1: From Problem to Taxonomy</a>
   <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
   <a href="/writings/content-defined-chunking-part-3">Part 3: Deduplication in Action</a>
+  <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
+  <a href="/writings/content-defined-chunking-part-5">Part 5: CDC at Scale on a Budget</a>
 </div>
+
+</section>
