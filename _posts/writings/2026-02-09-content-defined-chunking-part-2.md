@@ -1754,7 +1754,7 @@ At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations
 
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
 
-*The visualization below uses 32-bit values for compactness. The real FastCDC implementation uses 64-bit GEAR table entries and a 64-bit hash accumulator, as shown in the code samples that follow. The algorithm works identically at either width -- only the bit count and mask positions change.*
+The visualization below uses 32-bit values for compactness. The real FastCDC implementation uses 64-bit GEAR table entries and a 64-bit hash accumulator, as shown in the code samples that follow. The algorithm works identically at either width -- only the bit count and mask positions change. To internalize the algorithm, try advancing the animation one step at a time and observe the Gear table lookup, the rolling hash manipulation, and the binary addition at each position. Playing the animation at full speed is also useful for seeing the overall flow, but stepping through it frame by frame is the best way to build intuition.
 
 <div class="cdc-viz" id="gear-hash-demo">
   <div class="cdc-viz-header">

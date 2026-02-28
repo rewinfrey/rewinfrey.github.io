@@ -1572,7 +1572,15 @@ MathJax = {
 Part 1 of 5 in a series on Content-Defined Chunking. Next: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a>
 </div>
 
-Content-Defined Chunking (CDC) is a family of algorithms that split data into variable-sized chunks based on content rather than position, enabling efficient deduplication even when files are edited. Through interactive visualizations and sample code, this post aims to illustrate the core insight that chunk boundaries should be determined by content, not arbitrary byte offsets. It compares the three main CDC algorithm families, examining their strengths, weaknesses, and tradeoffs so that if you are choosing a CDC algorithm for deduplication, you have a good sense of which family is the best fit for your domain and use case.
+Have you ever considered what it takes to store large amounts of user content at scale? Especially content like files or source code, where multiple versions of the same document exist with only minor changes between them. It's easy to take document storage for granted, but storing content at scale efficiently is a surprisingly nuanced problem. While there are numerous aspects to this problem space, this series focuses on one in particular: deduplication. How do you avoid storing the same unchanged bytes of a file over and over again as that file evolves? Ideally, a storage system would only store the minimum set of unique bytes. Is that even possible? This series will help answer that question, and more.
+
+What is deduplication? At its heart, it is the separation of content that changed from content that has not, with varying levels of precision and accuracy. But how do you identify what changed? That's where the content-defined chunking (CDC) family of algorithms offers help. These algorithms share a common goal: splitting a file into smaller chunks at byte boundaries determined by the content's own structure. A small edit to a file produces a small change in the resulting chunks, leaving the rest unchanged and reusable. Doing this efficiently across diverse content requires different tradeoffs and approaches. We'll explore those tradeoffs before diving deep into a popular general-purpose CDC algorithm, FastCDC.
+
+This series presents an overview of 40 years of CDC research, walks through FastCDC in detail, outlines a deduplication pipeline to illustrate how these systems work in production, and explores the cost factors and architectural tradeoffs that shape CDC-backed deduplication at large scale.
+
+Interactive visualizations appear throughout to help build mental models for the algorithms, constraints, and costs associated with CDC. You can manipulate chunk sizes, container capacities, cache hit rates, and provider pricing to see how these factors interact, with real-world pricing from several cloud object storage providers.
+
+The goal is to give you the mental models and quantitative tools to reason about deduplication in practice, whether you're evaluating backup tools, designing a storage system, or just curious about how the infrastructure beneath your data actually works.
 
 <div class="cdc-toc">
   <strong>Contents</strong>
@@ -1615,12 +1623,13 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
     <li>
       <a href="/writings/content-defined-chunking-part-4">CDC in the Cloud</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 4)</em>
       <ul>
-        <li><a href="/writings/content-defined-chunking-part-4#the-cost-comparison">The Cost Comparison</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#the-cloud-cost-problem">The Cloud Cost Problem</a></li>
         <li><a href="/writings/content-defined-chunking-part-4#reducing-costs-through-containers">Reducing Costs through Containers</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#the-impact-of-containers-on-cost">The Impact of Containers on Cost</a></li>
         <li><a href="/writings/content-defined-chunking-part-4#more-containers-more-problems">More Containers More Problems</a></li>
         <li><a href="/writings/content-defined-chunking-part-4#the-fragmentation-problem">The Fragmentation Problem</a></li>
         <li><a href="/writings/content-defined-chunking-part-4#garbage-collection">Garbage Collection</a></li>
-        <li><a href="/writings/content-defined-chunking-part-4#design-tradeoffs">Design Tradeoffs</a></li>
+        <li><a href="/writings/content-defined-chunking-part-4#container-size-as-the-primary-lever">Container Size as the Primary Lever</a></li>
       </ul>
     </li>
     <li>
@@ -1628,7 +1637,9 @@ Content-Defined Chunking (CDC) is a family of algorithms that split data into va
       <ul>
         <li><a href="/writings/content-defined-chunking-part-5#the-cost-comparison-continued">The Cost Comparison Continued</a></li>
         <li><a href="/writings/content-defined-chunking-part-5#reducing-costs-through-caching">Reducing Costs through Caching</a></li>
+        <li><a href="/writings/content-defined-chunking-part-5#all-costs-considered">All Costs Considered</a></li>
         <li><a href="/writings/content-defined-chunking-part-5#why-i-care-about-this">Why I Care About This</a></li>
+        <li><a href="/writings/content-defined-chunking-part-5#conclusion">Conclusion</a></li>
       </ul>
     </li>
   </ol>
@@ -1659,7 +1670,9 @@ Inserting "NEW INTRO." at the beginning of the file causes every chunk boundary 
 
 ### The Core Idea: Content as the Arbiter
 
-How does CDC decide where to split? The details vary across CDC algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
+Instead of using fixed-length byte windows to split a file into chunks, what if we could use patterns or structure in the file's content to identify chunk boundaries? This is the core problem a family of algorithms known as content-defined chunking (CDC) attempts to solve.
+
+How does CDC decide where to split? The details vary across algorithms, but the core principle is the same: examine a small region of data at each position, and declare a boundary when the content at that position satisfies some condition. Different algorithms use different strategies for this. Some compute a hash of a sliding window, some look for local extrema in the byte values, and some use statistical properties of the data. What they all share is that the boundary decision, or split point, is dependent on the content itself.
 
 Let's revisit the same example from before, but this time we split the text at sentence boundaries. Each sentence ending (a period, exclamation mark, or question mark followed by a space) defines a chunk boundary. Because the boundary is determined by the content itself, not by a fixed byte count, inserting text at the beginning of the file does not invalidate existing unchanged chunks.
 
@@ -1692,7 +1705,7 @@ where $p$ is an irreducible polynomial over $GF(2)$.
 Ask your AI assistant about "Galois fields" and "polynomial arithmetic in GF(2)" to understand the mathematical foundations.
 </div>
 
-Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS used a 48-byte sliding window with Rabin fingerprints: when the low 13 bits equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was showing CDC could achieve dramatic bandwidth savings for real file workloads: modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
+Twenty years later, the **Low-Bandwidth File System** (LBFS) at MIT became the first major system to use CDC in practice.<span class="cdc-cite"><a href="#ref-2">[2]</a></span> LBFS slid a 48-byte window across the data and computed a Rabin fingerprint at each position. Whenever the low 13 bits of the fingerprint equaled a magic constant, it declared a chunk boundary, producing an average chunk size of about 8KB. The breakthrough was demonstrating that CDC could achieve dramatic bandwidth savings for real file workloads. Modifying a single paragraph in a large document transmitted only the changed chunk, not the entire file.
 
 {% highlight c linenos %}
 // Simplified LBFS boundary check
@@ -1703,11 +1716,10 @@ if ((fingerprint % 8192) == 0x78) {
 }
 {% endhighlight %}
 
-The deduplication era of 2005-2015 drove an explosion of CDC research. Systems like **Data Domain**, **Dropbox**, and **Borg** all relied on CDC, and researchers responded with faster hash functions, better chunk size distributions, and entirely new approaches to finding boundaries. By the mid-2010s, what had been a single technique branched into a family of algorithms with fundamentally different strategies.
-
+The deduplication era of 2005-2015 drove an explosion of CDC research. Many successful systems built deduplication pipelines using CDC based on advances in research that produced faster hash functions, better chunk size distributions, and new ways of finding chunk boundaries. By the mid-2010s, what had been a single technique branched into a family of algorithms with fundamentally different strategies.
 ### A Taxonomy of CDC Algorithms
 
-A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href="#ref-12">[12]</a></span> organizes the landscape into **three distinct families** based on their core mechanism for finding chunk boundaries. This taxonomy clarifies a field that can otherwise feel like a confusing proliferation of acronyms.
+A comprehensive 2024 survey by Gregoriadis et al.<span class="cdc-cite"><a href="#ref-12">[12]</a></span> organizes the CDC landscape into **three distinct families** based on their core mechanism for finding chunk boundaries. This taxonomy clarifies a field that can otherwise feel like a confusing proliferation of acronyms.
 
 <div class="cdc-taxonomy-table">
   <table>
@@ -2262,7 +2274,7 @@ for (; i + 32 <= len; i += 32) {
 
 </div>
 
-In the next post, [Part 2: A Deep Dive into FastCDC](/writings/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with Normalized Chunking and cut-point skipping to achieve both high throughput and excellent deduplication.
+In the next post, [Part 2: A Deep Dive into FastCDC](/writings/content-defined-chunking-part-2), we'll take a closer look at the BSW family through FastCDC, an algorithm that combines Gear hashing with normalized chunking to achieve both high throughput and excellent deduplication.
 
 ---
 

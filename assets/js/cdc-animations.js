@@ -1272,7 +1272,7 @@ class ChunkComparisonDemo {
     this.container.appendChild(chunkIndicator);
 
     // Before file (chunked)
-    const beforeSection = this.buildFileSection('Before edit (chunked)', beforeChunks, false);
+    const beforeSection = this.buildFileSection('Before edit', beforeChunks, false);
     this.container.appendChild(beforeSection);
 
     // Compute byte totals
