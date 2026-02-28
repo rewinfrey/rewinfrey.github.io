@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/assets/css/solid.min.css">
   <link rel="stylesheet" href="/assets/css/brands.min.css">
 
+  {% if jekyll.environment == "production" %}
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YYLEYLDGJV"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -24,4 +25,5 @@
 
     gtag('config', 'G-YYLEYLDGJV');
   </script>
+  {% endif %}
 </head>
