@@ -55,12 +55,19 @@ title: Rick Winfrey
     {% for post in site.categories['writings'] limit:5 %}
       <a href="{{ post.url }}" class="writing-card">
         <div class="writing-meta">
-          <span class="writing-date">{{ post.date | date: "%B %Y" }}</span>
+          <span class="writing-date">{{ post.date | date: "%B %d, %Y" }}</span>
           <span class="writing-dot"></span>
           {% assign read_time = post.content | strip_html | number_of_words | divided_by: site.words_per_minute %}
           <span>{% if read_time == 0 %}1{% else %}{{ read_time }}{% endif %} min read</span>
+          {% if post.interactive %}
+            <span class="writing-dot"></span>
+            <span class="interactive-badge">Interactive</span>
+          {% endif %}
         </div>
         <h3 class="writing-title">{{ post.title }}</h3>
+        {% if post.subtitle %}
+          <span class="subtitle-list">{{ post.subtitle }}</span>
+        {% endif %}
         {% if post.summary %}
           <p class="writing-excerpt">{{ post.summary }}</p>
         {% endif %}
