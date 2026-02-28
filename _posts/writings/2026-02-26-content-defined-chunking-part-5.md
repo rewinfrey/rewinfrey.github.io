@@ -3,7 +3,7 @@ layout: writing
 group: Writings
 title: "CDC at Scale on a Budget"
 subtitle: "Content-Defined Chunking, Part 5"
-summary: "Cloud object storage can be expensive for CDC at scale. This post explores cost-saving alternatives: newcomer storage providers with radically different pricing, and the role caching plays under Zipf access patterns to drive costs down further."
+summary: "Cloud object storage can be expensive for CDC at scale. This post explores cost-saving alternatives: challenger storage providers with radically different pricing, and the role caching plays under Zipf access patterns to drive costs down further."
 date: 2026-02-26 12:00:00
 interactive: true
 categories:
@@ -342,11 +342,11 @@ Part 5 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writing
 
 ### The Cost Comparison Continued
 
-The dominance of per-operation costs on major cloud providers is what makes container packing essential. But a newer generation of S3-compatible storage services has emerged with pricing models that eliminate or sharply reduce the very cost dimensions that punish CDC. [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/) charges zero egress. [Backblaze B2](https://www.backblaze.com/cloud-storage) offers free uploads and storage at a fraction of S3's price. [Wasabi](https://wasabi.com/) charges no per-operation fees and no egress fees at all. The explorer below applies the same workload to these newcomers.
+The dominance of per-operation costs on major cloud providers is what makes container packing essential. But a newer generation of S3-compatible storage services has emerged with pricing models that eliminate or sharply reduce the very cost dimensions that punish CDC. [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/) charges zero egress. [Backblaze B2](https://www.backblaze.com/cloud-storage) offers free uploads and storage at a fraction of S3's price. [Wasabi](https://wasabi.com/) charges no per-operation fees and no egress fees at all. The explorer below applies the same workload to these challengers.
 
 <div class="cdc-viz" id="newcomer-cost-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Newcomer Cost Explorer</span>
+    <span class="cdc-viz-title">Challenger Object Storage Provider Cost Explorer</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -368,11 +368,11 @@ The dominance of per-operation costs on major cloud providers is what makes cont
   </div>
 </div>
 
-The savings over traditional providers are substantial. Each newcomer eliminates a different cost dimension: R2 kills egress, B2 offers free uploads and cheap storage, and Wasabi removes both operations and egress fees entirely. The explorer below puts all six providers side by side so you can compare directly.
+The savings over established providers are substantial. Each challenger eliminates a different cost dimension: R2 kills egress, B2 offers free uploads and cheap storage, and Wasabi removes both operations and egress fees entirely. The explorer below puts all six providers side by side so you can compare directly.
 
 <div class="cdc-viz" id="provider-comparison-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Provider Cost Comparison</span>
+    <span class="cdc-viz-title">Established vs. Challenger Object Storage Provider Cost Comparison</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -390,7 +390,7 @@ The savings over traditional providers are substantial. Each newcomer eliminates
   </div>
 </div>
 
-Egress dominates the traditional provider bills, and the newcomers that eliminate it see the largest absolute savings. Wasabi's model is the most aggressive: with no per-operation or egress fees, the only cost is storage itself. However, Wasabi's pricing comes with constraints. There is a 90-day minimum storage duration (deleting data sooner still incurs the full charge), a 1 TB minimum storage volume, and a fair-use egress policy that caps monthly egress at your total storage volume. For read-heavy workloads where egress significantly exceeds stored data, the "free egress" claim may not hold.
+Egress dominates the established provider bills, and the challengers that eliminate it see the largest absolute savings. Wasabi's model is the most aggressive: with no per-operation or egress fees, the only cost is storage itself. However, Wasabi's pricing comes with constraints. There is a 90-day minimum storage duration (deleting data sooner still incurs the full charge), a 1 TB minimum storage volume, and a fair-use egress policy that caps monthly egress at your total storage volume. For read-heavy workloads where egress significantly exceeds stored data, the "free egress" claim may not hold.
 
 ### Reducing Costs through Caching
 
@@ -448,11 +448,11 @@ Under a Zipf distribution, the cache size needed for a target hit rate *h* is ap
 
 The relationship between hit rate and cache size is worth pausing on, because it is not immediately intuitive. A 50% hit rate means serving half of all *requests* from cache. Because access patterns are skewed, the most popular 18% of unique data accounts for 50% of all requests -- those chunks get hit over and over. To reach a 90% hit rate, you need to also cache the moderately popular long tail, which requires about 77% of unique data. And reaching 99% means caching nearly everything (98%), because that last 9% of requests comes from rarely-accessed chunks that each contribute only a small share of traffic.
 
-The cost impact depends heavily on the pricing model. Traditional cache providers charge for provisioned capacity: you pay for memory whether it is hit or not. Newer providers charge per-request: you pay only for the operations you use, with no idle cost.
+The cost impact depends heavily on the pricing model. Established cache providers charge for provisioned capacity: you pay for memory whether it is hit or not. Challenger providers charge per-request: you pay only for the operations you use, with no idle cost.
 
 <div class="cdc-viz" id="cache-traditional-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Traditional Cache Providers</span>
+    <span class="cdc-viz-title">Established Cache Provider Cost Explorer</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -467,11 +467,11 @@ The cost impact depends heavily on the pricing model. Traditional cache provider
   </div>
 </div>
 
-The per-request cache providers invert the cost structure. Instead of provisioning memory upfront, you pay for each cache read (hit) and each cache write (miss that populates the cache). Storage costs, if any, scale with the actual cached data volume.
+The challenger cache providers invert the cost structure. Instead of provisioning memory upfront, you pay for each cache read (hit) and each cache write (miss that populates the cache). Storage costs, if any, scale with the actual cached data volume.
 
 <div class="cdc-viz" id="cache-newcomer-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Per-Request Cache Providers</span>
+    <span class="cdc-viz-title">Challenger Cache Provider Cost Explorer</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -498,7 +498,7 @@ The individual explorers above isolate several cost dimensions: storage provider
   </div>
 </div>
 
-The cost landscape has a few clear takeaways. First, provider choice dominates: newcomer storage providers with free egress and zero per-operation fees can reduce the monthly bill by 90% or more compared to traditional providers at the same chunk size and container configuration. Second, caching interacts with provider choice in non-obvious ways. A CDN cache in front of a traditional provider offloads expensive egress and read operations, producing large absolute savings. But the same cache in front of a free-egress provider like R2 or Wasabi adds cost without offsetting much, because there was little egress cost to begin with. Third, container packing remains essential regardless of provider or cache layer. Without it, per-operation costs at small chunk sizes overwhelm every other line item. The container abstraction from [Part 4](/writings/content-defined-chunking-part-4) is not optional; it is a prerequisite for making CDC economically viable on any cloud object store.
+The cost landscape has a few clear takeaways. First, provider choice dominates: challenger storage providers with free egress and zero per-operation fees can reduce the monthly bill by 90% or more compared to established providers at the same chunk size and container configuration. Second, caching interacts with provider choice in non-obvious ways. A CDN cache in front of an established provider offloads expensive egress and read operations, producing large absolute savings. But the same cache in front of a free-egress provider like R2 or Wasabi adds cost without offsetting much, because there was little egress cost to begin with. Third, container packing remains essential regardless of provider or cache layer. Without it, per-operation costs at small chunk sizes overwhelm every other line item. The container abstraction from [Part 4](/writings/content-defined-chunking-part-4) is not optional; it is a prerequisite for making CDC economically viable on any cloud object store.
 
 ### Why I Care About This
 

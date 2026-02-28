@@ -1964,7 +1964,7 @@ The problem with basic masking is chunk sizes follow an exponential distribution
 
 <div class="cdc-viz">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Chunk Size Distribution: Basic vs Normalized</span>
+    <span class="cdc-viz-title">Basic vs Normalized Chunk Size Distribution</span>
   </div>
   <div class="dist-illustration">
     <div class="dist-illustration-panel">

@@ -1644,6 +1644,28 @@ Along the way, there are several interactive visualizations provided to help bui
         <li><a href="/writings/content-defined-chunking-part-5#conclusion">Conclusion</a></li>
       </ul>
     </li>
+    <li><a href="/references/cdc">References</a></li>
+    <li>
+      <a href="/sandbox/cdc">Visualizations</a>
+      <ul>
+        <li><a href="/sandbox/cdc#fixed-chunking-demo">Fixed-Size Chunking</a></li>
+        <li><a href="/sandbox/cdc#cdc-chunking-demo">Content-Defined Chunking</a></li>
+        <li><a href="/sandbox/cdc#gear-hash-demo">Gear Hash in Action</a></li>
+        <li><a href="/sandbox/cdc#comparison-demo">Basic vs Normalized Chunk Size Distribution</a></li>
+        <li><a href="/sandbox/cdc#parametric-demo">Parametric Chunking Explorer</a></li>
+        <li><a href="/sandbox/cdc#dedup-demo">Deduplication Explorer</a></li>
+        <li><a href="/sandbox/cdc#cost-tradeoffs-demo">Cost Tradeoffs Explorer</a></li>
+        <li><a href="/sandbox/cdc#naive-cost-demo">Established Object Storage Provider Cost Explorer</a></li>
+        <li><a href="/sandbox/cdc#packed-cost-demo">Established Object Storage Provider Cost Explorer with Containers</a></li>
+        <li><a href="/sandbox/cdc#newcomer-cost-demo">Challenger Object Storage Provider Cost Explorer</a></li>
+        <li><a href="/sandbox/cdc#provider-comparison-demo">Established vs. Challenger Object Storage Provider Cost Comparison</a></li>
+        <li><a href="/sandbox/cdc#zipf-distribution-demo">Zipf Popularity Distribution</a></li>
+        <li><a href="/sandbox/cdc#zipf-cache-demo">Cache Size vs. Hit Rate</a></li>
+        <li><a href="/sandbox/cdc#cache-traditional-demo">Established Cache Provider Cost Explorer</a></li>
+        <li><a href="/sandbox/cdc#cache-newcomer-demo">Challenger Cache Provider Cost Explorer</a></li>
+        <li><a href="/sandbox/cdc#comprehensive-cost-demo">Comprehensive Cost Model</a></li>
+      </ul>
+    </li>
   </ol>
 </div>
 

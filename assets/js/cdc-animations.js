@@ -3701,7 +3701,7 @@ class ProviderComparisonDemo {
         const avgTr = document.createElement('tr');
         avgTr.className = 'provider-avg-row';
         const avgName = document.createElement('td');
-        avgName.textContent = 'Avg. traditional';
+        avgName.textContent = 'Avg. established';
         avgTr.appendChild(avgName);
         // Empty cells for storage, operations, egress
         for (let j = 0; j < 3; j++) {
@@ -3818,7 +3818,7 @@ class ProviderComparisonDemo {
       if (this.providers[i].traditional) continue;
       const row = this.providerRows[i];
       const pctSaved = ((tradAvg - totals[i]) / tradAvg * 100).toFixed(0);
-      row.savings.textContent = `(-${pctSaved}% vs. traditional avg.)`;
+      row.savings.textContent = `(-${pctSaved}% vs. established avg.)`;
       row.total.td.style.color = '#2d7a4f';
     }
   }
@@ -5320,7 +5320,7 @@ class ComprehensiveCostDemo {
         const avgTr = document.createElement('tr');
         avgTr.className = 'provider-avg-row';
         const avgName = document.createElement('td');
-        avgName.textContent = 'Avg. traditional';
+        avgName.textContent = 'Avg. established';
         avgTr.appendChild(avgName);
         for (let j = 0; j < 3; j++) {
           avgTr.appendChild(document.createElement('td'));
@@ -5730,7 +5730,7 @@ class ComprehensiveCostDemo {
       if (this.storageProviders[i].traditional) continue;
       const row = this.storageRows[i];
       const pctSaved = ((tradAvg - totals[i]) / tradAvg * 100).toFixed(0);
-      row.savings.textContent = `(-${pctSaved}% vs. traditional avg.)`;
+      row.savings.textContent = `(-${pctSaved}% vs. established avg.)`;
       row.total.td.style.color = '#2d7a4f';
     }
 

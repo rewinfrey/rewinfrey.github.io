@@ -250,13 +250,13 @@ This post starts with the cost problem that naive cloud chunk storage creates, t
 
 ### The Cloud Cost Problem
 
-Traditional cloud object storage providers charge per API operation. Every PUT writes one object; every GET reads one object. If you take a textbook CDC pipeline and store each unique chunk as its own object on S3, you get one PUT per chunk on the write path and one GET per chunk on the read path. With billions of small chunks, the per-operation costs add up fast.
+Established cloud object storage providers charge per API operation. Every PUT writes one object; every GET reads one object. If you take a textbook CDC pipeline and store each unique chunk as its own object on S3, you get one PUT per chunk on the write path and one GET per chunk on the read path. With billions of small chunks, the per-operation costs add up fast.
 
 The explorer below models exactly this scenario: a naive architecture where every chunk is a separate object. Use the same workload assumptions from Part 3 (100M users, 1 PB total data, 1B document reads per month, 50 edits per user per month) and drag the chunk size slider to see what happens.
 
 <div class="cdc-viz" id="naive-cost-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Cloud Cost Explorer</span>
+    <span class="cdc-viz-title">Established Object Storage Provider Cost Explorer</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -294,7 +294,7 @@ Now that we understand the container abstraction, let's revisit the cost picture
 
 <div class="cdc-viz" id="packed-cost-demo">
   <div class="cdc-viz-header">
-    <span class="cdc-viz-title">Cloud Cost Explorer with Containers</span>
+    <span class="cdc-viz-title">Established Object Storage Provider Cost Explorer with Containers</span>
   </div>
   <div class="parametric-control-row">
     <span class="parametric-control-label">
@@ -360,7 +360,7 @@ On cloud object storage, GC and fragmentation take on additional economic signif
 
 [Part 3](/writings/content-defined-chunking-part-3) identified chunk size as the single parameter that ties all costs together. On cloud object storage, container size supplants it. Container size determines the number of objects in the bucket, the number of API operations per write and read, and the degree of read amplification when materializing files. Fu et al. (FAST '15) systematically explored how container size, chunk size, and rewriting aggressiveness interact for on-premises storage, finding that no single configuration dominates across all workloads.<span class="cdc-cite"><a href="#ref-35">[35]</a></span> Duggal et al. (ATC '19) confirmed that the container abstraction translates to cloud storage, where operations have higher latency, GC must factor in the cost of compaction itself, and every GET has a price.<span class="cdc-cite"><a href="#ref-36">[36]</a></span>
 
-Containers dramatically reduce costs on major cloud providers, but the cost story does not end there. A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce per-operation and egress fees, and caching can cut read costs further still. [Part 5](/writings/content-defined-chunking-part-5) explores how these newcomer providers and caching layers can drive costs down well beyond what containers alone achieve.
+Containers dramatically reduce costs on major cloud providers, but the cost story does not end there. A newer generation of S3-compatible services has emerged with pricing models that eliminate or sharply reduce per-operation and egress fees, and caching can cut read costs further still. [Part 5](/writings/content-defined-chunking-part-5) explores how these challenger providers and caching layers can drive costs down well beyond what containers alone achieve.
 
 ### References
 
