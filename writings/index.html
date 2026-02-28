@@ -2,6 +2,10 @@
 layout: default
 group: Writings
 title: Writings
+pagination:
+  enabled: true
+  category: writings
+  per_page: 10
 ---
 
 {% include line-field-bg.html %}
@@ -11,7 +15,7 @@ title: Writings
     <h2 class="section-title">Writings</h2>
   </div>
   <div class="writings-grid">
-    {% for post in site.categories['writings'] limit:10 %}
+    {% for post in paginator.posts %}
       <a href="{{ post.url }}" class="writing-card">
         <div class="writing-meta">
           <span class="writing-date">{{ post.date | date: "%B %d, %Y" }}</span>
@@ -33,4 +37,19 @@ title: Writings
       </a>
     {% endfor %}
   </div>
+  {% if paginator.total_pages > 1 %}
+  <nav class="pagination-nav">
+    {% if paginator.previous_page %}
+      <a href="{{ paginator.previous_page_path }}" class="pagination-link pagination-newer">← Newer</a>
+    {% else %}
+      <span class="pagination-link pagination-disabled">← Newer</span>
+    {% endif %}
+    <span class="pagination-info">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+    {% if paginator.next_page %}
+      <a href="{{ paginator.next_page_path }}" class="pagination-link pagination-older">Older →</a>
+    {% else %}
+      <span class="pagination-link pagination-disabled">Older →</span>
+    {% endif %}
+  </nav>
+  {% endif %}
 </section>

@@ -705,3 +705,35 @@ article {
     border-radius: 4px;
   }
 }
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+.pagination-link {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.9rem;
+  color: $secondary-color;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pagination-disabled {
+  color: lighten($base-color, 50%);
+  cursor: default;
+}
+
+.pagination-info {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 0.85rem;
+  color: $accent-muted;
+}
