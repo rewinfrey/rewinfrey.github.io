@@ -2918,7 +2918,7 @@ class ContainerCostDemo {
 
     // Table
     const table = document.createElement('table');
-    table.className = 'cost-cloud-table';
+    table.className = 'cost-cloud-table cost-has-totals';
 
     // Thead
     const thead = document.createElement('thead');
@@ -3206,7 +3206,7 @@ class ContainerCostDemo {
 }
 
 // =============================================================================
-// Newcomer Cloud Cost Explorer (R2, B2, Wasabi, Tigris)
+// Newcomer Cloud Cost Explorer (R2, B2, Wasabi)
 // =============================================================================
 
 class NewcomerCostDemo {
@@ -3258,17 +3258,6 @@ class NewcomerCostDemo {
         getNote: 'Read ops',
         egressPerGB: 0,            // Free egress (up to storage volume)
         egressNote: 'Free (up to storage vol.)'
-      },
-      {
-        name: 'Tigris',
-        storagePerGB: 0.02,        // Standard tier
-        storageNote: 'Standard, global cache',
-        putPer1K: 0.005,           // $0.005/1K Class A
-        putNote: 'Class A ops',
-        getPer1K: 0.0005,          // $0.0005/1K Class B
-        getNote: 'Class B ops',
-        egressPerGB: 0,            // Zero egress
-        egressNote: 'Free egress + built-in CDN'
       }
     ];
 
@@ -3340,7 +3329,7 @@ class NewcomerCostDemo {
     this.cloudSection.appendChild(header);
 
     const table = document.createElement('table');
-    table.className = 'cost-cloud-table';
+    table.className = 'cost-cloud-table cost-has-totals';
 
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
@@ -3448,7 +3437,7 @@ class NewcomerCostDemo {
 
     const assumptions = document.createElement('div');
     assumptions.className = 'cost-cloud-assumptions';
-    assumptions.textContent = 'Same workload assumptions as the Container Cost Explorer above. Wasabi has a 1 TB minimum charge and 90-day minimum storage duration. Backblaze B2 egress is free up to 3x your storage volume. Tigris includes built-in global edge caching at no extra cost. Pricing as of Feb 2026.';
+    assumptions.textContent = 'Same workload assumptions as the Container Cost Explorer above. Wasabi has a 1 TB minimum charge and 90-day minimum storage duration. Backblaze B2 egress is free up to 3x your storage volume. Pricing as of Feb 2026.';
     this.cloudSection.appendChild(assumptions);
   }
 
@@ -3620,8 +3609,7 @@ class ProviderComparisonDemo {
       { name: 'Azure', storagePerGB: 0.018, putPer1K: 0.0065, getPer1K: 0.0005, egressPerGB: 0.087, traditional: true },
       { name: 'Cloudflare R2', storagePerGB: 0.015, putPer1K: 0.0045, getPer1K: 0.00036, egressPerGB: 0 },
       { name: 'Backblaze B2', storagePerGB: 0.005, putPer1K: 0, getPer1K: 0.0004, egressPerGB: 0.01 },
-      { name: 'Wasabi', storagePerGB: 0.0069, putPer1K: 0, getPer1K: 0, egressPerGB: 0 },
-      { name: 'Tigris', storagePerGB: 0.02, putPer1K: 0.005, getPer1K: 0.0005, egressPerGB: 0 }
+      { name: 'Wasabi', storagePerGB: 0.0069, putPer1K: 0, getPer1K: 0, egressPerGB: 0 }
     ];
 
     this.init();
@@ -4347,7 +4335,7 @@ class JazzCostDemo {
 
     // Table
     const table = document.createElement('table');
-    table.className = 'cost-cloud-table jazz-cost-table';
+    table.className = 'cost-cloud-table cost-has-totals jazz-cost-table';
 
     // Thead
     const thead = document.createElement('thead');
@@ -4542,24 +4530,43 @@ class CacheTraditionalDemo {
 
     this.providers = [
       {
-        name: 'ElastiCache Redis',
-        model: 'provisioned',
-        cachePerGB: 14,             // ~$14/GB/month (cache.r7g.large at scale)
-        cacheNote: 'cache.r7g.large',
-        readPer1K: 0,               // included in provisioned cost
-        writePer1K: 0,
-        storagePerGB: 0
+        name: 'CloudFront',
+        model: 'cdn',
+        egressPerGB: 0.085,
+        requestPer1K: 0.001,
+        cacheNote: 'HTTPS, US/EU'
       },
       {
-        name: 'CloudFront CDN',
+        name: 'Cloud CDN',
         model: 'cdn',
-        egressPerGB: 0.085,         // $0.085/GB to client
-        requestPer1K: 0.001,        // $0.001/1K HTTPS requests
-        cacheNote: 'HTTPS, US/EU',
-        readPer1K: 0,
-        writePer1K: 0,
-        storagePerGB: 0,
-        cachePerGB: 0
+        egressPerGB: 0.08,
+        requestPer1K: 0.00075,
+        cacheNote: 'North America'
+      },
+      {
+        name: 'Azure CDN',
+        model: 'cdn',
+        egressPerGB: 0.081,
+        requestPer1K: 0,
+        cacheNote: 'Zone 1 (NA/EU)'
+      },
+      {
+        name: 'ElastiCache',
+        model: 'provisioned',
+        cachePerGB: 14,
+        cacheNote: 'cache.r7g.large'
+      },
+      {
+        name: 'Memorystore',
+        model: 'provisioned',
+        cachePerGB: 17,
+        cacheNote: 'Basic M3'
+      },
+      {
+        name: 'Azure Cache',
+        model: 'provisioned',
+        cachePerGB: 12,
+        cacheNote: 'Basic C4'
       }
     ];
 
@@ -4627,13 +4634,12 @@ class CacheTraditionalDemo {
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
     headRow.appendChild(document.createElement('th'));
-    const providerSubtitles = ['Provisioned memory', 'Edge CDN'];
     for (let i = 0; i < this.providers.length; i++) {
       const th = document.createElement('th');
       th.textContent = this.providers[i].name;
       const sub = document.createElement('span');
       sub.className = 'cost-cell-calc';
-      sub.textContent = providerSubtitles[i];
+      sub.textContent = this.providers[i].model === 'cdn' ? 'Edge CDN' : 'Provisioned Redis';
       th.appendChild(sub);
       headRow.appendChild(th);
     }
@@ -4687,14 +4693,9 @@ class CacheTraditionalDemo {
     refTable.className = 'cost-cloud-table cost-ref-table';
     const refThead = document.createElement('thead');
     const refHeadRow = document.createElement('tr');
-    refHeadRow.appendChild(document.createElement('th'));
-    for (let i = 0; i < this.providers.length; i++) {
+    for (const header of ['Provider', 'Model', 'Pricing', 'Notes']) {
       const th = document.createElement('th');
-      th.textContent = this.providers[i].name;
-      const sub = document.createElement('span');
-      sub.className = 'cost-cell-calc';
-      sub.textContent = providerSubtitles[i];
-      th.appendChild(sub);
+      th.textContent = header;
       refHeadRow.appendChild(th);
     }
     refThead.appendChild(refHeadRow);
@@ -4702,22 +4703,18 @@ class CacheTraditionalDemo {
 
     const refTbody = document.createElement('tbody');
     const refRows = [
-      { label: 'Cache memory', values: ['$14/GB/mo', 'N/A'], notes: ['cache.r7g.large at scale', 'Edge cache, no provisioning'] },
-      { label: 'Client egress', values: ['N/A', '$0.085/GB'], notes: ['Served from origin', 'HTTPS, US/EU'] },
-      { label: 'Requests', values: ['Included', '$0.001/1K'], notes: ['In provisioned cost', 'HTTPS requests'] }
+      { name: 'CloudFront', model: 'CDN', pricing: '$0.085/GB egress + $0.001/1K req', notes: 'AWS, HTTPS US/EU' },
+      { name: 'Cloud CDN', model: 'CDN', pricing: '$0.08/GiB egress + $0.00075/1K req', notes: 'GCP, North America' },
+      { name: 'Azure CDN', model: 'CDN', pricing: '$0.081/GB egress', notes: 'Standard, Zone 1 (NA/EU)' },
+      { name: 'ElastiCache', model: 'Provisioned', pricing: '$14/GB/month', notes: 'AWS Redis, cache.r7g.large' },
+      { name: 'Memorystore', model: 'Provisioned', pricing: '$17/GB/month', notes: 'GCP Redis, Basic M3' },
+      { name: 'Azure Cache', model: 'Provisioned', pricing: '$12/GB/month', notes: 'Azure Redis, Basic C4' }
     ];
     for (const row of refRows) {
       const tr = document.createElement('tr');
-      const tdLabel = document.createElement('td');
-      tdLabel.textContent = row.label;
-      tr.appendChild(tdLabel);
-      for (let i = 0; i < row.values.length; i++) {
+      for (const val of [row.name, row.model, row.pricing, row.notes]) {
         const td = document.createElement('td');
-        td.textContent = row.values[i];
-        const note = document.createElement('span');
-        note.className = 'cost-cell-calc';
-        note.textContent = row.notes[i];
-        td.appendChild(note);
+        td.textContent = val;
         tr.appendChild(td);
       }
       refTbody.appendChild(tr);
@@ -4728,7 +4725,7 @@ class CacheTraditionalDemo {
 
     const assumptions = document.createElement('div');
     assumptions.className = 'cost-cloud-assumptions';
-    assumptions.textContent = 'Same workload assumptions as the storage cost explorers above. Cache sizing derived from Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. INFOCOM \'99): cache fraction = hitRate^2.5. Origin savings assume AWS S3 as the storage backend ($0.0004/1K GETs, $0.09/GB egress). Pricing as of Feb 2026.';
+    assumptions.textContent = 'Same workload assumptions as the storage cost explorers above. Cache sizing derived from Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. [37]): cache fraction = hitRate^2.5. Origin savings assume AWS S3 as the storage backend ($0.0004/1K GETs, $0.09/GB egress). Pricing as of Feb 2026.';
     this.cloudSection.appendChild(assumptions);
   }
 
@@ -5037,7 +5034,7 @@ class CacheNewcomerDemo {
 
     const assumptions = document.createElement('div');
     assumptions.className = 'cost-cloud-assumptions';
-    assumptions.textContent = 'Same workload assumptions as the storage cost explorers above. Cache sizing derived from Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. INFOCOM \'99): cache fraction = hitRate^2.5. Cache writes occur on miss (populating the cache). Origin savings assume AWS S3 as the storage backend. Pricing as of Feb 2026.';
+    assumptions.textContent = 'Same workload assumptions as the storage cost explorers above. Cache sizing derived from Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. [37]): cache fraction = hitRate^2.5. Cache writes occur on miss (populating the cache). Origin savings assume AWS S3 as the storage backend. Pricing as of Feb 2026.';
     this.cloudSection.appendChild(assumptions);
   }
 
@@ -5142,19 +5139,22 @@ class ComprehensiveCostDemo {
     this.grossChurnGB = (this.numUsers * this.editsPerUserMonth * this.avgEditMB) / 1024;
 
     this.storageProviders = [
-      { name: 'AWS S3', storagePerGB: 0.023, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.09, note: 'Standard, US East' },
-      { name: 'GCP', storagePerGB: 0.026, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.12, note: 'Standard, US multi-region' },
-      { name: 'Azure', storagePerGB: 0.018, putPer1K: 0.0065, getPer1K: 0.0005, egressPerGB: 0.087, note: 'Hot (LRS), US East' },
-      { name: 'Cloudflare R2', storagePerGB: 0.015, putPer1K: 0.0045, getPer1K: 0.00036, egressPerGB: 0, note: 'Free egress' },
-      { name: 'Backblaze B2', storagePerGB: 0.005, putPer1K: 0, getPer1K: 0.0004, egressPerGB: 0.01, note: 'Pay-as-you-go' },
-      { name: 'Wasabi', storagePerGB: 0.0069, putPer1K: 0, getPer1K: 0, egressPerGB: 0, note: 'No per-op or egress fees' },
-      { name: 'Tigris', storagePerGB: 0.02, putPer1K: 0.005, getPer1K: 0.0005, egressPerGB: 0, note: 'Free egress + built-in CDN' }
+      { name: 'AWS S3', storagePerGB: 0.023, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.09, traditional: true },
+      { name: 'GCP', storagePerGB: 0.026, putPer1K: 0.005, getPer1K: 0.0004, egressPerGB: 0.12, traditional: true },
+      { name: 'Azure', storagePerGB: 0.018, putPer1K: 0.0065, getPer1K: 0.0005, egressPerGB: 0.087, traditional: true },
+      { name: 'Cloudflare R2', storagePerGB: 0.015, putPer1K: 0.0045, getPer1K: 0.00036, egressPerGB: 0 },
+      { name: 'Backblaze B2', storagePerGB: 0.005, putPer1K: 0, getPer1K: 0.0004, egressPerGB: 0.01 },
+      { name: 'Wasabi', storagePerGB: 0.0069, putPer1K: 0, getPer1K: 0, egressPerGB: 0 }
     ];
 
     this.cacheProviders = [
       { name: 'None', model: 'none' },
-      { name: 'CloudFront', model: 'cdn', egressPerGB: 0.085, requestPer1K: 0.001, note: 'Edge CDN, HTTPS US/EU' },
-      { name: 'ElastiCache', model: 'provisioned', cachePerGB: 14, note: 'Redis, cache.r7g.large' },
+      { name: 'CloudFront', model: 'cdn', egressPerGB: 0.085, requestPer1K: 0.001, note: 'AWS CDN, HTTPS US/EU' },
+      { name: 'Cloud CDN', model: 'cdn', egressPerGB: 0.08, requestPer1K: 0.00075, note: 'GCP CDN, North America' },
+      { name: 'Azure CDN', model: 'cdn', egressPerGB: 0.081, requestPer1K: 0, note: 'Standard, Zone 1 (NA/EU)' },
+      { name: 'ElastiCache', model: 'provisioned', cachePerGB: 14, note: 'AWS Redis, cache.r7g.large' },
+      { name: 'Memorystore', model: 'provisioned', cachePerGB: 17, note: 'GCP Redis, Basic M3' },
+      { name: 'Azure Cache', model: 'provisioned', cachePerGB: 12, note: 'Azure Redis, Basic C4' },
       { name: 'Upstash', model: 'serverless', readPer1K: 0.002, writePer1K: 0.002, storagePerGB: 0.25, note: 'Pay-per-request' },
       { name: 'Momento', model: 'serverless', readPer1K: 0.001, writePer1K: 0.001, storagePerGB: 0, note: 'Per-operation' },
       { name: 'Workers KV', model: 'serverless', readPer1K: 0.0005, writePer1K: 0.005, storagePerGB: 0.50, note: 'Edge KV store' }
@@ -5167,27 +5167,16 @@ class ComprehensiveCostDemo {
   }
 
   init() {
-    this.storageSelect = document.getElementById('comprehensive-storage-select');
-    this.cacheSelect = document.getElementById('comprehensive-cache-select');
-    this.hitRateSlider = document.getElementById('comprehensive-hit-slider');
-    this.hitRateValueEl = document.getElementById('comprehensive-hit-value');
-    this.chunkSlider = document.getElementById('comprehensive-chunk-slider');
-    this.chunkValueEl = document.getElementById('comprehensive-chunk-value');
-    this.packingToggle = document.getElementById('comprehensive-packing-toggle');
-    this.containerSlider = document.getElementById('comprehensive-container-slider');
-    this.containerValueEl = document.getElementById('comprehensive-container-value');
     this.cloudSection = document.getElementById('comprehensive-cost-section');
 
     this.buildCloudTable();
 
-    this.storageSelect?.addEventListener('change', () => this.update());
-    this.cacheSelect?.addEventListener('change', () => this.onCacheChange());
+    // All sliders are created in buildCloudTable(), bind after
     this.hitRateSlider?.addEventListener('input', () => this.update());
     this.chunkSlider?.addEventListener('input', () => this.update());
     this.packingToggle?.addEventListener('change', () => this.onPackingToggle());
     this.containerSlider?.addEventListener('input', () => this.update());
 
-    this.onCacheChange();
     this.update();
   }
 
@@ -5230,18 +5219,6 @@ class ComprehensiveCostDemo {
     return uniqueGB * Math.pow(hitRate, 2.5);
   }
 
-  onCacheChange() {
-    const cacheIdx = parseInt(this.cacheSelect?.value || 0);
-    const isNone = this.cacheProviders[cacheIdx].model === 'none';
-    if (this.hitRateSlider) {
-      this.hitRateSlider.disabled = isNone;
-      if (isNone) {
-        this.hitRateSlider.value = 0;
-      }
-    }
-    this.update();
-  }
-
   onPackingToggle() {
     const packed = this.packingToggle?.checked;
     if (this.containerSlider) {
@@ -5254,168 +5231,420 @@ class ComprehensiveCostDemo {
     if (!this.cloudSection) return;
     clearElement(this.cloudSection);
 
-    const header = document.createElement('div');
-    header.className = 'cost-cloud-header';
-    const title = document.createElement('span');
-    title.className = 'cost-cloud-title';
-    title.textContent = 'Comprehensive Monthly Cost Breakdown';
+    // --- Storage providers table ---
+    const storageHeader = document.createElement('div');
+    storageHeader.className = 'cost-cloud-header';
+    const storageTitle = document.createElement('span');
+    storageTitle.className = 'cost-cloud-title';
+    storageTitle.textContent = 'Storage Providers';
     this.workloadEl = document.createElement('span');
     this.workloadEl.className = 'cost-cloud-workload';
-    header.appendChild(title);
-    header.appendChild(this.workloadEl);
-    this.cloudSection.appendChild(header);
+    storageHeader.appendChild(storageTitle);
+    storageHeader.appendChild(this.workloadEl);
+    this.cloudSection.appendChild(storageHeader);
 
-    const table = document.createElement('table');
-    table.className = 'cost-cloud-table comprehensive-cost-table';
+    // Chunk size slider
+    const chunkRow = document.createElement('div');
+    chunkRow.className = 'parametric-control-row';
 
-    // Single-column: label + value
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    const emptyTh = document.createElement('th');
-    headRow.appendChild(emptyTh);
-    this.providerTh = document.createElement('th');
-    this.providerTh.textContent = 'Cost';
-    this.providerSub = document.createElement('span');
-    this.providerSub.className = 'cost-cell-calc';
-    this.providerTh.appendChild(this.providerSub);
-    headRow.appendChild(this.providerTh);
-    thead.appendChild(headRow);
-    table.appendChild(thead);
+    const chunkLabel = document.createElement('span');
+    chunkLabel.className = 'parametric-control-label';
+    chunkLabel.textContent = 'Average Chunk Size: ';
+    this.chunkValueEl = document.createElement('strong');
+    this.chunkValueEl.textContent = '32 KB';
+    chunkLabel.appendChild(this.chunkValueEl);
 
-    const tbody = document.createElement('tbody');
-    const rowDefs = [
-      { label: 'Objects stored', key: 'objects' },
-      { label: 'Storage', key: 'storage' },
-      { label: 'Write operations', key: 'writes' },
-      { label: 'Read operations', key: 'reads' },
-      { label: 'Origin egress', key: 'egress' },
-      { label: 'Cache cost', key: 'cache' },
-      { label: 'Monthly total', key: 'total' }
-    ];
+    this.chunkSlider = document.createElement('input');
+    this.chunkSlider.type = 'range';
+    this.chunkSlider.min = '0';
+    this.chunkSlider.max = '100';
+    this.chunkSlider.value = '50';
+    this.chunkSlider.step = '1';
 
-    this.cloudCells = {};
-    for (const rowDef of rowDefs) {
-      const tr = document.createElement('tr');
-      const tdLabel = document.createElement('td');
-      tdLabel.textContent = rowDef.label;
-      tr.appendChild(tdLabel);
+    chunkRow.appendChild(chunkLabel);
+    chunkRow.appendChild(this.chunkSlider);
+    this.cloudSection.appendChild(chunkRow);
 
-      const td = document.createElement('td');
-      const value = document.createElement('span');
-      value.className = 'cost-cell-value';
-      const calc1 = document.createElement('span');
-      calc1.className = 'cost-cell-calc';
-      const calc2 = document.createElement('span');
-      calc2.className = 'cost-cell-calc';
-      td.appendChild(value);
-      td.appendChild(calc1);
-      td.appendChild(calc2);
-      tr.appendChild(td);
-      this.cloudCells[rowDef.key] = { value, calc1, calc2, td };
+    // Container packing toggle + container size slider
+    const packingRow = document.createElement('div');
+    packingRow.className = 'parametric-control-row';
 
-      tbody.appendChild(tr);
+    const toggleLabel = document.createElement('label');
+    toggleLabel.className = 'container-toggle';
+    this.packingToggle = document.createElement('input');
+    this.packingToggle.type = 'checkbox';
+    const toggleText = document.createElement('span');
+    toggleText.textContent = 'Enable container packing';
+    toggleLabel.appendChild(this.packingToggle);
+    toggleLabel.appendChild(toggleText);
+
+    const containerLabel = document.createElement('span');
+    containerLabel.className = 'parametric-control-label';
+    containerLabel.textContent = 'Container Size: ';
+    this.containerValueEl = document.createElement('strong');
+    this.containerValueEl.textContent = '4 MB';
+    containerLabel.appendChild(this.containerValueEl);
+
+    this.containerSlider = document.createElement('input');
+    this.containerSlider.type = 'range';
+    this.containerSlider.min = '0';
+    this.containerSlider.max = '2';
+    this.containerSlider.value = '0';
+    this.containerSlider.step = '1';
+    this.containerSlider.disabled = true;
+
+    packingRow.appendChild(toggleLabel);
+    packingRow.appendChild(containerLabel);
+    packingRow.appendChild(this.containerSlider);
+    this.cloudSection.appendChild(packingRow);
+
+    const storageTable = document.createElement('table');
+    storageTable.className = 'cost-cloud-table';
+
+    const sThead = document.createElement('thead');
+    const sHeadRow = document.createElement('tr');
+    for (const label of ['Provider', 'Storage', 'Operations', 'Egress', 'Monthly Total']) {
+      const th = document.createElement('th');
+      th.textContent = label;
+      sHeadRow.appendChild(th);
     }
-    table.appendChild(tbody);
-    this.cloudSection.appendChild(table);
+    sThead.appendChild(sHeadRow);
+    storageTable.appendChild(sThead);
 
-    // Pricing reference (dynamic, rebuilt on provider change)
-    this.refContainer = document.createElement('div');
-    this.cloudSection.appendChild(this.refContainer);
+    const sTbody = document.createElement('tbody');
+    this.storageRows = [];
 
-    // Assumptions
-    const assumptions = document.createElement('div');
-    assumptions.className = 'cost-cloud-assumptions';
-    assumptions.textContent = 'Same workload assumptions as the storage cost explorers above. Cache sizing derived from Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. INFOCOM \'99): cache fraction = hitRate^2.5. With cache set to "None", this produces identical numbers to the per-provider explorers above. Pricing as of Feb 2026.';
-    this.cloudSection.appendChild(assumptions);
-  }
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      // Insert average row before first newcomer
+      if (i === 3) {
+        const avgTr = document.createElement('tr');
+        avgTr.className = 'provider-avg-row';
+        const avgName = document.createElement('td');
+        avgName.textContent = 'Avg. traditional';
+        avgTr.appendChild(avgName);
+        for (let j = 0; j < 3; j++) {
+          avgTr.appendChild(document.createElement('td'));
+        }
+        const avgTotalTd = document.createElement('td');
+        this.avgTotalEl = document.createElement('span');
+        this.avgTotalEl.className = 'cost-cell-value';
+        avgTotalTd.appendChild(this.avgTotalEl);
+        avgTr.appendChild(avgTotalTd);
+        sTbody.appendChild(avgTr);
+      }
 
-  buildPricingRef(sp, cp) {
-    clearElement(this.refContainer);
+      const tr = document.createElement('tr');
+      if (!this.storageProviders[i].traditional) tr.className = 'provider-newcomer-row';
 
+      const nameCell = document.createElement('td');
+      nameCell.textContent = this.storageProviders[i].name;
+      tr.appendChild(nameCell);
+
+      const cells = {};
+      for (const key of ['storage', 'operations', 'egress', 'total']) {
+        const td = document.createElement('td');
+        const value = document.createElement('span');
+        value.className = 'cost-cell-value';
+        td.appendChild(value);
+
+        if (key === 'total' && !this.storageProviders[i].traditional) {
+          const savings = document.createElement('span');
+          savings.className = 'cost-cell-calc';
+          td.appendChild(savings);
+          cells.savings = savings;
+        }
+
+        tr.appendChild(td);
+        cells[key] = { value, td };
+      }
+
+      sTbody.appendChild(tr);
+      this.storageRows.push(cells);
+    }
+
+    storageTable.appendChild(sTbody);
+    this.cloudSection.appendChild(storageTable);
+
+    // --- Cache providers section ---
+    const cacheHeader = document.createElement('div');
+    cacheHeader.className = 'cost-cloud-header comprehensive-cache-header';
+    const cacheTitle = document.createElement('span');
+    cacheTitle.className = 'cost-cloud-title';
+    cacheTitle.textContent = 'Cache Providers';
+    this.cacheWorkloadEl = document.createElement('span');
+    this.cacheWorkloadEl.className = 'cost-cloud-workload';
+    cacheHeader.appendChild(cacheTitle);
+    cacheHeader.appendChild(this.cacheWorkloadEl);
+    this.cloudSection.appendChild(cacheHeader);
+
+    // Cache hit rate slider
+    const hitRateRow = document.createElement('div');
+    hitRateRow.className = 'parametric-control-row';
+
+    const hitRateLabel = document.createElement('span');
+    hitRateLabel.className = 'parametric-control-label';
+    hitRateLabel.textContent = 'Cache Hit Rate: ';
+    this.hitRateValueEl = document.createElement('strong');
+    this.hitRateValueEl.textContent = '50%';
+    hitRateLabel.appendChild(this.hitRateValueEl);
+
+    this.hitRateSlider = document.createElement('input');
+    this.hitRateSlider.type = 'range';
+    this.hitRateSlider.min = '0';
+    this.hitRateSlider.max = '99';
+    this.hitRateSlider.value = '50';
+    this.hitRateSlider.step = '1';
+
+    hitRateRow.appendChild(hitRateLabel);
+    hitRateRow.appendChild(this.hitRateSlider);
+    this.cloudSection.appendChild(hitRateRow);
+
+    const cacheTable = document.createElement('table');
+    cacheTable.className = 'cost-cloud-table';
+
+    const cThead = document.createElement('thead');
+    const cHeadRow = document.createElement('tr');
+    for (const label of ['Provider', 'Monthly Cost', 'Notes']) {
+      const th = document.createElement('th');
+      th.textContent = label;
+      cHeadRow.appendChild(th);
+    }
+    cThead.appendChild(cHeadRow);
+    cacheTable.appendChild(cThead);
+
+    const cTbody = document.createElement('tbody');
+    this.cacheRows = [];
+
+    for (let i = 0; i < this.cacheProviders.length; i++) {
+      const tr = document.createElement('tr');
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = this.cacheProviders[i].name;
+      tr.appendChild(nameCell);
+
+      const costTd = document.createElement('td');
+      const costValue = document.createElement('span');
+      costValue.className = 'cost-cell-value';
+      costTd.appendChild(costValue);
+      tr.appendChild(costTd);
+
+      const notesTd = document.createElement('td');
+      const notesValue = document.createElement('span');
+      notesValue.className = 'cost-cell-calc';
+      notesTd.appendChild(notesValue);
+      tr.appendChild(notesTd);
+
+      cTbody.appendChild(tr);
+      this.cacheRows.push({ cost: costValue, notes: notesValue, td: costTd });
+    }
+
+    cacheTable.appendChild(cTbody);
+    this.cloudSection.appendChild(cacheTable);
+
+    // --- Combined cost matrix ---
+    const matrixHeader = document.createElement('div');
+    matrixHeader.className = 'cost-cloud-header comprehensive-cache-header';
+    const matrixTitle = document.createElement('span');
+    matrixTitle.className = 'cost-cloud-title';
+    matrixTitle.textContent = 'Combined Storage and Cache Monthly Costs';
+    matrixHeader.appendChild(matrixTitle);
+    this.cloudSection.appendChild(matrixHeader);
+
+    const matrixScroll = document.createElement('div');
+    matrixScroll.className = 'cost-matrix-scroll';
+
+    const matrixTable = document.createElement('table');
+    matrixTable.className = 'cost-cloud-table cost-matrix-table';
+
+    // Matrix thead: empty corner + cache provider names
+    const mThead = document.createElement('thead');
+    const mHeadRow = document.createElement('tr');
+    const cornerTh = document.createElement('th');
+    cornerTh.textContent = 'Storage \\ Cache';
+    mHeadRow.appendChild(cornerTh);
+    for (const cp of this.cacheProviders) {
+      const th = document.createElement('th');
+      th.textContent = cp.name;
+      mHeadRow.appendChild(th);
+    }
+    mThead.appendChild(mHeadRow);
+    matrixTable.appendChild(mThead);
+
+    // Matrix tbody: one row per storage provider, one cell per cache provider
+    const mTbody = document.createElement('tbody');
+    this.matrixCells = [];
+
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      const tr = document.createElement('tr');
+      const nameCell = document.createElement('td');
+      nameCell.textContent = this.storageProviders[i].name;
+      tr.appendChild(nameCell);
+
+      const rowCells = [];
+      for (let j = 0; j < this.cacheProviders.length; j++) {
+        const td = document.createElement('td');
+        td.className = 'cost-matrix-cell';
+        const totalEl = document.createElement('span');
+        totalEl.className = 'cost-cell-value';
+        const breakdownEl = document.createElement('span');
+        breakdownEl.className = 'cost-cell-calc';
+        td.appendChild(totalEl);
+        td.appendChild(breakdownEl);
+        tr.appendChild(td);
+        rowCells.push({ total: totalEl, breakdown: breakdownEl, td });
+      }
+
+      mTbody.appendChild(tr);
+      this.matrixCells.push(rowCells);
+    }
+
+    matrixTable.appendChild(mTbody);
+    matrixScroll.appendChild(matrixTable);
+    this.cloudSection.appendChild(matrixScroll);
+
+    // Pricing reference (expandable)
     const details = document.createElement('details');
     details.className = 'cost-pricing-ref';
     const summary = document.createElement('summary');
-    summary.textContent = 'Per-unit pricing rates used in these calculations';
+    summary.textContent = 'Pricing rates, cache models, and assumptions';
     details.appendChild(summary);
 
-    const refTable = document.createElement('table');
-    refTable.className = 'cost-cloud-table cost-ref-table comprehensive-cost-table';
-    const refThead = document.createElement('thead');
-    const refHeadRow = document.createElement('tr');
-    refHeadRow.appendChild(document.createElement('th'));
-    const th = document.createElement('th');
-    th.textContent = 'Rate';
-    refHeadRow.appendChild(th);
-    refThead.appendChild(refHeadRow);
-    refTable.appendChild(refThead);
+    // --- Storage provider pricing table ---
+    const storageRefTitle = document.createElement('div');
+    storageRefTitle.style.cssText = 'font-weight: 600; margin: 0.5rem 0 0.25rem; font-size: 0.7rem;';
+    storageRefTitle.textContent = 'Storage Provider Pricing';
+    details.appendChild(storageRefTitle);
 
-    const refTbody = document.createElement('tbody');
+    const sRefTable = document.createElement('table');
+    sRefTable.className = 'cost-cloud-table cost-ref-table';
+    const sRefThead = document.createElement('thead');
+    const sRefHeadRow = document.createElement('tr');
+    for (const header of ['Provider', 'Storage/GB', 'PUT/1K', 'GET/1K', 'Egress/GB', 'Notes']) {
+      const th = document.createElement('th');
+      th.textContent = header;
+      sRefHeadRow.appendChild(th);
+    }
+    sRefThead.appendChild(sRefHeadRow);
+    sRefTable.appendChild(sRefThead);
 
-    // Storage provider rates
-    const storageRows = [
-      { label: `${sp.name} storage`, value: `$${sp.storagePerGB}/GB`, note: sp.note },
-      { label: `${sp.name} write ops`, value: sp.putPer1K === 0 ? '$0/1K' : `$${sp.putPer1K}/1K`, note: sp.putPer1K === 0 ? 'No per-op charge' : 'per 1K operations' },
-      { label: `${sp.name} read ops`, value: sp.getPer1K === 0 ? '$0/1K' : `$${sp.getPer1K}/1K`, note: sp.getPer1K === 0 ? 'No per-op charge' : 'per 1K operations' },
-      { label: `${sp.name} egress`, value: sp.egressPerGB === 0 ? '$0/GB' : `$${sp.egressPerGB}/GB`, note: sp.egressPerGB === 0 ? 'Free egress' : 'to internet' }
+    const sRefTbody = document.createElement('tbody');
+    const storageRefData = [
+      { name: 'AWS S3', storage: '$0.023', put: '$0.005', get: '$0.0004', egress: '$0.09', notes: 'Standard, US East, first 50 TB' },
+      { name: 'GCP', storage: '$0.026', put: '$0.005', get: '$0.0004', egress: '$0.12', notes: 'Standard, US multi-region' },
+      { name: 'Azure', storage: '$0.018', put: '$0.0065', get: '$0.0005', egress: '$0.087', notes: 'Hot LRS, US East' },
+      { name: 'Cloudflare R2', storage: '$0.015', put: '$0.0045', get: '$0.00036', egress: 'Free', notes: 'No egress fees' },
+      { name: 'Backblaze B2', storage: '$0.005', put: 'Free', get: '$0.0004', egress: '$0.01', notes: 'Egress free up to 3x storage vol.' },
+      { name: 'Wasabi', storage: '$0.0069', put: 'Free', get: 'Free', egress: 'Free', notes: '1 TB min, 90-day min duration' }
     ];
-
-    for (const row of storageRows) {
+    for (const row of storageRefData) {
       const tr = document.createElement('tr');
-      const tdLabel = document.createElement('td');
-      tdLabel.textContent = row.label;
-      tr.appendChild(tdLabel);
-      const td = document.createElement('td');
-      td.textContent = row.value;
-      const note = document.createElement('span');
-      note.className = 'cost-cell-calc';
-      note.textContent = row.note;
-      td.appendChild(note);
-      tr.appendChild(td);
-      refTbody.appendChild(tr);
-    }
-
-    // Cache provider rates (if not None)
-    if (cp.model !== 'none') {
-      const cacheRows = [];
-      if (cp.model === 'cdn') {
-        cacheRows.push({ label: `${cp.name} egress`, value: `$${cp.egressPerGB}/GB`, note: cp.note });
-        cacheRows.push({ label: `${cp.name} requests`, value: `$${cp.requestPer1K}/1K`, note: 'HTTPS requests' });
-      } else if (cp.model === 'provisioned') {
-        cacheRows.push({ label: `${cp.name} memory`, value: `$${cp.cachePerGB}/GB/mo`, note: cp.note });
-      } else if (cp.model === 'serverless') {
-        cacheRows.push({ label: `${cp.name} reads`, value: `$${cp.readPer1K}/1K`, note: cp.note });
-        cacheRows.push({ label: `${cp.name} writes`, value: `$${cp.writePer1K}/1K`, note: 'cache misses populate' });
-        if (cp.storagePerGB > 0) {
-          cacheRows.push({ label: `${cp.name} storage`, value: `$${cp.storagePerGB}/GB`, note: 'cached data' });
-        }
-      }
-      for (const row of cacheRows) {
-        const tr = document.createElement('tr');
-        const tdLabel = document.createElement('td');
-        tdLabel.textContent = row.label;
-        tr.appendChild(tdLabel);
+      for (const val of [row.name, row.storage, row.put, row.get, row.egress, row.notes]) {
         const td = document.createElement('td');
-        td.textContent = row.value;
-        const note = document.createElement('span');
-        note.className = 'cost-cell-calc';
-        note.textContent = row.note;
-        td.appendChild(note);
+        td.textContent = val;
         tr.appendChild(td);
-        refTbody.appendChild(tr);
       }
+      sRefTbody.appendChild(tr);
+    }
+    sRefTable.appendChild(sRefTbody);
+    details.appendChild(sRefTable);
+
+    // --- Cache provider pricing table ---
+    const cacheRefTitle = document.createElement('div');
+    cacheRefTitle.style.cssText = 'font-weight: 600; margin: 0.75rem 0 0.25rem; font-size: 0.7rem;';
+    cacheRefTitle.textContent = 'Cache Provider Pricing';
+    details.appendChild(cacheRefTitle);
+
+    const cRefTable = document.createElement('table');
+    cRefTable.className = 'cost-cloud-table cost-ref-table';
+    const cRefThead = document.createElement('thead');
+    const cRefHeadRow = document.createElement('tr');
+    for (const header of ['Provider', 'Model', 'Pricing', 'Notes']) {
+      const th = document.createElement('th');
+      th.textContent = header;
+      cRefHeadRow.appendChild(th);
+    }
+    cRefThead.appendChild(cRefHeadRow);
+    cRefTable.appendChild(cRefThead);
+
+    const cRefTbody = document.createElement('tbody');
+    const cacheRefData = [
+      { name: 'CloudFront', model: 'CDN', pricing: '$0.085/GB egress + $0.001/1K req', notes: 'AWS, HTTPS US/EU' },
+      { name: 'Cloud CDN', model: 'CDN', pricing: '$0.08/GiB egress + $0.00075/1K req', notes: 'GCP, North America' },
+      { name: 'Azure CDN', model: 'CDN', pricing: '$0.081/GB egress', notes: 'Standard, Zone 1 (NA/EU)' },
+      { name: 'ElastiCache', model: 'Provisioned', pricing: '$14/GB/month', notes: 'AWS Redis, cache.r7g.large' },
+      { name: 'Memorystore', model: 'Provisioned', pricing: '$17/GB/month', notes: 'GCP Redis, Basic M3 (11-35 GiB)' },
+      { name: 'Azure Cache', model: 'Provisioned', pricing: '$12/GB/month', notes: 'Azure Redis, Basic C4 (13 GB)' },
+      { name: 'Upstash', model: 'Serverless', pricing: '$0.002/1K reads + $0.002/1K writes + $0.25/GB', notes: 'Pay-per-request Redis' },
+      { name: 'Momento', model: 'Serverless', pricing: '$0.001/1K reads + $0.001/1K writes', notes: 'Per-operation, no storage fee' },
+      { name: 'Workers KV', model: 'Serverless', pricing: '$0.0005/1K reads + $0.005/1K writes + $0.50/GB', notes: 'Edge KV store' }
+    ];
+    for (const row of cacheRefData) {
+      const tr = document.createElement('tr');
+      for (const val of [row.name, row.model, row.pricing, row.notes]) {
+        const td = document.createElement('td');
+        td.textContent = val;
+        tr.appendChild(td);
+      }
+      cRefTbody.appendChild(tr);
+    }
+    cRefTable.appendChild(cRefTbody);
+    details.appendChild(cRefTable);
+
+    // --- Assumptions and model notes ---
+    const modelNotes = document.createElement('div');
+    modelNotes.style.cssText = 'margin-top: 0.75rem; font-size: 0.65rem; color: rgba(61, 58, 54, 0.7); line-height: 1.6;';
+    const notesList = [
+      'Workload: 100M users, 1 PB total data (~1B docs, ~1 MB avg), 1B doc reads/month, 50 edits per user/month (10 MB avg change).',
+      'Write operations count only net new unique chunks after dedup filtering. Without container packing, read operations assume one GET per chunk. With container packing enabled, one GET fetches an entire container (many chunks), sharply reducing the operation count. Container read savings assume ideal chunk locality; real savings vary with fragmentation over time.',
+      'Cache hit rate reduces storage provider reads and egress proportionally. Cache sizing follows a Zipf access distribution (\u03b1 \u2248 0.6, per Breslau et al. [37]): cache fraction = hitRate^2.5.',
+      'Pricing as of Feb 2026.'
+    ];
+    for (const note of notesList) {
+      const p = document.createElement('p');
+      p.style.margin = '0.25rem 0';
+      p.textContent = note;
+      modelNotes.appendChild(p);
     }
 
-    refTable.appendChild(refTbody);
-    details.appendChild(refTable);
-    this.refContainer.appendChild(details);
+    const disclaimerP = document.createElement('p');
+    disclaimerP.style.margin = '0.25rem 0';
+    const bold = document.createElement('strong');
+    bold.textContent = 'These are conservative order-of-magnitude estimates, and not intending to be precise production cost projections. Always verify current pricing directly with the providers before making purchase decisions.';
+    disclaimerP.appendChild(bold);
+    modelNotes.appendChild(disclaimerP);
+    details.appendChild(modelNotes);
+
+    this.cloudSection.appendChild(details);
+  }
+
+  computeCacheCost(cp, hitRate, uniqueGB) {
+    if (cp.model === 'none') return { cost: 0, notes: '' };
+
+    const cacheGB = this.cacheSizeGB(uniqueGB, hitRate);
+    const cachedReads = this.monthlyDocReads * hitRate;
+    const missReads = this.monthlyDocReads * (1 - hitRate);
+
+    if (cp.model === 'provisioned') {
+      const cost = cacheGB * cp.cachePerGB;
+      return { cost, notes: `${this.formatGB(cacheGB)} @ $${cp.cachePerGB}/GB/mo` };
+    } else if (cp.model === 'cdn') {
+      const cfEgress = (this.monthlyEgressGB * hitRate) * cp.egressPerGB;
+      const cfRequests = (cachedReads / 1000) * cp.requestPer1K;
+      const cost = cfEgress + cfRequests;
+      return { cost, notes: `${this.formatGB(this.monthlyEgressGB * hitRate)} egress + ${this.formatCount(cachedReads)} reqs` };
+    } else if (cp.model === 'serverless') {
+      const cReadCost = (cachedReads / 1000) * cp.readPer1K;
+      const cWriteCost = (missReads / 1000) * cp.writePer1K;
+      const cStorageCost = cacheGB * (cp.storagePerGB || 0);
+      const cost = cReadCost + cWriteCost + cStorageCost;
+      const parts = [`reads: ${this.formatDollars(cReadCost)}`, `writes: ${this.formatDollars(cWriteCost)}`];
+      if (cp.storagePerGB > 0) parts.push(`storage: ${this.formatDollars(cStorageCost)}`);
+      return { cost, notes: parts.join(' + ') };
+    }
+    return { cost: 0, notes: '' };
   }
 
   update() {
-    const storageIdx = parseInt(this.storageSelect?.value || 0);
-    const cacheIdx = parseInt(this.cacheSelect?.value || 0);
-    const sp = this.storageProviders[storageIdx];
-    const cp = this.cacheProviders[cacheIdx];
-
     const hitRate = parseInt(this.hitRateSlider?.value || 0) / 100;
     const sliderValue = parseInt(this.chunkSlider?.value || 50);
     const t = sliderValue / 100;
@@ -5435,21 +5664,17 @@ class ComprehensiveCostDemo {
       this.containerValueEl.textContent = this.containerLabels[containerIdx];
     }
 
-    // Column header
-    this.providerSub.textContent = `${sp.name}${cp.model !== 'none' ? ' + ' + cp.name : ''}`;
-
-    // Compute storage costs
+    // Shared workload calculations
     const dedup = this.dedupRatio(t);
     const uniqueGB = this.totalDataGB / dedup;
     const chunkBytes = chunkKB * 1024;
     const numChunks = (uniqueGB * 1024 * 1024 * 1024) / chunkBytes;
 
-    // Write operations: dedup index filters existing chunks, only new unique chunks need PUTs.
-    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
-    const naiveGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
-
     const chunksPerContainer = packed ? Math.max(1, containerSizeKB / chunkKB) : 1;
     const numObjects = packed ? Math.ceil(numChunks / chunksPerContainer) : numChunks;
+
+    const naivePuts = (this.grossChurnGB * 1024 * 1024 * 1024) / (chunkBytes * dedup);
+    const naiveGets = (this.monthlyEgressGB * 1024 * 1024 * 1024) / chunkBytes;
     const actualPuts = packed ? naivePuts / chunksPerContainer : naivePuts;
     const actualGets = packed ? naiveGets / chunksPerContainer : naiveGets;
 
@@ -5457,123 +5682,128 @@ class ComprehensiveCostDemo {
     const originGets = actualGets * (1 - hitRate);
     const originEgressGB = this.monthlyEgressGB * (1 - hitRate);
 
-    const storageCost = uniqueGB * sp.storagePerGB;
-    const writeCost = (actualPuts / 1000) * sp.putPer1K;
-    const readCost = (originGets / 1000) * sp.getPer1K;
-    const egressCost = originEgressGB * sp.egressPerGB;
-
-    // Cache cost
-    let cacheCost = 0;
-    const cacheGB = this.cacheSizeGB(uniqueGB, hitRate);
-    const cachedReads = this.monthlyDocReads * hitRate;
-    const missReads = this.monthlyDocReads * (1 - hitRate);
-
-    let cacheCalc1 = '';
-    let cacheCalc2 = '';
-
-    if (cp.model === 'provisioned') {
-      cacheCost = cacheGB * cp.cachePerGB;
-      cacheCalc1 = `${this.formatGB(cacheGB)} \u00d7 $${cp.cachePerGB}/GB/mo`;
-      cacheCalc2 = cp.note;
-    } else if (cp.model === 'cdn') {
-      const cfEgress = (this.monthlyEgressGB * hitRate) * cp.egressPerGB;
-      const cfRequests = (cachedReads / 1000) * cp.requestPer1K;
-      cacheCost = cfEgress + cfRequests;
-      cacheCalc1 = `${this.formatGB(this.monthlyEgressGB * hitRate)} \u00d7 $${cp.egressPerGB}/GB egress`;
-      cacheCalc2 = `${this.formatCount(cachedReads)} reqs \u00d7 $${cp.requestPer1K}/1K`;
-    } else if (cp.model === 'serverless') {
-      const cReadCost = (cachedReads / 1000) * cp.readPer1K;
-      const cWriteCost = (missReads / 1000) * cp.writePer1K;
-      const cStorageCost = cacheGB * (cp.storagePerGB || 0);
-      cacheCost = cReadCost + cWriteCost + cStorageCost;
-      cacheCalc1 = `reads: ${this.formatDollars(cReadCost)} + writes: ${this.formatDollars(cWriteCost)}`;
-      cacheCalc2 = cp.storagePerGB > 0 ? `storage: ${this.formatDollars(cStorageCost)}` : 'No storage charge';
-    }
-
-    const totalCost = storageCost + writeCost + readCost + egressCost + cacheCost;
-
     // Workload summary
     if (this.workloadEl) {
       const objLabel = packed ? 'containers' : 'objects';
-      const cacheLabel = cp.model !== 'none' ? ` | ${Math.round(hitRate * 100)}% cache hit` : '';
       this.workloadEl.textContent =
-        `${this.formatCount(numObjects)} ${objLabel} | ${this.formatGB(uniqueGB)} stored | ${dedup.toFixed(1)}x dedup${cacheLabel}`;
+        `${this.formatCount(numObjects)} ${objLabel} | ${this.formatGB(uniqueGB)} stored | ${dedup.toFixed(1)}x dedup`;
     }
 
-    // Objects stored
-    const obj = this.cloudCells['objects'];
-    obj.value.textContent = this.formatCount(numObjects);
-    if (packed) {
-      obj.calc1.textContent = `${this.formatCount(numChunks)} chunks in ${this.containerLabels[containerIdx]} containers`;
-    } else {
-      obj.calc1.textContent = `${this.formatGB(uniqueGB)} / ${this.formatSize(chunkKB)}`;
-    }
-    obj.calc2.textContent = '';
+    // --- Update storage provider rows ---
+    let tradTotal = 0;
+    let tradCount = 0;
+    const totals = [];
 
-    // Storage
-    const stor = this.cloudCells['storage'];
-    stor.value.textContent = this.formatDollars(storageCost);
-    stor.calc1.textContent = `${this.formatGB(uniqueGB)} \u00d7 $${sp.storagePerGB}/GB`;
-    stor.calc2.textContent = sp.note;
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      const p = this.storageProviders[i];
+      const storageCost = uniqueGB * p.storagePerGB;
+      const putCost = (actualPuts / 1000) * p.putPer1K;
+      const getCost = (originGets / 1000) * p.getPer1K;
+      const opsCost = putCost + getCost;
+      const egressCost = originEgressGB * p.egressPerGB;
+      const totalCost = storageCost + opsCost + egressCost;
 
-    // Write operations
-    const wr = this.cloudCells['writes'];
-    wr.value.textContent = this.formatDollars(writeCost);
-    if (sp.putPer1K === 0) {
-      wr.calc1.textContent = `${this.formatCount(actualPuts)} operations`;
-      wr.calc2.textContent = 'No per-op charge';
-    } else {
-      wr.calc1.textContent = `${this.formatCount(actualPuts)} \u00d7 $${sp.putPer1K}/1K`;
-      wr.calc2.textContent = packed ? 'container PUTs' : 'chunk PUTs';
-    }
+      totals.push(totalCost);
+      if (p.traditional) { tradTotal += totalCost; tradCount++; }
 
-    // Read operations (reduced by cache)
-    const rd = this.cloudCells['reads'];
-    rd.value.textContent = this.formatDollars(readCost);
-    if (sp.getPer1K === 0) {
-      rd.calc1.textContent = `${this.formatCount(originGets)} origin reads`;
-      rd.calc2.textContent = 'No per-op charge';
-    } else {
-      rd.calc1.textContent = `${this.formatCount(originGets)} \u00d7 $${sp.getPer1K}/1K`;
-      rd.calc2.textContent = hitRate > 0 ? `${Math.round(hitRate * 100)}% served from cache` : 'all reads hit origin';
-    }
-    rd.td.style.color = hitRate > 0 ? '#2d7a4f' : '';
+      const row = this.storageRows[i];
+      row.storage.value.textContent = this.formatDollars(storageCost);
+      row.operations.value.textContent = opsCost === 0 ? '$0' : this.formatDollars(opsCost);
 
-    // Origin egress (reduced by cache)
-    const egr = this.cloudCells['egress'];
-    if (sp.egressPerGB === 0) {
-      egr.value.textContent = '$0';
-      egr.calc1.textContent = `${this.formatGB(originEgressGB)} transferred`;
-      egr.calc2.textContent = 'Free egress';
-    } else {
-      egr.value.textContent = this.formatDollars(egressCost);
-      egr.calc1.textContent = `${this.formatGB(originEgressGB)} \u00d7 $${sp.egressPerGB}/GB`;
-      egr.calc2.textContent = hitRate > 0 ? `${Math.round(hitRate * 100)}% served from cache` : 'all egress from origin';
-    }
-    egr.td.style.color = hitRate > 0 && sp.egressPerGB > 0 ? '#2d7a4f' : '';
+      if (p.egressPerGB === 0) {
+        row.egress.value.textContent = '$0';
+      } else {
+        row.egress.value.textContent = this.formatDollars(egressCost);
+      }
+      row.egress.td.style.color = hitRate > 0 && p.egressPerGB > 0 ? '#2d7a4f' : '';
 
-    // Cache cost
-    const cc = this.cloudCells['cache'];
-    if (cp.model === 'none') {
-      cc.value.textContent = '$0';
-      cc.calc1.textContent = 'No cache selected';
-      cc.calc2.textContent = '';
-      cc.td.style.color = '';
-    } else {
-      cc.value.textContent = this.formatDollars(cacheCost);
-      cc.calc1.textContent = cacheCalc1;
-      cc.calc2.textContent = cacheCalc2;
-      cc.td.style.color = '';
+      row.total.value.textContent = this.formatDollars(totalCost);
     }
 
-    // Total
-    const tot = this.cloudCells['total'];
-    tot.value.textContent = this.formatDollars(totalCost);
-    tot.calc1.textContent = '';
-    tot.calc2.textContent = '';
+    const tradAvg = tradTotal / tradCount;
+    if (this.avgTotalEl) {
+      this.avgTotalEl.textContent = this.formatDollars(tradAvg);
+    }
 
-    // Update pricing reference
-    this.buildPricingRef(sp, cp);
+    // Update newcomer savings
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      if (this.storageProviders[i].traditional) continue;
+      const row = this.storageRows[i];
+      const pctSaved = ((tradAvg - totals[i]) / tradAvg * 100).toFixed(0);
+      row.savings.textContent = `(-${pctSaved}% vs. traditional avg.)`;
+      row.total.td.style.color = '#2d7a4f';
+    }
+
+    // --- Update cache provider rows ---
+    if (this.cacheWorkloadEl) {
+      this.cacheWorkloadEl.textContent = hitRate > 0
+        ? `${Math.round(hitRate * 100)}% hit rate | ${this.formatGB(this.cacheSizeGB(uniqueGB, hitRate))} cache`
+        : 'Adjust hit rate slider to see cache costs';
+    }
+
+    const cacheCosts = [];
+    for (let i = 0; i < this.cacheProviders.length; i++) {
+      const cp = this.cacheProviders[i];
+      const row = this.cacheRows[i];
+
+      if (cp.model === 'none') {
+        row.cost.textContent = '$0';
+        row.notes.textContent = 'No caching';
+        row.td.style.color = '';
+        cacheCosts.push(0);
+      } else if (hitRate <= 0) {
+        row.cost.textContent = '$0';
+        row.notes.textContent = cp.note;
+        row.td.style.color = '';
+        cacheCosts.push(0);
+      } else {
+        const result = this.computeCacheCost(cp, hitRate, uniqueGB);
+        row.cost.textContent = this.formatDollars(result.cost);
+        row.notes.textContent = result.notes;
+        row.td.style.color = '';
+        cacheCosts.push(result.cost);
+      }
+    }
+
+    // --- Update combined cost matrix ---
+    let minCombined = Infinity;
+    let maxCombined = -Infinity;
+
+    // First pass: compute all combined totals and find min/max
+    const combinedTotals = [];
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      const row = [];
+      for (let j = 0; j < this.cacheProviders.length; j++) {
+        const combined = totals[i] + cacheCosts[j];
+        row.push(combined);
+        if (combined < minCombined) minCombined = combined;
+        if (combined > maxCombined) maxCombined = combined;
+      }
+      combinedTotals.push(row);
+    }
+
+    // Second pass: populate cells and highlight min/max
+    for (let i = 0; i < this.storageProviders.length; i++) {
+      for (let j = 0; j < this.cacheProviders.length; j++) {
+        const cell = this.matrixCells[i][j];
+        const combined = combinedTotals[i][j];
+
+        cell.total.textContent = this.formatDollars(combined);
+        cell.breakdown.textContent = `${this.formatDollars(totals[i])} + ${this.formatDollars(cacheCosts[j])}`;
+
+        // Highlight cheapest and most expensive
+        if (combined === minCombined && minCombined !== maxCombined) {
+          cell.td.style.backgroundColor = 'rgba(45, 122, 79, 0.1)';
+          cell.td.style.color = '#2d7a4f';
+        } else if (combined === maxCombined && minCombined !== maxCombined) {
+          cell.td.style.backgroundColor = 'rgba(196, 90, 59, 0.1)';
+          cell.td.style.color = '#c45a3b';
+        } else {
+          cell.td.style.backgroundColor = '';
+          cell.td.style.color = '';
+        }
+      }
+    }
   }
 }
 

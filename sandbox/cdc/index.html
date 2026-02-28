@@ -2113,7 +2113,15 @@ title: CDC Animation Sandbox
   color: #8b7355;
 }
 
-.cost-cloud-table tr:last-child td {
+/* Override global _layout.scss last-child rules */
+.cost-cloud-table td:last-child,
+.cost-cloud-table th:last-child {
+  border-left: 1px solid #cfcfcf;
+  font-weight: inherit;
+  background-color: inherit;
+}
+
+.cost-cloud-table.cost-has-totals tr:last-child td {
   font-weight: bold;
   border-top: 2px solid rgba(61, 58, 54, 0.15);
   border-bottom: none;
@@ -2168,8 +2176,10 @@ title: CDC Animation Sandbox
   transform: rotate(90deg);
 }
 
-.cost-ref-table tr:last-child td {
+.cost-ref-table td {
   font-weight: normal;
+}
+.cost-ref-table tr:last-child td {
   border-top: none;
   border-bottom: 1px solid rgba(61, 58, 54, 0.07);
 }
@@ -2245,8 +2255,48 @@ title: CDC Animation Sandbox
   max-width: 24rem;
 }
 
-.comprehensive-cost-table {
-  max-width: 28rem;
+.comprehensive-cache-header {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(61, 58, 54, 0.1);
+}
+
+#comprehensive-cost-section {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.cost-matrix-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cost-matrix-table {
+  min-width: 72rem;
+}
+
+.cost-matrix-table th:first-child,
+.cost-matrix-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #faf9f7;
+  z-index: 1;
+}
+
+.cost-matrix-cell {
+  text-align: center;
+  min-width: 6.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.cost-matrix-cell .cost-cell-value {
+  display: block;
+}
+
+.cost-matrix-cell .cost-cell-calc {
+  display: block;
+  white-space: nowrap;
 }
 
 /* ========================================================================== */
@@ -2750,7 +2800,7 @@ title: CDC Animation Sandbox
     <div class="cost-cloud-section" id="cache-traditional-section">
     </div>
     <div class="cdc-viz-hint">
-      ElastiCache charges for provisioned memory regardless of hit rate. CloudFront charges per-request and per-GB at the edge. Both reduce origin GET and egress costs, but the break-even hit rate differs sharply between the two models.
+      Provisioned Redis (ElastiCache, Memorystore, Azure Cache) charges for memory regardless of hit rate. CDN edges (CloudFront, Cloud CDN, Azure CDN) charge per-request and per-GB delivered. Both reduce origin GET and egress costs, but the break-even hit rate differs sharply between the two models.
     </div>
   </div>
 </section>
@@ -2795,53 +2845,10 @@ title: CDC Animation Sandbox
     <div class="cdc-viz-header">
       <span class="cdc-viz-title">Comprehensive Cost Model</span>
     </div>
-    <div class="parametric-control-row">
-      <span class="parametric-control-label">Storage:</span>
-      <select class="cost-provider-select" id="comprehensive-storage-select">
-        <option value="0">AWS S3</option>
-        <option value="1">GCP</option>
-        <option value="2">Azure</option>
-        <option value="3">Cloudflare R2</option>
-        <option value="4">Backblaze B2</option>
-        <option value="5">Wasabi</option>
-        <option value="6">Tigris</option>
-      </select>
-      <span class="parametric-control-label">Cache:</span>
-      <select class="cost-provider-select" id="comprehensive-cache-select">
-        <option value="0">None</option>
-        <option value="1">CloudFront</option>
-        <option value="2">ElastiCache</option>
-        <option value="3">Upstash</option>
-        <option value="4">Momento</option>
-        <option value="5">Workers KV</option>
-      </select>
-    </div>
-    <div class="parametric-control-row">
-      <span class="parametric-control-label">
-        Cache Hit Rate: <strong id="comprehensive-hit-value">0%</strong>
-      </span>
-      <input type="range" id="comprehensive-hit-slider" min="0" max="99" value="0" step="1" disabled>
-    </div>
-    <div class="parametric-control-row">
-      <span class="parametric-control-label">
-        Average Chunk Size: <strong id="comprehensive-chunk-value">32 KB</strong>
-      </span>
-      <input type="range" id="comprehensive-chunk-slider" min="0" max="100" value="50" step="1">
-    </div>
-    <div class="parametric-control-row">
-      <label class="container-toggle">
-        <input type="checkbox" id="comprehensive-packing-toggle">
-        <span>Enable container packing</span>
-      </label>
-      <span class="parametric-control-label">
-        Container Size: <strong id="comprehensive-container-value">4 MB</strong>
-      </span>
-      <input type="range" id="comprehensive-container-slider" min="0" max="2" value="0" step="1" disabled>
-    </div>
     <div class="cost-cloud-section" id="comprehensive-cost-section">
     </div>
     <div class="cdc-viz-hint">
-      With cache set to "None", this explorer matches the per-provider cost explorers above. Select a cache provider and adjust the hit rate to see how caching reduces origin read operations and egress while adding its own cost line. Try combining a zero-egress storage provider (R2, Wasabi) with a CDN cache to see why egress-free storage changes the cache calculus.
+      Set hit rate to 0% to see costs without caching, matching the Provider Cost Comparison above. The matrix at the bottom shows every storage + cache combination. Green highlights the cheapest pairing; terracotta highlights the most expensive.
     </div>
   </div>
 </section>
