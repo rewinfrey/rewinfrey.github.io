@@ -1030,7 +1030,7 @@ title: CDC Animation Sandbox
   outline-offset: -1px;
 }
 
-/* GEAR Lookup Table grid */
+/* Gear Lookup Table grid */
 .gear-table-grid {
   display: grid;
   grid-template-columns: 1.2rem repeat(16, 1fr);
@@ -1253,7 +1253,7 @@ title: CDC Animation Sandbox
   margin: 2px 0;
 }
 
-/* Two-column layout: Operation panel + GEAR table */
+/* Two-column layout: Operation panel + Gear table */
 .gear-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2407,12 +2407,12 @@ title: CDC Animation Sandbox
 </section>
 
 <!-- ============================================================
-     Section 2: GEAR Hash Rolling Window (Part 2)
+     Section 2: Gear Hash Rolling Window (Part 2)
      ============================================================ -->
 <section class="sandbox-section">
-  <h1 class="sandbox-section-title">GEAR Hash Rolling Window</h1>
+  <h1 class="sandbox-section-title">Gear Hash Rolling Window</h1>
   <p class="sandbox-section-description">
-    Step through the GEAR rolling hash byte-by-byte. Hash = (hash &lt;&lt; 1) + GEAR[byte].
+    Step through the Gear rolling hash byte-by-byte. Hash = (hash &lt;&lt; 1) + GEAR[byte].
   </p>
   <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-2#gear-hash-demo">See in context: Part 2, A Deep Dive into FastCDC &rarr;</a>
 
@@ -2426,11 +2426,11 @@ title: CDC Animation Sandbox
       </div>
     </div>
 
-    <!-- Two-column layout: GEAR table on left, Operation + Hash on right -->
+    <!-- Two-column layout: Gear table on left, Operation + Hash on right -->
     <div class="gear-two-col">
       <div class="gear-col-left">
         <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
-          <div class="cdc-viz-title">GEAR Lookup Table</div>
+          <div class="cdc-viz-title">Gear Lookup Table</div>
           <p class="cdc-viz-hint">Each colored block is one of 256 pre-computed random 32-bit values, keyed by byte. Hover a cell to see its mapping.</p>
         </div>
         <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>

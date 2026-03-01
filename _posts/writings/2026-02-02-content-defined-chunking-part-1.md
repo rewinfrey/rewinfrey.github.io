@@ -1034,7 +1034,7 @@ categories:
   outline-offset: -1px;
 }
 
-/* GEAR Lookup Table grid */
+/* Gear Lookup Table grid */
 .gear-table-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
@@ -1228,7 +1228,7 @@ categories:
   margin: 2px 0;
 }
 
-/* Two-column layout: Operation panel + GEAR table */
+/* Two-column layout: Operation panel + Gear table */
 .gear-two-col {
   display: flex;
   gap: 1.5rem;
@@ -1604,7 +1604,7 @@ Along the way, there are several interactive visualizations provided to help bui
     <li>
       <a href="/writings/content-defined-chunking-part-2#a-closer-look-at-bsw-via-fastcdc">A Closer Look at BSW via FastCDC</a> <em style="font-size: 0.78rem; color: #a89b8c;">(Part 2)</em>
       <ul>
-        <li><a href="/writings/content-defined-chunking-part-2#the-gear-hash">The GEAR Hash</a></li>
+        <li><a href="/writings/content-defined-chunking-part-2#the-gear-hash">The Gear Hash</a></li>
         <li><a href="/writings/content-defined-chunking-part-2#finding-chunk-boundaries">Finding Chunk Boundaries</a></li>
         <li><a href="/writings/content-defined-chunking-part-2#the-2016-algorithm">The 2016 Algorithm</a></li>
         <li><a href="/writings/content-defined-chunking-part-2#the-2020-enhancement-rolling-two-bytes">The 2020 Enhancement: Rolling Two Bytes</a></li>

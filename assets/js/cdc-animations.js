@@ -3,13 +3,13 @@
  *
  * Interactive visualizations for the CDC blog post demonstrating:
  * - Fixed vs content-defined chunking comparison
- * - GEAR hash rolling window
+ * - Gear hash rolling window
  * - Chunk boundary detection with dual masks
  * - Deduplication across similar documents
  */
 
 // =============================================================================
-// GEAR Hash Table (from FastCDC paper, generated from MD5 digests)
+// Gear Hash Table (from FastCDC paper, generated from MD5 digests)
 // =============================================================================
 
 const GEAR = [
@@ -451,7 +451,7 @@ class FixedVsCDCDemo {
 }
 
 // =============================================================================
-// GEAR Hash Rolling Window Demo
+// Gear Hash Rolling Window Demo
 // =============================================================================
 
 class GearHashDemo {
@@ -473,7 +473,7 @@ class GearHashDemo {
     this.chunks = [];
     this.chunkBoundaries = [];
 
-    // GEAR table DOM references
+    // Gear table DOM references
     this.gearCells = [];
     this.prevActiveCell = -1;
 
@@ -504,7 +504,7 @@ class GearHashDemo {
     this.speedControl = document.getElementById('gear-speed');
     this.tableReadout = document.getElementById('gear-table-readout');
 
-    // Build the GEAR lookup table grid
+    // Build the Gear lookup table grid
     this.buildGearTable();
 
     // Chunk hover: highlight matching text + block on mouseover
@@ -543,8 +543,8 @@ class GearHashDemo {
   }
 
   /**
-   * Build the 16×16 GEAR lookup table grid.
-   * Each cell is colored by its GEAR value (warm hue 20-50°, lightness 65-90%).
+   * Build the 16×16 Gear lookup table grid.
+   * Each cell is colored by its Gear value (warm hue 20-50°, lightness 65-90%).
    */
   buildGearTable() {
     const grid = document.getElementById('gear-table-grid');
@@ -614,7 +614,7 @@ class GearHashDemo {
   }
 
   /**
-   * Update the GEAR table readout text for a given byte index.
+   * Update the Gear table readout text for a given byte index.
    */
   updateReadout(byteIndex) {
     if (!this.tableReadout) return;
@@ -661,7 +661,7 @@ class GearHashDemo {
   }
 
   /**
-   * Highlight the active cell in the GEAR table grid.
+   * Highlight the active cell in the Gear table grid.
    */
   highlightGearCell(index) {
     if (this.prevActiveCell >= 0 && this.prevActiveCell < this.gearCells.length) {
@@ -727,7 +727,7 @@ class GearHashDemo {
     // 3. Compute shifted hash
     const shiftedHash = Number((this.previousHash << 1n) & 0xffffffffn);
 
-    // 4. Compute GEAR lookup value
+    // 4. Compute Gear lookup value
     const gearValue = Number(GEAR[byteValue % 256] & 0xffffffffn);
 
     // 5. Compute new hash
@@ -762,7 +762,7 @@ class GearHashDemo {
     if (this.shiftViz) this.shiftViz.style.visibility = 'visible';
     this.renderShiftViz(Number(this.previousHash), shiftedHash, gearValue, newHashNum, isBoundary);
 
-    // 9. Highlight the GEAR table cell
+    // 9. Highlight the Gear table cell
     this.highlightGearCell(byteValue);
     this.updateReadout(byteValue);
 
@@ -784,7 +784,7 @@ class GearHashDemo {
     }
     cancelAnimationFrame(this.animationFrame);
 
-    // Clear GEAR cell highlight
+    // Clear Gear cell highlight
     this.highlightGearCell(-1);
 
     // Reset shift viz to hidden placeholder
@@ -896,7 +896,7 @@ class GearHashDemo {
    * Render the bit-shift visualization showing:
    * Row 1: previous hash bits (MSB marked as "dropped")
    * Row 2: shifted hash bits (new 0 on right highlighted)
-   * Row 3: GEAR value bits
+   * Row 3: Gear value bits
    * Row 4: result hash bits
    */
   renderShiftViz(previousHash, shiftedHash, gearValue, newHash, isBoundary) {
@@ -5819,7 +5819,7 @@ function initCDCAnimations() {
   new ChunkComparisonDemo('fixed-chunking-demo', { mode: 'fixed', fixedChunkSize: 48 });
   new ChunkComparisonDemo('cdc-chunking-demo', { mode: 'sentence' });
 
-  // GEAR hash rolling window
+  // Gear hash rolling window
   new GearHashDemo('gear-hash-demo');
 
   // Versioned deduplication demo

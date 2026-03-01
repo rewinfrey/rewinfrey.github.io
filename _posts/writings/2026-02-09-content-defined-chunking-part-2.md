@@ -3,7 +3,7 @@ layout: writing
 group: Writings
 title: "A Deep Dive into FastCDC"
 subtitle: "Content-Defined Chunking, Part 2"
-summary: "An exploration of FastCDC's GEAR hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization, with code in pseudocode, Rust, and TypeScript."
+summary: "An exploration of FastCDC's Gear hash, normalized chunking with dual masks, and the 2020 two-byte-per-iteration optimization, with code in pseudocode, Rust, and TypeScript."
 date: 2026-02-09 12:00:00
 image: /assets/images/og/cdc-part-2.png
 interactive: true
@@ -1038,7 +1038,7 @@ categories:
   outline-offset: -1px;
 }
 
-/* GEAR Lookup Table grid */
+/* Gear Lookup Table grid */
 .gear-table-grid {
   display: grid;
   grid-template-columns: 1.2rem repeat(16, 1fr);
@@ -1261,7 +1261,7 @@ categories:
   margin: 2px 0;
 }
 
-/* Two-column layout: Operation panel + GEAR table */
+/* Two-column layout: Operation panel + Gear table */
 .gear-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1747,15 +1747,15 @@ Part 2 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writing
 
 The **Basic Sliding Window** family includes FastCDC, which is true to its name: it is *fast*. Where Rabin used polynomial arithmetic and Buzhash used cyclic shifts, FastCDC's Gear hash strips the rolling hash down to its simplest possible form. That speed, combined with normalized chunking for tighter chunk-size distributions, has made FastCDC one of the most widely implemented CDC algorithms today, with mature libraries in Rust, Go, Python, Java, and C++. We'll explore both the 2016<span class="cdc-cite"><a href="#ref-5">[5]</a></span> and 2020<span class="cdc-cite"><a href="#ref-6">[6]</a></span> versions in detail, using the <a href="https://github.com/nlfiedler/fastcdc-rs"><code>fastcdc-rs</code></a> Rust crate as our reference implementation.
 
-### The GEAR Hash
+### The Gear Hash
 
 At FastCDC's core is the **Gear hash**, a rolling hash reduced to two operations. For each byte, you:
 1. **Left-shift** the current hash by one bit, dropping the most significant bit
-2. **Add** the value from the GEAR table keyed by the current byte, a pre-computed 64-bit random value, to the hash
+2. **Add** the value from the Gear table keyed by the current byte, a pre-computed 64-bit random value, to the hash
 
 That's it. No XOR with outgoing bytes, no polynomial division. Just shift and add.
 
-The visualization below uses 32-bit values for compactness. The real FastCDC implementation uses 64-bit GEAR table entries and a 64-bit hash accumulator, as shown in the code samples that follow. The algorithm works identically at either width -- only the bit count and mask positions change. To internalize the algorithm, try advancing the animation one step at a time and observe the Gear table lookup, the rolling hash manipulation, and the binary addition at each position. Playing the animation at full speed is also useful for seeing the overall flow, but stepping through it frame by frame is the best way to build intuition.
+The visualization below uses 32-bit values for compactness. The real FastCDC implementation uses 64-bit Gear table entries and a 64-bit hash accumulator, as shown in the code samples that follow. The algorithm works identically at either width -- only the bit count and mask positions change. To internalize the algorithm, try advancing the animation one step at a time and observe the Gear table lookup, the rolling hash manipulation, and the binary addition at each position. Playing the animation at full speed is also useful for seeing the overall flow, but stepping through it frame by frame is the best way to build intuition.
 
 <div class="cdc-viz" id="gear-hash-demo">
   <div class="cdc-viz-header">
@@ -1767,11 +1767,11 @@ The visualization below uses 32-bit values for compactness. The real FastCDC imp
     </div>
   </div>
 
-  <!-- Two-column layout: GEAR table on left, Operation + Hash on right -->
+  <!-- Two-column layout: Gear table on left, Operation + Hash on right -->
   <div class="gear-two-col">
     <div class="gear-col-left">
       <div class="cdc-viz-header" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
-        <div class="cdc-viz-title">GEAR Lookup Table</div>
+        <div class="cdc-viz-title">Gear Lookup Table</div>
         <p class="cdc-viz-hint">Each colored block is one of 256 pre-computed random 32-bit values, keyed by byte. Hover a cell to see its mapping.</p>
       </div>
       <div class="gear-table-readout" id="gear-table-readout">GEAR[--] = --</div>
@@ -1813,7 +1813,7 @@ The visualization below uses 32-bit values for compactness. The real FastCDC imp
   </div>
 </div>
 
-The GEAR table maps each of the 256 possible byte values to a pre-computed 64-bit random number:
+The Gear table maps each of the 256 possible byte values to a pre-computed 64-bit random number:
 
 <div class="code-tabs" id="gear-table-code">
   <div class="code-tab-buttons">
@@ -1947,17 +1947,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-The simplicity of this hash is the point. A single left-shift and a single addition per byte gives the GEAR hash its speed advantage over Rabin (which requires polynomial division) and Buzhash (which requires XOR with both the incoming and outgoing byte). But a fast hash is only half the story. The other half is deciding *when* the hash value signals a chunk boundary.
+The simplicity of this hash is the point. A single left-shift and a single addition per byte gives the Gear hash its speed advantage over Rabin (which requires polynomial division) and Buzhash (which requires XOR with both the incoming and outgoing byte). But a fast hash is only half the story. The other half is deciding *when* the hash value signals a chunk boundary.
 
 ### Finding Chunk Boundaries
 
-With the GEAR hash updating for each byte, how do we decide where to cut?
+With the Gear hash updating for each byte, how do we decide where to cut?
 
 The classic approach: check if the low N bits of the hash are zero. If we want an average chunk size of 8KB, we check if `hash & 0x1FFF == 0` (the low 13 bits).
 
-Why does this work? The GEAR hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$, meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits mean larger average chunks, fewer bits mean smaller ones.
+Why does this work? The Gear hash produces pseudo-random values, so the probability that any N bits are all zero is $1/2^N$. For 13 bits, that's $1/2^{13} = 1/8192$, meaning on average, one in every 8,192 bytes triggers a boundary. The mask *is* the chunk size control: more bits mean larger average chunks, fewer bits mean smaller ones.
 
-This is the heart of every BSW algorithm. The algorithm doesn't search for patterns in the content directly. Instead, it feeds each byte through the GEAR table, lets the rolling hash mix the values together, and checks whether certain bits of the result happen to be zero. The content determines the hash, the mask selects which bits to check, and a boundary is placed wherever those bits are all zero.
+This is the heart of every BSW algorithm. The algorithm doesn't search for patterns in the content directly. Instead, it feeds each byte through the Gear table, lets the rolling hash mix the values together, and checks whether certain bits of the result happen to be zero. The content determines the hash, the mask selects which bits to check, and a boundary is placed wherever those bits are all zero.
 
 But basic masking has a problem, and FastCDC does something more clever: **normalized chunking** with dual masks.
 
@@ -2015,7 +2015,7 @@ FastCDC was published in two rounds: a 2016 paper that introduced normalized chu
 
 ### The 2016 Algorithm
 
-This is the version illustrated above: it processes one byte at a time, shifting and adding through the GEAR table exactly as we saw in the *Gear Hash in Action* animation, and switches between the strict and loose mask depending on how far into the current chunk it has consumed. Here's the complete loop:
+This is the version illustrated above: it processes one byte at a time, shifting and adding through the Gear table exactly as we saw in the *Gear Hash in Action* animation, and switches between the strict and loose mask depending on how far into the current chunk it has consumed. Here's the complete loop:
 
 <div class="code-tabs" id="fastcdc-2016-code">
   <div class="code-tab-buttons">

@@ -1038,7 +1038,7 @@ categories:
   outline-offset: -1px;
 }
 
-/* GEAR Lookup Table grid */
+/* Gear Lookup Table grid */
 .gear-table-grid {
   display: grid;
   grid-template-columns: repeat(16, 1fr);
@@ -1232,7 +1232,7 @@ categories:
   margin: 2px 0;
 }
 
-/* Two-column layout: Operation panel + GEAR table */
+/* Two-column layout: Operation panel + Gear table */
 .gear-two-col {
   display: flex;
   gap: 1.5rem;
@@ -1996,7 +1996,7 @@ categories:
 Part 3 of 5 in a series on Content-Defined Chunking. Previous: <a href="/writings/content-defined-chunking-part-2">Part 2: A Deep Dive into FastCDC</a> · Next: <a href="/writings/content-defined-chunking-part-4">Part 4: CDC in the Cloud</a>
 </div>
 
-In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's GEAR hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today and where it is not, and explore the cost tradeoffs that shape real-world systems.
+In [Part 1](/writings/content-defined-chunking-part-1), we explored why content-defined chunking exists and surveyed three algorithm families. In [Part 2](/writings/content-defined-chunking-part-2), we took a deep dive into FastCDC's Gear hash, normalized chunking, and how average byte targets affect chunk distribution. In this post, we bring the pieces together to see deduplication in action, examine where CDC is used in practice today and where it is not, and explore the cost tradeoffs that shape real-world systems.
 
 ---
 
