@@ -291,7 +291,7 @@ The key insight of the container abstraction is that it **decouples logical chun
 
 ### The Impact of Containers on Cost
 
-Now that we understand the container abstraction, let's revisit the cost picture. The explorer below uses the same workload but with container packing enabled by default. Toggle it off to compare with the naive per-chunk approach from above.
+Now that we understand the container abstraction, let's revisit the cost picture. The explorer below shows both with and without container totals. Compare them to see the magnitude of cost savings that containers provide.
 
 <div class="cdc-viz" id="packed-cost-demo">
   <div class="cdc-viz-header">
@@ -304,10 +304,6 @@ Now that we understand the container abstraction, let's revisit the cost picture
     <input type="range" id="packed-cost-chunk-slider" min="0" max="100" value="50" step="1">
   </div>
   <div class="parametric-control-row">
-    <label class="container-toggle">
-      <input type="checkbox" id="packed-cost-packing-toggle" checked>
-      <span>Container packing</span>
-    </label>
     <span class="parametric-control-label">
       Container Size: <strong id="packed-cost-container-value">4 MB</strong>
     </span>

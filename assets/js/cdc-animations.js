@@ -3192,7 +3192,7 @@ class ContainerCostDemo {
     const sliderValue = parseInt(this.chunkSlider.value);
     const t = sliderValue / 100;
     const chunkKB = this.sliderToKB(sliderValue);
-    const packed = this.packingToggle?.checked || false;
+    const packed = this.mode === 'packed' || (this.packingToggle?.checked || false);
     const containerSizeMB = parseInt(this.containerSlider?.value || 4);
     const containerSizeKB = containerSizeMB * 1024;
 
