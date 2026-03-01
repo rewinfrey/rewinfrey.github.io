@@ -4,6 +4,7 @@ group: Writings
 title: "Anatomy of a Line Field Animation"
 summary: "How a simple grid of lines evolved into an organic, wind-driven canvas animation through iterative prompting."
 date: 2026-01-15 12:00:00
+image: /assets/images/og/line-field-animation.png
 interactive: true
 categories:
 - writings

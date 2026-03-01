@@ -5,6 +5,7 @@ title: "From Problem to Taxonomy"
 subtitle: "Content-Defined Chunking, Part 1"
 summary: "An introduction to content-defined chunking: why fixed-size splitting fails, how content-aware boundaries solve the deduplication problem, and a taxonomy of three CDC algorithm families."
 date: 2026-02-02 12:00:00
+image: /assets/images/og/cdc-part-1.png
 interactive: true
 categories:
 - writings

@@ -5,6 +5,7 @@ title: "Deduplication in Action"
 subtitle: "Content-Defined Chunking, Part 3"
 summary: "See CDC-based deduplication in action, learn where CDC is deployed today, and explore the frontier of structure-aware chunking for source code."
 date: 2026-02-16 12:00:00
+image: /assets/images/og/cdc-part-3.png
 interactive: true
 categories:
 - writings

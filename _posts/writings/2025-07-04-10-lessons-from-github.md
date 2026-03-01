@@ -4,6 +4,7 @@ group: Writings
 title: "10 Lessons from 10 years at GitHub"
 summary: "10 years. 10 lessons. The most important things I learned building developer tools at GitHub."
 date: 2025-07-04 14:00:00
+image: /assets/images/og/10-lessons-from-github.png
 categories:
 - writings
 ---

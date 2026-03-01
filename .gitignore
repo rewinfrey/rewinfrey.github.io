@@ -3,6 +3,9 @@ _gh_pages
 _site
 .ruby-version
 
+# Dependencies
+node_modules/
+
 # OS or editor artifacts
 .DS_Store
 ._*

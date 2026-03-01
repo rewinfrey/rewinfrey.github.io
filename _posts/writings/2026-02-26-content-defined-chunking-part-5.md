@@ -5,6 +5,7 @@ title: "CDC at Scale on a Budget"
 subtitle: "Content-Defined Chunking, Part 5"
 summary: "Cloud object storage can be expensive for CDC at scale. This post explores cost-saving alternatives: challenger storage providers with radically different pricing, and the role caching plays under Zipf access patterns to drive costs down further."
 date: 2026-02-26 12:00:00
+image: /assets/images/og/cdc-part-5.png
 interactive: true
 categories:
 - writings
