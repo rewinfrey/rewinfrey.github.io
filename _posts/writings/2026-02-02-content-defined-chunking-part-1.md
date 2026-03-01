@@ -1651,8 +1651,8 @@ Along the way, there are several interactive visualizations provided to help bui
         <li><a href="/sandbox/cdc#fixed-chunking-demo">Fixed-Size Chunking</a></li>
         <li><a href="/sandbox/cdc#cdc-chunking-demo">Content-Defined Chunking</a></li>
         <li><a href="/sandbox/cdc#gear-hash-demo">Gear Hash in Action</a></li>
-        <li><a href="/sandbox/cdc#comparison-demo">Basic vs Normalized Chunk Size Distribution</a></li>
         <li><a href="/sandbox/cdc#parametric-demo">Parametric Chunking Explorer</a></li>
+        <li><a href="/sandbox/cdc#comparison-demo">Basic vs Normalized Chunk Size Distribution</a></li>
         <li><a href="/sandbox/cdc#dedup-demo">Deduplication Explorer</a></li>
         <li><a href="/sandbox/cdc#cost-tradeoffs-demo">Cost Tradeoffs Explorer</a></li>
         <li><a href="/sandbox/cdc#naive-cost-demo">Established Object Storage Provider Cost Explorer</a></li>

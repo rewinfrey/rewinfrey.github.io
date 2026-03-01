@@ -1845,6 +1845,19 @@ title: CDC Animation Sandbox
   margin-bottom: 2rem;
 }
 
+.sandbox-context-link {
+  font-size: 0.85rem;
+  color: #c45a3b;
+  text-decoration: none;
+  margin-top: -1.25rem;
+  margin-bottom: 2rem;
+  display: block;
+}
+
+.sandbox-context-link:hover {
+  text-decoration: underline;
+}
+
 /* ========================================================================== */
 /* Part 2: Parametric blocks bar overrides                                     */
 /* ========================================================================== */
@@ -2373,13 +2386,35 @@ title: CDC Animation Sandbox
 </style>
 
 <!-- ============================================================
-     Section 1: GEAR Hash Rolling Window
+     Section 1: Chunk Boundary Detection (Fixed vs CDC) (Part 1)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Chunk Boundary Detection</h1>
+  <p class="sandbox-section-description">
+    See how fixed-size chunking vs content-defined chunking handle file modifications.
+  </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-1#fixed-chunking-demo">See in context: Part 1, From Problem to Taxonomy &rarr;</a>
+
+  <div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
+    <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
+    <!-- Populated dynamically by ChunkComparisonDemo -->
+  </div>
+
+  <div class="cdc-comparison-panel" id="cdc-chunking-demo" style="margin: 2rem 0;">
+    <div class="cdc-comparison-title">Content-Defined Chunking (sentence boundaries)</div>
+    <!-- Populated dynamically by ChunkComparisonDemo -->
+  </div>
+</section>
+
+<!-- ============================================================
+     Section 2: GEAR Hash Rolling Window (Part 2)
      ============================================================ -->
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">GEAR Hash Rolling Window</h1>
   <p class="sandbox-section-description">
     Step through the GEAR rolling hash byte-by-byte. Hash = (hash &lt;&lt; 1) + GEAR[byte].
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-2#gear-hash-demo">See in context: Part 2, A Deep Dive into FastCDC &rarr;</a>
 
   <div class="cdc-viz" id="gear-hash-demo">
     <div class="cdc-viz-header">
@@ -2439,13 +2474,14 @@ title: CDC Animation Sandbox
 </section>
 
 <!-- ============================================================
-     Section 2: Parametric Chunking Explorer
+     Section 3: Parametric Chunking Explorer (Part 2)
      ============================================================ -->
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">Parametric Chunking Explorer</h1>
   <p class="sandbox-section-description">
     Drag the slider to adjust the target average chunk size and see how FastCDC re-chunks the same text.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-2#parametric-demo">See in context: Part 2, A Deep Dive into FastCDC &rarr;</a>
 
   <div class="cdc-viz" id="parametric-demo">
     <div class="cdc-viz-header">
@@ -2477,53 +2513,14 @@ title: CDC Animation Sandbox
 </section>
 
 <!-- ============================================================
-     Section 3: Chunk Boundary Detection (Fixed vs CDC)
-     ============================================================ -->
-<section class="sandbox-section">
-  <h1 class="sandbox-section-title">Chunk Boundary Detection</h1>
-  <p class="sandbox-section-description">
-    See how fixed-size chunking vs content-defined chunking handle file modifications.
-  </p>
-
-  <div class="cdc-comparison-panel" id="fixed-chunking-demo" style="margin: 2rem 0;">
-    <div class="cdc-comparison-title">Fixed-Size Chunking (48 bytes)</div>
-    <!-- Populated dynamically by ChunkComparisonDemo -->
-  </div>
-
-  <div class="cdc-comparison-panel" id="cdc-chunking-demo" style="margin: 2rem 0;">
-    <div class="cdc-comparison-title">Content-Defined Chunking (sentence boundaries)</div>
-    <!-- Populated dynamically by ChunkComparisonDemo -->
-  </div>
-</section>
-
-<!-- ============================================================
-     Section 4: Deduplication Explorer
-     ============================================================ -->
-<section class="sandbox-section">
-  <h1 class="sandbox-section-title">Deduplication Explorer</h1>
-  <p class="sandbox-section-description">
-    Edit text and save versions to see which chunks are new and which are shared.
-  </p>
-
-  <div class="cdc-viz">
-    <div class="cdc-viz-header">
-      <span class="cdc-viz-title">Deduplication Explorer</span>
-    </div>
-    <p class="cdc-viz-hint">Click "Save Version" after editing to see which chunks are new and which are shared. Hover over chunks to highlight them across views.</p>
-    <div class="cdc-dedup-viz" id="dedup-demo">
-      <!-- Populated dynamically by VersionedDedupDemo -->
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     Section 5: Basic vs Normalized Comparison (Part 2)
+     Section 4: Basic vs Normalized Comparison (Part 2)
      ============================================================ -->
 <section class="sandbox-section">
   <h1 class="sandbox-section-title">Basic vs Normalized Chunk Size Distribution</h1>
   <p class="sandbox-section-description">
     Compare how single-mask and dual-mask strategies distribute chunk sizes across the same data.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-2#comparison-demo">See in context: Part 2, A Deep Dive into FastCDC &rarr;</a>
 
   <div class="cdc-viz" id="comparison-demo">
     <div class="cdc-viz-header">
@@ -2567,6 +2564,27 @@ title: CDC Animation Sandbox
 </section>
 
 <!-- ============================================================
+     Section 5: Deduplication Explorer (Part 3)
+     ============================================================ -->
+<section class="sandbox-section">
+  <h1 class="sandbox-section-title">Deduplication Explorer</h1>
+  <p class="sandbox-section-description">
+    Edit text and save versions to see which chunks are new and which are shared.
+  </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-3#dedup-demo">See in context: Part 3, Deduplication in Action &rarr;</a>
+
+  <div class="cdc-viz">
+    <div class="cdc-viz-header">
+      <span class="cdc-viz-title">Deduplication Explorer</span>
+    </div>
+    <p class="cdc-viz-hint">Click "Save Version" after editing to see which chunks are new and which are shared. Hover over chunks to highlight them across views.</p>
+    <div class="cdc-dedup-viz" id="dedup-demo">
+      <!-- Populated dynamically by VersionedDedupDemo -->
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
      Section 6: Cost Tradeoffs Explorer (Part 3)
      ============================================================ -->
 <section class="sandbox-section">
@@ -2574,6 +2592,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     See how average chunk size affects each cost dimension: CPU, memory, network, and storage.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-3#cost-tradeoffs-demo">See in context: Part 3, Deduplication in Action &rarr;</a>
 
   <div class="cdc-viz" id="cost-tradeoffs-demo">
     <div class="cdc-viz-header">
@@ -2606,6 +2625,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     See how per-operation pricing on established object storage providers affects costs when every chunk is a separate object.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-4#naive-cost-demo">See in context: Part 4, CDC in the Cloud &rarr;</a>
 
   <div class="cdc-viz" id="naive-cost-demo">
     <div class="cdc-viz-header">
@@ -2630,6 +2650,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     See how container packing reduces API operations costs by bundling chunks into larger objects.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-4#packed-cost-demo">See in context: Part 4, CDC in the Cloud &rarr;</a>
 
   <div class="cdc-viz" id="packed-cost-demo">
     <div class="cdc-viz-header">
@@ -2664,6 +2685,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Explore costs on challenger object storage providers with radically different pricing models.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#newcomer-cost-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="newcomer-cost-demo">
     <div class="cdc-viz-header">
@@ -2698,6 +2720,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Compare costs across all seven storage providers side by side.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#provider-comparison-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="provider-comparison-demo">
     <div class="cdc-viz-header">
@@ -2728,6 +2751,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Visualize how skewness affects the popularity distribution of items under a Zipf model.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#zipf-distribution-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="zipf-distribution-demo">
     <div class="cdc-viz-header">
@@ -2754,6 +2778,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Given a skewness level and a target hit rate, how much unique data do you need to cache?
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#zipf-cache-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="zipf-cache-demo">
     <div class="cdc-viz-header">
@@ -2786,6 +2811,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     See how established cache providers (ElastiCache, CloudFront) affect origin costs.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#cache-traditional-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="cache-traditional-demo">
     <div class="cdc-viz-header">
@@ -2813,6 +2839,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Compare challenger cache providers that scale linearly with per-request pricing.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#cache-newcomer-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="cache-newcomer-demo">
     <div class="cdc-viz-header">
@@ -2840,6 +2867,7 @@ title: CDC Animation Sandbox
   <p class="sandbox-section-description">
     Combine storage provider, cache layer, chunk size, and container packing into a single cost view.
   </p>
+  <a class="sandbox-context-link" href="/writings/content-defined-chunking-part-5#comprehensive-cost-demo">See in context: Part 5, CDC at Scale on a Budget &rarr;</a>
 
   <div class="cdc-viz" id="comprehensive-cost-demo">
     <div class="cdc-viz-header">
