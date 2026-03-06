@@ -5,41 +5,43 @@ title: "How Software Engineers Can Prepare for Superintelligence"
 summary: "Three visions of 2028, the Industrial Revolution's unfinished lessons, and what the window before superintelligence demands of engineers today."
 date: 2026-02-27 12:00:00
 image: /assets/images/og/superintelligence.png
-draft: true
-published: false
 categories:
 - writings
 ---
 
-Three recent pieces paint strikingly different pictures of what's coming.
+Three recent thought experiments paint strikingly different visions of what happens when AI succeeds.
 
-[AI 2027](https://ai-2027.com/), by Daniel Kokotajlo, Scott Alexander, and colleagues, narrates the path from today's unreliable agents to superintelligent AI researchers by late 2027. Their concern is technical: can we maintain control of systems that exceed human cognition?
+[AI 2027](https://ai-2027.com/), by Daniel Kokotajlo, Scott Alexander, and colleagues, narrates the path from today's unreliable agents to superintelligent AI researchers by late 2027. Emphasizing the staggering capabilities of superintelligence, this thought experiment asks: how can we maintain control of systems that exceed human cognition?
 
-[The 2028 Global Intelligence Crisis](https://www.citriniresearch.com/p/2028gic), by Citrini Research, presents a macro memo from June 2028 in which AI success triggers economic catastrophe. White-collar displacement cascades into credit defaults, mortgage stress, and a 38% market drawdown. Their concern is financial: what breaks when jobs disappear faster than new ones form?
+[The 2028 Global Intelligence Crisis](https://www.citriniresearch.com/p/2028gic), by Citrini Research, is framed as a memo from June 2028, describing how AI's success has triggered an economic catastrophe. White-collar displacement cascades into credit defaults, mortgage stress, and a 38% market drawdown. Emphasizing the rapid economic change brought about by AI, this thought experiment asks: what breaks when jobs disappear faster than new ones form?
 
-[The 2028 Global Intelligence Boom](https://gist.github.com/rewinfrey/9d4a95fc1d6872e1b2105b831ed69f7e), by Michael Bloch, uses the same framing device to arrive at the opposite conclusion. AI abundance creates deflationary prosperity, purchasing power gains, and an entrepreneurial surge. As Bloch frames it: "The intelligence premium didn't unwind. It was democratized."
+[The 2028 Global Intelligence Boom](https://x.com/michaelxbloch/status/2025712344123236418), by Michael Bloch, is a response to Citrini Research's *The 2028 Global Intelligence Crisis*. While using the same framing of a memo from June 2028, it arrives at the opposite conclusion. AI makes professional services like legal, financial, and medical guidance dramatically cheaper, displaced professionals launch AI-augmented businesses rather than remaining unemployed, and services once reserved for the wealthy become broadly accessible. Where Citrini sees crisis, Bloch sees abundance: who and what benefits when intelligence is democratized?
 
-Each piece is well-reasoned. Each reaches different conclusions. Taken together, they define a **cone of probability** rather than a single prediction. And within that cone lies the question that matters most: how should software engineers prepare?
+[The Real AI Risk Isn't the Jobs. It's the Abdication of the End](https://www.linkedin.com/pulse/real-ai-risk-isnt-jobs-its-abdication-end-laszlo-szalvay-dwtoc/), by Laszlo Szalvay, reframes the risk entirely. Drawing on Balaji Srinivasan's observation that AI is a "middle-to-middle system", Szalvay argues AI excels at execution but requires humans to set objectives and judge results. AI's recursive power is iterative, not incremental: it refines and extends patterns within existing frameworks, but it doesn't change the rules of the game. Humans make the "infinite moves", the rule-changing decisions that reshape entire domains. The real danger isn't that AI displaces humans, but that the intensity and speed of AI-accelerated work pressures humans into voluntarily ceding the one role machines can't fill: deciding what to build and whether it was worth building.
 
-That question deserves more than speculation. It deserves historical grounding.
+Each piece is well-reasoned. Each reaches different conclusions. Taken together, they define a **cone of probability** rather than a single prediction. In considering that cone, the question that matters most to me: how should software engineers prepare?
+
+Rather than speculate, I looked to the past: what lessons from the Industrial Revolution, humanity's last great technological upheaval, apply to the AI revolution unfolding now?
 
 ---
 
-## The landscape: where all three agree
+## The landscape: where all four agree
 
-Before mapping their disagreements, it's worth noting how much these three pieces share.
+Before mapping their disagreements, it's worth noting how much these four pieces share.
 
 **AI capabilities advance dramatically through 2027-2028.** AI 2027 tracks the progression from unreliable coding agents to superhuman AI researchers within roughly two years. Citrini describes agentic tools that let developers "replicate core SaaS functionality in weeks." Bloch agrees on the capability timeline entirely, differing only on the economic outcome. None of these authors think the current pace is slowing down.
 
-**White-collar disruption is real and significant.** This isn't treated as speculation in any of the three pieces. It's treated as a given. AI 2027 describes junior software engineers facing job market disruption by mid-2026. Citrini models the cascading layoffs. Bloch acknowledges the displacement but argues it gets absorbed through entrepreneurial activity. The debate is about what happens *after* disruption, not whether it occurs.
+**White-collar disruption is real and significant.** This isn't treated as speculation in any of the four pieces. It's treated as a given. AI 2027 describes junior software engineers facing job market disruption by mid-2026. Citrini models the cascading layoffs. Bloch acknowledges the displacement but argues it gets absorbed through entrepreneurial activity. The debate is about what happens *after* disruption, not whether it occurs.
 
-**The pace outstrips institutional adaptation.** All three pieces, implicitly or explicitly, recognize that governance, education, and labor markets cannot keep pace with AI capability growth. This is perhaps their deepest point of agreement, and it connects directly to the most important lesson from the last time humanity experienced a technological revolution of comparable magnitude.
+**The pace outstrips institutional adaptation.** All four pieces, implicitly or explicitly, recognize that governance, education, and labor markets cannot keep pace with AI capability growth. This is perhaps their deepest point of agreement, and it connects directly to the most important lesson from the last time humanity experienced a technological revolution of comparable magnitude.
 
-**All three invoke the Industrial Revolution.** And rightly so. It remains the closest analogue we have for what happens when a general-purpose technology restructures an entire economy.
+**Three of the four posts invoke the Industrial Revolution.** And rightly so. It remains the closest analogue we have for what happens when a general-purpose technology restructures an entire economy.
 
 ---
 
 ## The Industrial Revolution as baseline
+
+> "History doesn't repeat itself, but it often rhymes." -- Mark Twain
 
 The Industrial Revolution is not a metaphor. It's data.
 
@@ -55,7 +57,7 @@ That's the baseline. Now consider what the AI revolution adds to it.
 
 ---
 
-## Where the three visions diverge
+## Where the four visions diverge
 
 ### The economic debate: crisis or boom?
 
@@ -115,7 +117,9 @@ And the timescale makes everything harder. AI 2027 describes the progression fro
 
 ## The cone of probability
 
-Given these three perspectives and the historical baseline, what range of futures should software engineers actually prepare for?
+> "It's tough to make predictions, especially about the future." -- variously attributed
+
+Given these four perspectives and the historical baseline, what range of futures should software engineers actually prepare for?
 
 **The optimistic boundary** draws from Bloch, Autor, and Mokyr's analysis of technological anxiety. Displacement is real but temporary. Deflation is prosperity. New roles emerge that are unpredictable today. Engineers who adapt become dramatically more leveraged. The historical pattern, every wave of technological anxiety has eventually resolved through new work creation, continues to hold. Alignment challenges are solved or managed.
 
@@ -199,7 +203,9 @@ The same logic applies now, but with a much shorter clock.
 
 ## The window
 
-The three posts that frame this essay agree on more than they disagree. The change is coming fast. The disruption is real. The timelines are measured in years, not decades.
+> "The future ain't what it used to be." -- Yogi Berra
+
+The four posts that frame this essay agree on more than they disagree. The change is coming fast. The disruption is real. The timelines are measured in years, not decades.
 
 The Industrial Revolution tells us the transition will be painful, the benefits will be unevenly distributed, and no one can predict exactly which new roles will emerge. It also tells us something the AI revolution must reckon with: **the technology itself was never the variable that mattered most.** Power looms didn't have goals. Steam engines didn't scheme. The control problem of the Industrial Revolution was entirely social, and it still took 70 years to begin resolving.
 
