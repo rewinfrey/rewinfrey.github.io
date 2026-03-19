@@ -1,0 +1,321 @@
+---
+layout: default
+group: References
+title: "Small Models Bibliography"
+---
+
+{% include line-field-bg.html %}
+
+<style>
+  .bib-header {
+    padding: 2rem 0 0.5rem;
+  }
+
+  .bib-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3d3a36;
+    margin-bottom: 0.5rem;
+  }
+
+  .bib-subtitle {
+    font-size: 0.95rem;
+    color: #8b7355;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .bib-back {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: #c45a3b;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    border: none;
+  }
+
+  .bib-back:hover {
+    text-decoration: underline;
+  }
+
+  .bib-section-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin: 2.5rem 0 1rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(61, 58, 54, 0.1);
+  }
+
+  .bib-entry {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(61, 58, 54, 0.06);
+  }
+
+  .bib-entry:last-child {
+    border-bottom: none;
+  }
+
+  .bib-citation {
+    font-size: 0.95rem;
+    color: #3d3a36;
+    line-height: 1.7;
+  }
+
+  .bib-citation em {
+    color: #5a5550;
+  }
+
+  .bib-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .bib-link {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+  }
+
+  .bib-link.pdf {
+    background: rgba(196, 90, 59, 0.1);
+    color: #c45a3b;
+  }
+
+  .bib-link.pdf:hover {
+    background: rgba(196, 90, 59, 0.2);
+  }
+
+  .bib-link.external {
+    background: rgba(61, 58, 54, 0.06);
+    color: #5a5550;
+  }
+
+  .bib-link.external:hover {
+    background: rgba(61, 58, 54, 0.12);
+  }
+
+  .bib-note {
+    font-size: 0.85rem;
+    color: #8b7355;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .bib-posts {
+    margin-top: 2.5rem;
+    padding: 1rem 1.2rem;
+    background: rgba(61, 58, 54, 0.03);
+    border: 1px solid rgba(61, 58, 54, 0.08);
+    border-radius: 6px;
+  }
+
+  .bib-posts-title {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3d3a36;
+    margin-bottom: 0.6rem;
+  }
+
+  .bib-posts a {
+    display: block;
+    font-size: 0.9rem;
+    color: #c45a3b;
+    text-decoration: none;
+    border: none;
+    padding: 0.2rem 0;
+    line-height: 1.5;
+  }
+
+  .bib-posts a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<section class="landing-section page-card animate-on-scroll">
+
+<div class="bib-header">
+  <h1 class="bib-title">Small Models for Text Classification</h1>
+  <p class="bib-subtitle">
+    Research bibliography for the small models post. Papers cover word embeddings, transformers, model compression, sentence embeddings, few-shot learning, and on-device deployment.
+  </p>
+  <a href="/references" class="bib-back">&larr; All references</a>
+</div>
+
+<!-- ==================== -->
+<!-- Word Representations  -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Word Representations</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    T. Mikolov, K. Chen, G. Corrado &amp; J. Dean, "Efficient Estimation of Word Representations in Vector Space," 2013.
+  </div>
+  <div class="bib-note">Introduced Word2Vec, learning dense vector representations of words from large corpora. Showed that semantic relationships are encoded as geometric relationships in the vector space.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1301.3781" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Joulin, E. Grave, P. Bojanowski &amp; T. Mikolov, "Bag of Tricks for Efficient Text Classification," <em>Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics (EACL)</em>, 2017.
+  </div>
+  <div class="bib-note">Introduced FastText, combining word and character n-gram embeddings for fast, accurate text classification. Models are small (1-10 MB) and handle misspellings and rare words well.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1607.01759" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://fasttext.cc/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> FastText</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Transformers          -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Transformers</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser &amp; I. Polosukhin, "Attention Is All You Need," <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, 2017.
+  </div>
+  <div class="bib-note">Introduced the transformer architecture with self-attention as the sole mechanism for sequence modeling. The foundation for all subsequent encoder-only (BERT) and decoder-only (GPT) models.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1706.03762" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    J. Devlin, M. Chang, K. Lee &amp; K. Toutanova, "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding," <em>Proceedings of NAACL-HLT</em>, 2019.
+  </div>
+  <div class="bib-note">Introduced bidirectional pre-training with masked language modeling. BERT-base (110M parameters) became the foundation for a generation of NLP models and the starting point for most model compression work.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1810.04805" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://huggingface.co/google-bert/bert-base-uncased" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hugging Face</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Model Compression     -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Model Compression</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    G. Hinton, O. Vinyals &amp; J. Dean, "Distilling the Knowledge in a Neural Network," <em>NIPS Deep Learning Workshop</em>, 2015.
+  </div>
+  <div class="bib-note">Introduced knowledge distillation: training a small student model on the soft probability distributions of a large teacher model. The foundational technique behind DistilBERT, TinyBERT, and other compressed models.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1503.02531" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    V. Sanh, L. Debut, J. Chaumond &amp; T. Wolf, "DistilBERT, a Distilled Version of BERT: Smaller, Faster, Cheaper and Lighter," <em>5th Workshop on Energy Efficient Machine Learning and Cognitive Computing (NeurIPS)</em>, 2019.
+  </div>
+  <div class="bib-note">Applied knowledge distillation to BERT, producing a 6-layer model (66M parameters) that retains 97% of BERT's language understanding while being 60% smaller and 60% faster.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1910.01108" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://huggingface.co/distilbert/distilbert-base-uncased" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hugging Face</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    X. Jiao, Y. Yin, L. Shang, X. Jiang, X. Chen, L. Li, F. Wang &amp; Q. Liu, "TinyBERT: Distilling BERT for Natural Language Understanding," <em>Findings of EMNLP</em>, 2020.
+  </div>
+  <div class="bib-note">Extended distillation to match intermediate representations (attention matrices and hidden states), producing a 14.5M parameter model that preserves more of BERT's behavior per parameter than output-only distillation.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1909.10351" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://huggingface.co/huawei-noah/TinyBERT_General_6L_768D" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hugging Face</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Z. Lan, M. Chen, S. Goodman, K. Gimpel, P. Sharma &amp; R. Soricut, "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations," <em>ICLR</em>, 2020.
+  </div>
+  <div class="bib-note">Achieved parameter reduction through cross-layer weight sharing and embedding factorization. ALBERT-tiny reaches 4M parameters, though with reduced accuracy compared to full BERT.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1909.11942" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    Z. Sun, H. Yu, X. Song, R. Liu, Y. Yang &amp; D. Zhou, "MobileBERT: a Compact Task-Agnostic BERT for Resource-Limited Devices," <em>Proceedings of ACL</em>, 2020.
+  </div>
+  <div class="bib-note">Designed specifically for mobile deployment with a bottleneck architecture (narrow hidden size, wider feedforward blocks). At 25M parameters, MobileBERT fits comfortably in a mobile app bundle.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2004.02984" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://huggingface.co/google/mobilebert-uncased" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hugging Face</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Sentence Embeddings   -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Sentence Embeddings</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    N. Reimers &amp; I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks," <em>Proceedings of EMNLP-IJCNLP</em>, 2019.
+  </div>
+  <div class="bib-note">Fine-tuned BERT with a siamese network architecture to produce high-quality sentence embeddings. The foundation for the sentence-transformers library and the backbone models used in SetFit.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/1908.10084" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://www.sbert.net/" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> SBERT</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Few-Shot Learning     -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Few-Shot Learning</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    L. Tunstall, N. Reimers, U. E. S. Jo, L. Bates, D. Korat, M. Wasserblat &amp; O. Pereg, "Efficient Few-Shot Learning Without Prompts," 2022.
+  </div>
+  <div class="bib-note">Introduced SetFit, a two-phase approach (contrastive fine-tuning of sentence transformers + classification head) that achieves strong few-shot classification without prompt engineering. The contrastive pairs amplify small datasets combinatorially.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2209.11055" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+    <a href="https://huggingface.co/docs/setfit" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hugging Face Docs</a>
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Representation Learning -->
+<!-- ==================== -->
+
+<div class="bib-section-title">Representation Learning</div>
+
+<div class="bib-entry">
+  <div class="bib-citation">
+    A. Kusupati, G. Bhatt, A. Rber, M. Wallingford, A. Sinha, V. Ramanujan, W. Howard-Snyder, K. Chen, S. Kakade, P. Jain &amp; A. Farhadi, "Matryoshka Representation Learning," <em>NeurIPS</em>, 2022.
+  </div>
+  <div class="bib-note">Trained models to produce embeddings useful at multiple dimensionalities. Allows deploying the same model at different quality/size trade-offs by truncating the embedding vector.</div>
+  <div class="bib-links">
+    <a href="https://arxiv.org/abs/2205.13147" class="bib-link external"><i class="fa-solid fa-arrow-up-right-from-square"></i> arXiv</a>
+  </div>
+</div>
+
+<div class="bib-posts">
+  <div class="bib-posts-title">Related posts</div>
+  <a href="/writings/small-models-for-text-classification">Small Models for On-Device Text Classification</a>
+</div>
+
+</section>
