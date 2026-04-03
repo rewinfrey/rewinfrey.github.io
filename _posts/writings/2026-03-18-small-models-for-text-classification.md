@@ -4,6 +4,7 @@ group: Writings
 title: "Small Models for On-Device Text Classification"
 summary: "LLMs are powerful classifiers, but they require API calls, cost money per request, and can't run offline. This post explores the landscape of small models, from bag-of-words to transformers to contrastive learning, that can classify text entirely on a phone or tablet."
 date: 2026-03-18 12:00:00
+image: /assets/images/og/small-models-text-classification.png
 categories:
 - writings
 ---

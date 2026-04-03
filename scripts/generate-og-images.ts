@@ -73,6 +73,10 @@ const POSTS: CardData[] = [
     filename: "superintelligence.png",
     title: "How Software Engineers Can Prepare for Superintelligence",
   },
+  {
+    filename: "small-models-text-classification.png",
+    title: "Small Models for On-Device Text Classification",
+  },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
